@@ -3,8 +3,26 @@
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
 <aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link active" href="../articles/linux-system-status-commands.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>6 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/knowledge-base-public" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 常用系统状态查看命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-10-27</time><span class="meta-dot">·</span><span>约 8 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">operations</span><span class="tag">network</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>日常检查系统、CPU、内存、磁盘、进程、网络、服务和日志的速查笔记。不绑定具体项目，以查看命令为主；部分命令需要 sudo 权限或对应工具已安装。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 常用系统状态查看命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-10-27</time><span class="meta-dot">·</span><span>约 9 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">operations</span><span class="tag">network</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>日常检查系统、CPU、内存、磁盘、进程、网络、服务和日志的速查笔记。不绑定具体项目，以查看命令为主；部分命令需要 sudo 权限或对应工具已安装。</p>
 <p>每组命令下方附解释或示例。示例 IP <code>192.0.2.10</code> 为文档专用地址，PID、服务名和目录均需按实际情况替换；示例结果不代表当前服务器状态。</p>
+<details class="install-guide">
+<summary>安装可选查看工具：iostat、lsof、nc、dig</summary>
+<p>先执行 <code>cat /etc/os-release</code> 确认系统。仅安装缺少的包，普通用户需有sudo授权。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian</span>
+<span class="hljs-built_in">sudo</span> apt-get update
+<span class="hljs-built_in">sudo</span> apt-get install sysstat lsof netcat-openbsd dnsutils
+</code></pre>
+<p>示例：<code>sysstat</code>提供 <code>iostat/pidstat</code>，<code>netcat-openbsd</code>提供 <code>nc</code>，<code>dnsutils</code>提供 <code>dig/nslookup</code>。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 使用dnf的RHEL系</span>
+<span class="hljs-built_in">sudo</span> dnf install sysstat lsof nmap-ncat bind-utils
+</code></pre>
+<p>示例：使用yum的旧系统按其现有批准仓库选包，不直接换成新版系统源。验证时执行：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v iostat lsof nc dig
+iostat -V
+nc -h
+</code></pre>
+<p>基础命令包缺失、更多工具及旧系统说明见 <a href="linux-server-operations-commands.html">服务器常用命令</a>。</p>
+</details>
 <h2 id="1-系统信息与运行时间">1. 系统信息与运行时间</h2>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /etc/os-release   <span class="hljs-comment"># 系统发行版</span>
 <span class="hljs-built_in">uname</span> -a              <span class="hljs-comment"># 内核版本、主机架构等</span>

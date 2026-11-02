@@ -3,8 +3,37 @@
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
 <aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link active" href="../articles/kubernetes-operations-commands.html" aria-current="page"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>6 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>容器运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/knowledge-base-public" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">容器运维</div><h1>Kubernetes 常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 21 分钟阅读</span></div><div class="tag-row"><span class="tag">kubernetes</span><span class="tag">kubectl</span><span class="tag">k8s</span><span class="tag">operations</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>覆盖 kubectl 日常巡检、日志、发布回滚、配置、存储、网络、节点维护、权限与故障定位。示例命名空间为 <code>demo</code>，应用为 <code>demo-api</code>；Pod、节点名、镜像及地址均需替换。先确认集群和命名空间，再执行操作；读取 Secret、进入容器、改配置、重启与删除都需要对应 RBAC 权限。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">容器运维</div><h1>Kubernetes 常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 25 分钟阅读</span></div><div class="tag-row"><span class="tag">kubernetes</span><span class="tag">kubectl</span><span class="tag">k8s</span><span class="tag">operations</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>覆盖 kubectl 日常巡检、日志、发布回滚、配置、存储、网络、节点维护、权限与故障定位。示例命名空间为 <code>demo</code>，应用为 <code>demo-api</code>；Pod、节点名、镜像及地址均需替换。先确认集群和命名空间，再执行操作；读取 Secret、进入容器、改配置、重启与删除都需要对应 RBAC 权限。</p>
 <h2 id="1-集群上下文和命名空间">1. 集群、上下文和命名空间</h2>
+<details class="install-guide">
+<summary>安装 kubectl：选择版本、下载、校验及普通用户安装</summary>
+<p>kubectl只是客户端，不会创建Kubernetes集群。先向管理员确认API Server版本，客户端版本一般应在服务端前后一个小版本内；不要在不知集群版本时直接下载最新版。</p>
+<p>下面演示Linux amd64下载流程，<code>v1.35.0</code>仅为固定版本示例，应改为与集群匹配、经批准的补丁版本；<code>uname -m</code>若为aarch64，下载架构改为arm64。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">uname</span> -m
+<span class="hljs-built_in">mkdir</span> -p <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/downloads/kubectl&quot;</span>
+<span class="hljs-built_in">cd</span> <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/downloads/kubectl&quot;</span>
+kubectl_version=<span class="hljs-string">&#x27;v1.35.0&#x27;</span> <span class="hljs-comment"># 按集群版本调整</span>
+kubectl_arch=<span class="hljs-string">&#x27;amd64&#x27;</span>     <span class="hljs-comment"># 按实际架构调整</span>
+curl -fLO <span class="hljs-string">&quot;https://dl.k8s.io/release/<span class="hljs-variable">$kubectl_version</span>/bin/linux/<span class="hljs-variable">$kubectl_arch</span>/kubectl&quot;</span>
+curl -fLO <span class="hljs-string">&quot;https://dl.k8s.io/release/<span class="hljs-variable">$kubectl_version</span>/bin/linux/<span class="hljs-variable">$kubectl_arch</span>/kubectl.sha256&quot;</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s  kubectl\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-subst">$(cat kubectl.sha256)</span>&quot;</span> | <span class="hljs-built_in">sha256sum</span> --check
+</code></pre>
+<p>示例：最后应显示 <code>kubectl: OK</code>。任一步下载失败或校验不符就停止，不安装该文件。校验成功后，有管理员授权可安装到系统路径：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
+</code></pre>
+<p>示例：没有sudo时可改为个人目录，不需要改变系统权限：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">mkdir</span> -p <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.local/bin&quot;</span>
+install -m 0755 kubectl <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.local/bin/kubectl&quot;</span>
+<span class="hljs-built_in">export</span> PATH=<span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.local/bin:<span class="hljs-variable">$PATH</span>&quot;</span>
+kubectl version --client
+</code></pre>
+<p>示例：<code>export</code>仅对当前shell及后代生效；长期使用将同样PATH配置放进自己所用shell的配置文件，避免重复追加。集群访问还需要管理员发放的个人kubeconfig，不能复制他人的cluster-admin凭据。</p>
+<pre><code class="hljs language-bash">KUBECONFIG=<span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.kube/demo-config&quot;</span> kubectl config current-context
+KUBECONFIG=<span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.kube/demo-config&quot;</span> kubectl -n demo auth can-i get pods
+</code></pre>
+<p>示例：这里假设管理员提供的配置已安全放在该路径。能输出客户端版本不代表已有集群访问权；本机sudo也不能解决Kubernetes RBAC的Forbidden。步骤见 <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/">kubectl官方安装说明</a>。</p>
+</details>
 <pre><code class="hljs language-bash">kubectl version --client                 <span class="hljs-comment"># 本机客户端版本</span>
 kubectl version                          <span class="hljs-comment"># 客户端与服务端版本</span>
 kubectl config get-contexts              <span class="hljs-comment"># 上下文列表</span>
@@ -59,6 +88,14 @@ kubectl -n demo <span class="hljs-built_in">cp</span> ./config-test.yaml demo-ap
 </code></pre>
 <p>示例：给目标Pod添加临时调试容器，需要集群功能、运行时和权限支持；会修改Pod，可能被安全策略拒绝。使用受信任的调试镜像，结束shell不代表调试容器记录从Pod规格中消失。</p>
 <h2 id="6-cpu内存限制与-oom">6. CPU、内存、限制与 OOM</h2>
+<details class="install-guide">
+<summary>kubectl top 报错：检查指标服务，不是再装一个top命令</summary>
+<pre><code class="hljs language-bash">kubectl get apiservice v1beta1.metrics.k8s.io
+kubectl -n kube-system get deployment metrics-server
+kubectl -n kube-system logs deployment/metrics-server --<span class="hljs-built_in">tail</span>=100
+</code></pre>
+<p>示例：资源不存在或指标API不可用时，需要集群管理员检查或部署与集群兼容的 <a href="https://github.com/kubernetes-sigs/metrics-server">metrics-server</a>。部署名称/命名空间可能不同，按实际安装查找。不要直接把最新版清单套进旧集群，或为了绕过证书问题默认加跳过kubelet证书校验的参数。</p>
+</details>
 <pre><code class="hljs language-bash">kubectl top nodes                                  <span class="hljs-comment"># 节点资源</span>
 kubectl -n demo top pods --containers              <span class="hljs-comment"># 容器资源</span>
 kubectl -n demo describe pod demo-api-abc-123       <span class="hljs-comment"># requests/limits、last state</span>
@@ -182,6 +219,24 @@ kubectl drain worker-1 --ignore-daemonsets --<span class="hljs-built_in">timeout
 kubectl uncordon worker-1                    <span class="hljs-comment"># 维护验收后恢复调度</span>
 </code></pre>
 <p>示例：先确认有其他节点容量且业务可迁移。drain受PDB等约束；默认遇到emptyDir或不受控制器管理的Pod可能中止。不要为通过命令直接加 <code>--force</code>、<code>--delete-emptydir-data</code> 或绕过驱逐的参数。</p>
+<details class="install-guide">
+<summary>节点缺少 crictl：安装 cri-tools 并配置运行时端点</summary>
+<p>仅在需要排查的Kubernetes节点操作，不在普通办公电脑上假设存在运行时socket。优先沿用集群维护的软件源与对应版本。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v crictl
+<span class="hljs-comment"># Ubuntu / Debian，前提是已配置与集群匹配的Kubernetes软件源</span>
+apt-cache policy cri-tools
+<span class="hljs-built_in">sudo</span> apt-get install cri-tools
+<span class="hljs-comment"># RHEL系使用其匹配源时，改选：</span>
+<span class="hljs-comment"># dnf info cri-tools</span>
+<span class="hljs-comment"># sudo dnf install cri-tools</span>
+</code></pre>
+<p>示例：未配置源时不要直接加入另一小版本仓库；由管理员按集群发行方式提供匹配包，或按照 <a href="https://github.com/kubernetes-sigs/cri-tools/blob/master/docs/crictl.md">cri-tools安装说明</a> 下载对应架构的正式发行文件并验证校验和。</p>
+<p>containerd节点的单次查询示例：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> crictl --runtime-endpoint unix:///run/containerd/containerd.sock info
+<span class="hljs-built_in">sudo</span> crictl --runtime-endpoint unix:///run/containerd/containerd.sock ps -a
+</code></pre>
+<p>示例：socket路径以实际containerd配置为准；CRI-O、K3s、RKE2等可能使用不同端点。确认后可由管理员配置 <code>/etc/crictl.yaml</code>，不要把私有socket开放成所有用户可写。</p>
+</details>
 <p>登录目标节点后的只读检查，需匹配实际运行时：</p>
 <pre><code class="hljs language-bash">systemctl status kubelet --no-pager -l         <span class="hljs-comment"># kubelet状态</span>
 <span class="hljs-built_in">sudo</span> journalctl -u kubelet -b -n 100 --no-pager <span class="hljs-comment"># 日志</span>

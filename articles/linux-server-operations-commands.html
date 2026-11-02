@@ -3,7 +3,95 @@
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
 <aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link active" href="../articles/linux-server-operations-commands.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>6 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/knowledge-base-public" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 服务器常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 28 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">server</span><span class="tag">shell</span><span class="tag">ssh</span><span class="tag">files</span><span class="tag">permissions</span><span class="tag">network</span><span class="tag">operations</span></div></div><article class="markdown-body"><p>面向日常Linux服务器维护，覆盖系统、文件、权限、进程、磁盘、网络、SSH传输、日志、服务、软件和定时任务。示例使用Bash、目录 <code>/opt/demo</code>、用户 <code>demo</code>、文档专用IP <code>192.0.2.10</code>，均按实际环境替换。命令按用途单独执行；安装软件、改权限、修改网络、停止服务、删除文件会改变系统状态。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 服务器常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 30 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">server</span><span class="tag">shell</span><span class="tag">ssh</span><span class="tag">files</span><span class="tag">permissions</span><span class="tag">network</span><span class="tag">operations</span></div></div><article class="markdown-body"><p>面向日常Linux服务器维护，覆盖系统、文件、权限、进程、磁盘、网络、SSH传输、日志、服务、软件和定时任务。示例使用Bash、目录 <code>/opt/demo</code>、用户 <code>demo</code>、文档专用IP <code>192.0.2.10</code>，均按实际环境替换。命令按用途单独执行；安装软件、改权限、修改网络、停止服务、删除文件会改变系统状态。</p>
+<details class="install-guide">
+<summary>命令不存在？展开查看常用工具安装方法</summary>
+<p>先确认系统，不要把不同发行版的命令整段一起执行：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /etc/os-release <span class="hljs-comment"># ID和VERSION_ID用于确认系统</span>
+<span class="hljs-built_in">command</span> -v <span class="hljs-built_in">sudo</span> curl ss lsof iostat rg tmux <span class="hljs-comment"># 查看已安装命令</span>
+</code></pre>
+<p>示例：Ubuntu/Debian用apt，RHEL/Rocky/AlmaLinux等通常用dnf；旧系统可能只有yum。普通用户安装需要相应sudo授权，没有授权时请管理员操作。</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>Ubuntu / Debian 包名</th>
+<th>RHEL系常见包名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>top、free、ps、pgrep、vmstat</td>
+<td>procps</td>
+<td>procps-ng</td>
+</tr>
+<tr>
+<td>ip、ss</td>
+<td>iproute2</td>
+<td>iproute</td>
+</tr>
+<tr>
+<td>lsblk、findmnt、lscpu、namei</td>
+<td>util-linux</td>
+<td>util-linux</td>
+</tr>
+<tr>
+<td>iostat、pidstat</td>
+<td>sysstat</td>
+<td>sysstat</td>
+</tr>
+<tr>
+<td>lsof</td>
+<td>lsof</td>
+<td>lsof</td>
+</tr>
+<tr>
+<td>nc</td>
+<td>netcat-openbsd</td>
+<td>nmap-ncat</td>
+</tr>
+<tr>
+<td>dig、nslookup</td>
+<td>dnsutils</td>
+<td>bind-utils</td>
+</tr>
+<tr>
+<td>rg</td>
+<td>ripgrep</td>
+<td>ripgrep，可能需获准的附加仓库</td>
+</tr>
+<tr>
+<td>mtr</td>
+<td>mtr-tiny或mtr</td>
+<td>mtr</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>curl、wget、rsync、unzip、tmux、tcpdump、traceroute、openssl</td>
+<td>通常同名</td>
+</tr>
+</tbody>
+</table>
+<p>Ubuntu / Debian按需选择软件包：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> apt-get update <span class="hljs-comment"># 刷新软件包索引</span>
+<span class="hljs-built_in">sudo</span> apt-get install sysstat lsof netcat-openbsd dnsutils ripgrep
+<span class="hljs-built_in">sudo</span> apt-get install curl wget rsync unzip tmux tcpdump traceroute mtr-tiny openssl
+</code></pre>
+<p>示例：只缺 <code>iostat</code> 时，刷新索引后只需 <code>sudo apt-get install sysstat</code>，不必安装整个列表。</p>
+<p>RHEL / Rocky / AlmaLinux按需选择软件包：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> dnf install sysstat lsof nmap-ncat bind-utils
+<span class="hljs-built_in">sudo</span> dnf install curl wget rsync unzip tmux tcpdump traceroute mtr openssl
+dnf info ripgrep <span class="hljs-comment"># 确认已批准的软件源是否提供ripgrep</span>
+</code></pre>
+<p>示例：<code>rg</code>不在现有仓库时可先用 <code>grep</code>。不要为一个工具直接切换系统软件源；附加仓库由管理员按系统版本批准。只有yum的旧系统，可按本机仓库使用 <code>sudo yum install sysstat lsof nmap-ncat bind-utils</code>；CentOS 7已结束维护，仓库不可用时不要照搬新系统源或关闭签名校验。</p>
+<p>安装后验证：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v iostat pidstat lsof nc dig rg tmux
+iostat -V
+nc -h <span class="hljs-comment"># netcat不同实现的选项会有区别</span>
+rg --version
+</code></pre>
+<p>示例：安装sysstat使采样命令可用；是否开启长期历史采集是额外配置，不需要为了运行一次 <code>iostat</code> 就启动全部采集任务。安装不会在本文所述场景中自动配置目标业务服务。</p>
+</details>
 <h2 id="普通用户登录后权限不足怎么处理">普通用户登录后，权限不足怎么处理</h2>
 <h3 id="先确认当前身份和授权">先确认当前身份和授权</h3>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">whoami</span>    <span class="hljs-comment"># 当前用户名</span>
@@ -355,11 +443,7 @@ dpkg-query -W curl       <span class="hljs-comment"># Debian系查询包</span>
 apt-cache policy curl    <span class="hljs-comment"># Debian系候选/已安装版本</span>
 </code></pre>
 <p>示例：按发行版选择rpm/dnf/yum或dpkg/apt，不能混用；自定义安装的Java、Nginx、Redis未必在系统包管理器里。</p>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> dnf install lsof sysstat <span class="hljs-comment"># 使用dnf的系统，安装工具</span>
-<span class="hljs-built_in">sudo</span> apt-get update          <span class="hljs-comment"># 使用apt的系统，刷新索引</span>
-<span class="hljs-built_in">sudo</span> apt-get install lsof sysstat <span class="hljs-comment"># 使用apt的系统，安装工具</span>
-</code></pre>
-<p>示例：仅执行符合本机发行版的一套命令；安装前核对源、依赖和变更流程。不为一次排障直接执行整机软件升级。</p>
+<p>缺少工具时，展开本文开头的“常用工具安装方法”，按发行版安装；不为一次排障直接执行整机软件升级。</p>
 <h2 id="17-防火墙与-selinux">17. 防火墙与 SELinux</h2>
 <pre><code class="hljs language-bash">systemctl is-active firewalld        <span class="hljs-comment"># firewalld状态</span>
 <span class="hljs-built_in">sudo</span> firewall-cmd --get-active-zones <span class="hljs-comment"># 活动zone</span>
