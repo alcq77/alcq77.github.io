@@ -3,7 +3,146 @@
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
 <aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link active" href="../articles/linux-server-operations-commands.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>6 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/knowledge-base-public" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 服务器常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 21 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">server</span><span class="tag">shell</span><span class="tag">ssh</span><span class="tag">files</span><span class="tag">permissions</span><span class="tag">network</span><span class="tag">operations</span></div></div><article class="markdown-body"><p>面向日常Linux服务器维护，覆盖系统、文件、权限、进程、磁盘、网络、SSH传输、日志、服务、软件和定时任务。示例使用Bash、目录 <code>/opt/demo</code>、用户 <code>demo</code>、文档专用IP <code>192.0.2.10</code>，均按实际环境替换。命令按用途单独执行；安装软件、改权限、修改网络、停止服务、删除文件会改变系统状态。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 服务器常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 28 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">server</span><span class="tag">shell</span><span class="tag">ssh</span><span class="tag">files</span><span class="tag">permissions</span><span class="tag">network</span><span class="tag">operations</span></div></div><article class="markdown-body"><p>面向日常Linux服务器维护，覆盖系统、文件、权限、进程、磁盘、网络、SSH传输、日志、服务、软件和定时任务。示例使用Bash、目录 <code>/opt/demo</code>、用户 <code>demo</code>、文档专用IP <code>192.0.2.10</code>，均按实际环境替换。命令按用途单独执行；安装软件、改权限、修改网络、停止服务、删除文件会改变系统状态。</p>
+<h2 id="普通用户登录后权限不足怎么处理">普通用户登录后，权限不足怎么处理</h2>
+<h3 id="先确认当前身份和授权">先确认当前身份和授权</h3>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">whoami</span>    <span class="hljs-comment"># 当前用户名</span>
+<span class="hljs-built_in">id</span>        <span class="hljs-comment"># 用户、主组和附加组</span>
+<span class="hljs-built_in">sudo</span> -l   <span class="hljs-comment"># 查询允许以sudo执行哪些命令，可能提示输入密码</span>
+</code></pre>
+<p>示例：SSH以 <code>demo</code> 登录，<code>whoami</code> 返回 <code>demo</code>。如果 <code>sudo -l</code> 显示允许执行某些 <code>systemctl</code> 命令，就只按授权范围使用；不代表可以执行所有管理员命令。</p>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>使用方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>有sudo授权</td>
+<td>在需要权限的那一条命令前加 <code>sudo</code></td>
+</tr>
+<tr>
+<td>只允许部分命令</td>
+<td>按 <code>sudo -l</code> 显示的命令和参数执行</td>
+</tr>
+<tr>
+<td>没有sudo授权</td>
+<td>请管理员执行，或授予具体命令/目录的必要权限</td>
+</tr>
+<tr>
+<td>已获准使用root身份且有对应凭据</td>
+<td>可按管理制度使用 <code>su -</code> 或已授权的 <code>sudo -i</code></td>
+</tr>
+<tr>
+<td>文件位于个人目录</td>
+<td>通常直接操作，不需要sudo</td>
+</tr>
+</tbody>
+</table>
+<p>普通用户不能凭一条命令自行获得尚未授予的管理员权限。也不要为省事默认开放root远程登录或全量免密sudo。</p>
+<h3 id="sudo-的常见用法">sudo 的常见用法</h3>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl status demo-api --no-pager -l <span class="hljs-comment"># 用管理员权限查看服务</span>
+<span class="hljs-built_in">sudo</span> systemctl restart demo-api             <span class="hljs-comment"># 用管理员权限重启，会中断服务</span>
+<span class="hljs-built_in">sudo</span> journalctl -u demo-api -n 100 --no-pager <span class="hljs-comment"># 读取服务日志</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">ls</span> -lah /root                          <span class="hljs-comment"># 有授权时查看受限目录</span>
+<span class="hljs-built_in">sudo</span> -u demo <span class="hljs-built_in">id</span>                             <span class="hljs-comment"># 以指定用户执行，须被授权</span>
+<span class="hljs-built_in">sudo</span> -k                                    <span class="hljs-comment"># 清除当前sudo认证缓存</span>
+</code></pre>
+<p>示例：普通用户 <code>systemctl status</code> 通常可用，但完整日志、其他用户的进程信息和启停操作可能需要提权。sudo通常要求输入<strong>当前登录用户的密码</strong>，不是root密码；具体取决于服务器策略。终端输入密码不显示字符是正常行为。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> -i  <span class="hljs-comment"># 获准时进入root登录环境</span>
+<span class="hljs-built_in">whoami</span>   <span class="hljs-comment"># 核对是否为root</span>
+<span class="hljs-built_in">exit</span>     <span class="hljs-comment"># 完成后退出root shell，返回原用户</span>
+</code></pre>
+<p>示例：只执行一条管理命令时优先单条sudo。<code>sudo -i</code> 会改变身份、HOME和环境，完成后及时退出；再次 <code>whoami</code> 应回到原登录用户。<code>su -</code> 默认切换root，通常需要目标用户密码，目标账号锁定时可能不能使用。</p>
+<h3 id="编辑配置与-shell-重定向">编辑配置与 shell 重定向</h3>
+<pre><code class="hljs language-bash">sudoedit /etc/systemd/system/demo-api.service <span class="hljs-comment"># 用获准的编辑方式修改配置</span>
+<span class="hljs-built_in">sudo</span> systemctl daemon-reload                 <span class="hljs-comment"># 单元文件修改后重新加载</span>
+</code></pre>
+<p>示例：<code>sudoedit</code> 在策略允许时用当前用户的编辑器编辑临时副本，再以特权写回；可用范围取决于sudo授权。不要把配置文件永久改成普通用户所有来绕过编辑权限。</p>
+<p>下面这种写法可能仍然报 <code>Permission denied</code>：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">echo</span> <span class="hljs-string">&#x27;example&#x27;</span> &gt; /etc/demo.conf
+</code></pre>
+<p>示例：<code>echo</code>被提权，但 <code>&gt;</code> 是当前普通用户的shell先执行的，写文件仍被拒绝。上面仅说明错误写法，不要尝试覆盖已有配置。</p>
+<p>如果确实要创建一个<strong>新的演示文件</strong>，可将输出交给有权限的 <code>tee</code>：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\n&#x27;</span> <span class="hljs-string">&#x27;example&#x27;</span> | <span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tee</span> /etc/demo-example.conf &gt; /dev/null
+</code></pre>
+<p>示例：权限作用在真正写文件的 <code>tee</code> 上。<code>tee</code> 默认覆盖文件，<code>tee -a</code> 才是追加；修改正式配置优先使用编辑器或受控发布，不能重复追加同一段配置。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> sh -c <span class="hljs-string">&#x27;cd /root &amp;&amp; pwd&#x27;</span> <span class="hljs-comment"># 确有需要且获准时，在提权shell中执行内建命令</span>
+</code></pre>
+<p>示例：<code>cd</code> 是shell内建命令，<code>sudo cd /root</code>不能改变当前shell目录。通常无需进入受限目录，直接 <code>sudo ls /root</code> 更清楚；不要把不可信变量拼入 <code>sh -c</code>。</p>
+<h3 id="上传文件先暂存再由管理员安装">上传文件先暂存，再由管理员安装</h3>
+<pre><code class="hljs language-bash">scp ./app.jar demo@192.0.2.10:~/app.jar.new <span class="hljs-comment"># 从本机上传到用户自己的目录</span>
+</code></pre>
+<p>示例：普通用户无法直接上传到root所有的发布目录时，先上传自己的HOME目录；SCP不能通过在远端路径前写sudo来提权。</p>
+<p>登录目标服务器后，在已安排的发版流程中执行：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sha256sum</span> <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/app.jar.new&quot;</span> <span class="hljs-comment"># 核对上传后的包</span>
+<span class="hljs-built_in">sudo</span> systemctl stop demo-api <span class="hljs-comment"># 停服并确认原进程退出后再替换</span>
+<span class="hljs-built_in">sudo</span> install -o demo -g demo -m 0644 <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/app.jar.new&quot;</span> /opt/demo/app.jar
+<span class="hljs-built_in">sudo</span> systemctl start demo-api
+</code></pre>
+<p>示例：这里假设服务账号/组为 <code>demo</code>，且<strong>原包已备份</strong>。<code>install</code>会覆盖目标文件并设置属主和权限；实际账号、文件名与配置以服务为准，不直接复制到运行中的JAR上。</p>
+<h3 id="服务目录与日志读取">服务目录与日志读取</h3>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">ls</span> -ld /opt/demo /opt/demo/logs <span class="hljs-comment"># 先检查属主和权限</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 100 /opt/demo/logs/app.log <span class="hljs-comment"># 临时读取受限日志</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :8080&#x27;</span> <span class="hljs-comment"># 完整查看端口对应进程</span>
+</code></pre>
+<p>示例：读取日志可以单条sudo，或由管理员通过专门的只读组/ACL授权。不应为了让维护账号看日志，把应用配置和数据目录全部开放写权限。journal读取权限通常可通过发行版对应日志组管理，但组名和授权范围需管理员核对。</p>
+<h3 id="path环境变量和家目录变化">PATH、环境变量和家目录变化</h3>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v java                    <span class="hljs-comment"># 当前普通用户解析到的Java</span>
+<span class="hljs-built_in">sudo</span> /opt/jdk17/bin/java -version  <span class="hljs-comment"># 提权时使用已核对的绝对路径</span>
+</code></pre>
+<p>示例：sudo可能使用受控PATH、过滤环境变量，因此用户能执行 <code>java</code>，sudo却提示找不到，或执行了另一套版本。明确绝对路径，不为方便默认使用 <code>sudo -E</code> 保留全部环境。</p>
+<p>不要用sudo在用户项目里反复构建、解压或安装依赖，否则可能产生root所有的文件，后续普通用户无法修改。遇到这类问题先确认具体文件，再由管理员修复范围内的属主，不递归修改系统目录。</p>
+<h3 id="常见报错对照">常见报错对照</h3>
+<table>
+<thead>
+<tr>
+<th>报错或现象</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>is not in the sudoers file</code></td>
+<td>当前用户未被授予sudo，联系管理员</td>
+</tr>
+<tr>
+<td><code>not allowed to execute</code></td>
+<td>命令或参数不在授权范围，按最小范围申请</td>
+</tr>
+<tr>
+<td><code>Authentication failure</code></td>
+<td>核对当前用户密码、账号和sudo认证策略</td>
+</tr>
+<tr>
+<td>sudo命令成功但 <code>&gt;</code> 报错</td>
+<td>重定向仍由普通shell执行，用受控编辑或sudo tee</td>
+</tr>
+<tr>
+<td><code>sudo: command not found</code></td>
+<td>可能没有安装sudo；需管理员通过已授权途径处理</td>
+</tr>
+<tr>
+<td><code>sudo java: command not found</code></td>
+<td>核对sudo PATH，使用正确绝对路径</td>
+</tr>
+<tr>
+<td>Docker socket <code>permission denied</code></td>
+<td>使用获准的sudo或rootless方案；docker组权限很高，不默认加入</td>
+</tr>
+<tr>
+<td><code>kubectl Forbidden</code></td>
+<td>查集群身份与RBAC，本机sudo不自动获得集群权限</td>
+</tr>
+<tr>
+<td>改了Unix权限仍不能访问</td>
+<td>核对父目录、ACL、SELinux、只读挂载和远程存储策略</td>
+</tr>
+</tbody>
+</table>
+<p>管理员若需配置sudo，应使用 <code>visudo</code> 或 <code>visudo -f /etc/sudoers.d/指定文件</code> 做语法校验，并保留可用管理会话；授权应限定必要命令与参数，不把“全部命令免密”作为默认配置。</p>
 <h2 id="1-系统版本时间开机与负载">1. 系统版本、时间、开机与负载</h2>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /etc/os-release <span class="hljs-comment"># 发行版和版本</span>
 <span class="hljs-built_in">uname</span> -r            <span class="hljs-comment"># 内核版本</span>
@@ -303,5 +442,5 @@ systemctl is-enabled demo-api      <span class="hljs-comment"># 核对自启</sp
 </tbody>
 </table>
 <p>更短的状态速查见 <a href="linux-system-status-commands.html">Linux系统状态查看</a>。容器命令见 <a href="docker-compose-operations-commands.html">Docker与Compose</a>、<a href="kubernetes-operations-commands.html">Kubernetes</a>。各命令以本机 <code>man</code> 与 <code>--help</code> 为准。</p>
-</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#1-系统版本时间开机与负载">1. 系统版本、时间、开机与负载</a><a class="toc-link level-2" href="#2-cpu内存与实时观察">2. CPU、内存与实时观察</a><a class="toc-link level-2" href="#3-当前目录与文件列表">3. 当前目录与文件列表</a><a class="toc-link level-2" href="#4-创建复制移动与安全删除">4. 创建、复制、移动与安全删除</a><a class="toc-link level-2" href="#5-文件查找与内容搜索">5. 文件查找与内容搜索</a><a class="toc-link level-2" href="#6-压缩解压与校验">6. 压缩、解压与校验</a><a class="toc-link level-2" href="#7-用户组与权限">7. 用户、组与权限</a><a class="toc-link level-2" href="#8-进程文件句柄与优雅停止">8. 进程、文件句柄与优雅停止</a><a class="toc-link level-2" href="#9-磁盘inode挂载与删除未释放">9. 磁盘、inode、挂载与删除未释放</a><a class="toc-link level-2" href="#10-网卡地址路由dns">10. 网卡、地址、路由、DNS</a><a class="toc-link level-2" href="#11-监听端口与连通性">11. 监听端口与连通性</a><a class="toc-link level-2" href="#12-sshscp-与-rsync">12. SSH、SCP 与 rsync</a><a class="toc-link level-2" href="#13-systemd-服务和日志">13. systemd 服务和日志</a><a class="toc-link level-2" href="#14-内核oom登录与操作线索">14. 内核、OOM、登录与操作线索</a><a class="toc-link level-2" href="#15-cron-与系统定时器">15. cron 与系统定时器</a><a class="toc-link level-2" href="#16-软件包与命令位置">16. 软件包与命令位置</a><a class="toc-link level-2" href="#17-防火墙与-selinux">17. 防火墙与 SELinux</a><a class="toc-link level-2" href="#18-会话保持与后台作业">18. 会话保持与后台作业</a><a class="toc-link level-2" href="#19-备份发版与重启前检查">19. 备份、发版与重启前检查</a><a class="toc-link level-2" href="#20-常见问题速查">20. 常见问题速查</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践</span></footer></div>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#普通用户登录后权限不足怎么处理">普通用户登录后，权限不足怎么处理</a><a class="toc-link level-3" href="#先确认当前身份和授权">先确认当前身份和授权</a><a class="toc-link level-3" href="#sudo-的常见用法">sudo 的常见用法</a><a class="toc-link level-3" href="#编辑配置与-shell-重定向">编辑配置与 shell 重定向</a><a class="toc-link level-3" href="#上传文件先暂存再由管理员安装">上传文件先暂存，再由管理员安装</a><a class="toc-link level-3" href="#服务目录与日志读取">服务目录与日志读取</a><a class="toc-link level-3" href="#path环境变量和家目录变化">PATH、环境变量和家目录变化</a><a class="toc-link level-3" href="#常见报错对照">常见报错对照</a><a class="toc-link level-2" href="#1-系统版本时间开机与负载">1. 系统版本、时间、开机与负载</a><a class="toc-link level-2" href="#2-cpu内存与实时观察">2. CPU、内存与实时观察</a><a class="toc-link level-2" href="#3-当前目录与文件列表">3. 当前目录与文件列表</a><a class="toc-link level-2" href="#4-创建复制移动与安全删除">4. 创建、复制、移动与安全删除</a><a class="toc-link level-2" href="#5-文件查找与内容搜索">5. 文件查找与内容搜索</a><a class="toc-link level-2" href="#6-压缩解压与校验">6. 压缩、解压与校验</a><a class="toc-link level-2" href="#7-用户组与权限">7. 用户、组与权限</a><a class="toc-link level-2" href="#8-进程文件句柄与优雅停止">8. 进程、文件句柄与优雅停止</a><a class="toc-link level-2" href="#9-磁盘inode挂载与删除未释放">9. 磁盘、inode、挂载与删除未释放</a><a class="toc-link level-2" href="#10-网卡地址路由dns">10. 网卡、地址、路由、DNS</a><a class="toc-link level-2" href="#11-监听端口与连通性">11. 监听端口与连通性</a><a class="toc-link level-2" href="#12-sshscp-与-rsync">12. SSH、SCP 与 rsync</a><a class="toc-link level-2" href="#13-systemd-服务和日志">13. systemd 服务和日志</a><a class="toc-link level-2" href="#14-内核oom登录与操作线索">14. 内核、OOM、登录与操作线索</a><a class="toc-link level-2" href="#15-cron-与系统定时器">15. cron 与系统定时器</a><a class="toc-link level-2" href="#16-软件包与命令位置">16. 软件包与命令位置</a><a class="toc-link level-2" href="#17-防火墙与-selinux">17. 防火墙与 SELinux</a><a class="toc-link level-2" href="#18-会话保持与后台作业">18. 会话保持与后台作业</a><a class="toc-link level-2" href="#19-备份发版与重启前检查">19. 备份、发版与重启前检查</a><a class="toc-link level-2" href="#20-常见问题速查">20. 常见问题速查</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践</span></footer></div>
 <dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" type="search" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
