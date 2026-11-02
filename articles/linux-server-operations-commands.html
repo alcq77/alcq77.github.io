@@ -3,7 +3,7 @@
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
 <aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link active" href="../articles/linux-server-operations-commands.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>6 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 服务器常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 30 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">server</span><span class="tag">shell</span><span class="tag">ssh</span><span class="tag">files</span><span class="tag">permissions</span><span class="tag">network</span><span class="tag">operations</span></div></div><article class="markdown-body"><p>面向日常Linux服务器维护，覆盖系统、文件、权限、进程、磁盘、网络、SSH传输、日志、服务、软件和定时任务。示例使用Bash、目录 <code>/opt/demo</code>、用户 <code>demo</code>、文档专用IP <code>192.0.2.10</code>，均按实际环境替换。命令按用途单独执行；安装软件、改权限、修改网络、停止服务、删除文件会改变系统状态。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 服务器常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 32 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">server</span><span class="tag">shell</span><span class="tag">ssh</span><span class="tag">files</span><span class="tag">permissions</span><span class="tag">network</span><span class="tag">operations</span></div></div><article class="markdown-body"><p>面向日常Linux服务器维护，覆盖系统、文件、权限、进程、磁盘、网络、SSH传输、日志、服务、软件和定时任务。示例使用Bash、目录 <code>/opt/demo</code>、用户 <code>demo</code>、文档专用IP <code>192.0.2.10</code>，均按实际环境替换。命令按用途单独执行；安装软件、改权限、修改网络、停止服务、删除文件会改变系统状态。</p>
 <details class="install-guide">
 <summary>命令不存在？展开查看常用工具安装方法</summary>
 <p>先确认系统，不要把不同发行版的命令整段一起执行：</p>
@@ -153,10 +153,12 @@ rg --version
 <pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">echo</span> <span class="hljs-string">&#x27;example&#x27;</span> &gt; /etc/demo.conf
 </code></pre>
 <p>示例：<code>echo</code>被提权，但 <code>&gt;</code> 是当前普通用户的shell先执行的，写文件仍被拒绝。上面仅说明错误写法，不要尝试覆盖已有配置。</p>
+<p>这里的 <code>&gt;</code> 把标准输出写入文件，会覆盖原内容；<code>&gt;&gt;</code> 是在末尾追加。两者在目标文件不存在且目录权限允许时都会创建文件。</p>
 <p>如果确实要创建一个<strong>新的演示文件</strong>，可将输出交给有权限的 <code>tee</code>：</p>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\n&#x27;</span> <span class="hljs-string">&#x27;example&#x27;</span> | <span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tee</span> /etc/demo-example.conf &gt; /dev/null
 </code></pre>
 <p>示例：权限作用在真正写文件的 <code>tee</code> 上。<code>tee</code> 默认覆盖文件，<code>tee -a</code> 才是追加；修改正式配置优先使用编辑器或受控发布，不能重复追加同一段配置。</p>
+<p>这条命令中，<code>|</code> 将 <code>printf</code> 的标准输出送给 <code>tee</code>；<code>tee</code> 写文件的同时也会把内容输出到终端，因此末尾 <code>&gt; /dev/null</code> 只丢弃这份标准输出，不影响前面的文件写入。<code>/dev/null</code> 可以理解为丢弃写入内容的特殊设备。</p>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> sh -c <span class="hljs-string">&#x27;cd /root &amp;&amp; pwd&#x27;</span> <span class="hljs-comment"># 确有需要且获准时，在提权shell中执行内建命令</span>
 </code></pre>
 <p>示例：<code>cd</code> 是shell内建命令，<code>sudo cd /root</code>不能改变当前shell目录。通常无需进入受限目录，直接 <code>sudo ls /root</code> 更清楚；不要把不可信变量拼入 <code>sh -c</code>。</p>
@@ -253,6 +255,7 @@ ps -eo pid,ppid,user,%cpu,%mem,<span class="hljs-built_in">stat</span>,etime,arg
 ps -eo pid,ppid,user,%cpu,%mem,<span class="hljs-built_in">stat</span>,etime,args --<span class="hljs-built_in">sort</span>=-%mem | <span class="hljs-built_in">head</span> -n 15
 </code></pre>
 <p>示例：<code>top</code> 中按 <code>P</code> 排CPU、<code>M</code> 排内存、<code>1</code> 展开CPU，<code>q</code> 或通常 <code>Ctrl+C</code> 退出，只结束查看。<code>free</code> 中可回收缓存不是简单的“内存浪费”，不要为释放缓存随意清缓存。</p>
+<p><code>ps ... | head -n 15</code> 中的 <code>|</code> 是管道，把左边命令的标准输出交给右边；这里表示只显示排序结果的前15行（包括表头），不修改原进程。</p>
 <pre><code class="hljs language-bash">iostat -xz 1 5   <span class="hljs-comment"># 磁盘I/O，通常来自sysstat包</span>
 pidstat -p 24680 1 5 <span class="hljs-comment"># 指定进程采样，通常来自sysstat包</span>
 </code></pre>
@@ -266,6 +269,7 @@ file /opt/demo/app.jar <span class="hljs-comment"># 文件类型判断</span>
 <span class="hljs-built_in">readlink</span> -f /opt/demo/current <span class="hljs-comment"># 解析符号链接实际目标</span>
 </code></pre>
 <p>示例：日志路径看起来相同但内容不对时，用 <code>readlink -f</code> 核对是否指向旧版本目录。<code>ls -l</code>显示的是文件逻辑大小，磁盘实际占用可用 <code>du</code> 查看。</p>
+<p>如果 <code>ls -l</code> 显示 <code>current -&gt; /opt/demo/releases/v1</code>，其中 <code>-&gt;</code> 表示左边的符号链接指向右边路径，是输出中的说明，不是Shell重定向命令；真正的输出重定向符是单独的 <code>&gt;</code>。</p>
 <h2 id="4-创建复制移动与安全删除">4. 创建、复制、移动与安全删除</h2>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">mkdir</span> -p /opt/demo/backup           <span class="hljs-comment"># 创建目录，缺失父目录一起创建</span>
 <span class="hljs-built_in">cp</span> -a /opt/demo/conf /opt/demo/backup/conf-20261102 <span class="hljs-comment"># 保留属性复制</span>
@@ -347,6 +351,7 @@ findmnt -T /opt/demo          <span class="hljs-comment"># 指定路径所在挂
 <span class="hljs-built_in">sudo</span> lsof +L1                <span class="hljs-comment"># 已删除但仍被进程打开的文件</span>
 </code></pre>
 <p>示例：<code>df</code>显示满、<code>du</code>不大时，检查删除但仍打开的日志、被挂载遮盖的内容、权限范围和预留空间。inode耗尽时，小文件也无法新建。释放已删除文件需由相应进程关闭句柄，按业务方式重开日志或维护重启，不随意操作 <code>/proc/PID/fd</code>。</p>
+<p><code>2&gt;/dev/null</code> 中的 <code>2</code> 表示标准错误，把权限不足等报错丢弃，正常结果仍显示；它只是隐藏报错，不会修复权限，也不表示目录统计完整。排障时需要看错误就去掉这一段。</p>
 <p>分区、格式化、扩容、卸载文件系统有数据与可用性影响，先确认设备、挂载、备份和具体文件系统方案，不使用一套命令盲目套用。</p>
 <h2 id="10-网卡地址路由dns">10. 网卡、地址、路由、DNS</h2>
 <pre><code class="hljs language-bash">ip -br addr                           <span class="hljs-comment"># 网卡与IP</span>
@@ -374,6 +379,7 @@ mtr -rw -c 10 192.0.2.10 <span class="hljs-comment"># 路径采样，可能需�
 openssl s_client -connect example.com:443 -servername example.com -verify_hostname example.com -verify_return_error &lt; /dev/null
 </code></pre>
 <p>示例：中间跳不回应不一定代表业务丢包；TLS检查带正确SNI与主机名校验，并结合本机信任库检查证书链。不要用跳过证书校验作为长期修复。</p>
+<p><code>&lt; /dev/null</code> 将标准输入接到空设备，程序读到的输入会立即结束，而不是继续等待键盘输入。<code>&lt;</code> 管输入，<code>&gt;</code> 管输出，方向不同。</p>
 <p>抓包需要授权与数据范围控制，文件可能包含业务或认证信息：</p>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> tcpdump -i any -nn -c 50 <span class="hljs-string">&#x27;host 192.0.2.10 and tcp port 8080&#x27;</span>
 </code></pre>
@@ -420,6 +426,7 @@ w                                              <span class="hljs-comment"># 用�
 <span class="hljs-built_in">history</span> | <span class="hljs-built_in">tail</span> -n 50                            <span class="hljs-comment"># 当前shell历史</span>
 </code></pre>
 <p>示例：发现服务在SSH退出时停止，不能只凭时间相同断定有人关闭；需结合应用退出日志、内核OOM、信号、会话和审计记录。history可不完整、无时间或尚未写盘，不能作为完整责任认定依据。</p>
+<p><code>journalctl ... | grep ...</code> 是把日志的标准输出交给 <code>grep</code> 筛选，<code>last -x | head -n 30</code> 则只展示前30行；普通 <code>|</code> 不会自动把左边命令的标准错误一起传过去。</p>
 <p>发行版常见认证日志：RHEL系可能为 <code>/var/log/secure</code>，Debian系可能为 <code>/var/log/auth.log</code>，也可能集中在journal。未提前启用审计时，通常无法事后完整还原每一次kill是谁发出的。</p>
 <h2 id="15-cron-与系统定时器">15. cron 与系统定时器</h2>
 <pre><code class="hljs language-bash">crontab -l                      <span class="hljs-comment"># 当前用户计划</span>
@@ -433,6 +440,7 @@ systemctl <span class="hljs-built_in">cat</span> demo-backup.timer demo-backup.s
 30 2 * * * /bin/bash /opt/demo/bin/backup.sh &gt;&gt; /opt/demo/logs/backup.log 2&gt;&amp;1
 </code></pre>
 <p>示例：cron环境比交互shell精简，脚本里使用绝对路径，明确PATH、工作目录、时区和锁；任务可能重叠，不能假设上一次一定已结束。标准crontab五个时间字段依次为分、时、日、月、星期。</p>
+<p>末尾 <code>&gt;&gt; /opt/demo/logs/backup.log 2&gt;&amp;1</code> 先把标准输出追加到日志，再让标准错误也写到同一位置，所以正常信息和报错都会保留。<code>1</code> 代表标准输出，<code>2</code> 代表标准错误；<code>2&gt;&amp;1</code> 中的 <code>&amp;1</code> 是文件描述符1，不是名为“1”的文件，也不是后台运行符。重定向按从左到右处理，不能随意调换顺序。</p>
 <h2 id="16-软件包与命令位置">16. 软件包与命令位置</h2>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v java          <span class="hljs-comment"># 当前PATH中的命令</span>
 <span class="hljs-built_in">type</span> -a java             <span class="hljs-comment"># 所有解析结果，包含别名等</span>

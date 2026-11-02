@@ -88,6 +88,7 @@ lsblk -f                         <span class="hljs-comment"># 磁盘、分区、
 </code></pre>
 <p>示例：<code>df -h</code> 显示 <code>/</code> 使用率95%，再按具体目录执行 <code>du</code> 定位大目录。<code>du -sh /var/log</code> 返回 <code>2.3G /var/log</code>，表示日志目录占约2.3GB。若空间未满却无法创建文件，继续检查 <code>df -i</code> 是否 inode 耗尽。</p>
 <p><strong>df看文件系统是否满，du找目录占用。</strong> 大目录扫描可能较慢，先查具体目录；没有权限读取的内容会影响 du 的统计完整性。</p>
+<p><code>du ... | sort -h</code> 中的 <code>|</code> 是管道，把左边的目录占用结果交给右边排序；<code>sort -h</code> 能识别K、M、G等大小单位。同理，<code>ps ... | head -n 11</code> 表示只显示前11行（通常含一行表头），不会修改进程。</p>
 <h2 id="6-ip路由端口和连接">6. IP、路由、端口和连接</h2>
 <pre><code class="hljs language-bash">ip -br addr                       <span class="hljs-comment"># 简洁显示网卡、状态和IP</span>
 ip route                          <span class="hljs-comment"># 路由与默认网关</span>
@@ -132,6 +133,7 @@ last -x -F | <span class="hljs-built_in">head</span> -n 20
   grep -Ei <span class="hljs-string">&#x27;out of memory|oom-kill|killed process&#x27;</span>
 </code></pre>
 <p>示例：<code>w</code> 查看当前登录会话；<code>last</code> 查看历史登录；<code>last -x</code> 包含重启和关机记录。若内核日志出现 <code>Killed process 12345 (node)</code> 等OOM记录，应结合时间、PID和应用日志判断是否是目标服务。</p>
+<p><code>| grep ...</code> 将左侧日志的标准输出交给 <code>grep</code> 过滤，不会自动包含标准错误。示例在 <code>|</code> 后换行，仍属于同一条管道命令，不是两次独立执行。</p>
 <p>查不到记录不等于没发生过：日志可能没有保留，且这里的OOM命令只查本次开机。登录记录也不能单独证明某个用户停止了服务。</p>
 <h2 id="10-日常先记住这8条">10. 日常先记住这8条</h2>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">uptime</span>                 <span class="hljs-comment"># 运行时间与平均负载</span>

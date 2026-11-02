@@ -288,6 +288,7 @@ curl -i --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/health
 <span class="hljs-built_in">sudo</span> journalctl -u demo-api -b -1 -n 100 --no-pager <span class="hljs-comment"># 上次开机，需日志仍保留</span>
 </code></pre>
 <p>示例：只有 <code>/run/log/journal</code> 时，日志通常为临时存储，重启后丢失；<code>/var/log/journal</code> 用于持久存储。不能因为应用文件日志还在，就认为 journal 也跨重启保存。</p>
+<p>目录检查里的 <code>2&gt;/dev/null</code> 将标准错误丢弃，例如某个目录不存在的报错；正常的容量输出仍保留。它只隐藏提示，不代表目录都存在，排障时可以去掉后查看具体原因。</p>
 <p>需要持久保存时，在 <code>/etc/systemd/journald.conf</code> 的 <code>[Journal]</code> 下按需配置：</p>
 <pre><code class="hljs language-ini"><span class="hljs-section">[Journal]</span>
 <span class="hljs-attr">Storage</span>=persistent
