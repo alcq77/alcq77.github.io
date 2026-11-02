@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用于静态网站、前后端代理、HTTPS和日常故障排查。示例域名 demo.example.com 、服务器地址 192.0.2.10 、目录 /srv/demo 均需替换；普通用户执行管理命令需要相应sudo授权。 文中的配置按场景分别选用。"><meta name="color-scheme" content="light dark"><title>Nginx 配置、部署与日常运维 · 知行笔记</title><link rel="stylesheet" href="../assets/style.css"><script src="../assets/app.js" defer></script></head>
+<body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
+<aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">5</span></summary><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link active" href="../articles/nginx-operations.html" aria-current="page"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>7 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
+<div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Nginx 配置、部署与日常运维</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-02</time><span class="meta-dot">·</span><span>约 35 分钟阅读</span></div><div class="tag-row"><span class="tag">nginx</span><span class="tag">linux</span><span class="tag">proxy</span><span class="tag">https</span><span class="tag">websocket</span><span class="tag">operations</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>用于静态网站、前后端代理、HTTPS和日常故障排查。示例域名 <code>demo.example.com</code>、服务器地址 <code>192.0.2.10</code>、目录 <code>/srv/demo</code> 均需替换；普通用户执行管理命令需要相应sudo授权。</p>
+<p>文中的配置按场景分别选用。标注“完整站点配置”的内容放在实际已被 <code>http</code> 包含的站点文件中；标注“片段”的内容放入指定层级，不能把所有示例不加区分地拼在一起。</p>
+<h2 id="1-先找到实际运行的-nginx">1. 先找到实际运行的 Nginx</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v nginx                        <span class="hljs-comment"># 当前PATH是否能找到</span>
+ps -ww -eo pid,ppid,user,args | grep <span class="hljs-string">&#x27;[n]ginx&#x27;</span> <span class="hljs-comment"># 主进程、worker和参数</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :80&#x27;</span>             <span class="hljs-comment"># 核对80端口归属</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :443&#x27;</span>            <span class="hljs-comment"># 核对443端口归属</span>
+systemctl status nginx --no-pager -l     <span class="hljs-comment"># 系统服务安装时查看</span>
+systemctl <span class="hljs-built_in">cat</span> nginx --no-pager           <span class="hljs-comment"># 核对单元中的程序、配置和启动方式</span>
+</code></pre>
+<p>示例：<code>command -v</code>没输出，但进程显示 <code>/opt/nginx/sbin/nginx</code>，说明是自定义安装，应使用该路径，不是再装一个Nginx。<code>| grep</code>把进程列表的标准输出交给grep筛选，不修改进程。</p>
+<pre><code class="hljs language-bash">nginx -v                 <span class="hljs-comment"># 版本，通常输出到标准错误</span>
+nginx -V                 <span class="hljs-comment"># 编译参数、模块和默认路径</span>
+<span class="hljs-built_in">sudo</span> nginx -t            <span class="hljs-comment"># 检查语法，并尝试打开引用的文件</span>
+<span class="hljs-built_in">sudo</span> nginx -T            <span class="hljs-comment"># 检查并输出所加载的完整配置</span>
+</code></pre>
+<p>示例：<code>-V</code>中的 <code>--conf-path</code> 可帮助找到默认主配置；<code>-T</code>还会输出实际include的内容。完整配置可能包含内网地址、认证信息或令牌，分享前脱敏。服务若指定了额外的 <code>-p/-c</code>，检查命令也要使用相同参数。</p>
+<p>命令参数见 <a href="https://nginx.org/en/docs/switches.html">Nginx官方说明</a>。</p>
+<details class="install-guide">
+<summary>尚未安装？展开查看安装与验证方法</summary>
+<p>先执行 <code>cat /etc/os-release</code> 确认系统。以下为发行版已批准仓库的新安装示例，按系统选择一套，不先卸载已有实例。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian</span>
+<span class="hljs-built_in">sudo</span> apt-get update
+<span class="hljs-built_in">sudo</span> apt-get install nginx curl openssl
+</code></pre>
+<p>示例：包安装可能自动启动服务；先确认80端口和维护窗口。发行版包的版本号与官方包可能不同，安全补丁也可能由发行版回补。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 使用dnf的RHEL / Rocky / AlmaLinux等，包须由现有源提供</span>
+<span class="hljs-built_in">sudo</span> dnf install nginx curl openssl
+</code></pre>
+<p>示例：仅有yum的系统按其维护策略与可用仓库处理，不直接添加其他发行版的软件源。CentOS 7已结束维护，不把新版软件源配置直接套过去。</p>
+<p>若确实需要nginx.org官方包，按 <a href="https://nginx.org/en/linux_packages.html">官方Linux包说明</a> 选择受支持的系统、stable/mainline源，核对签名和迁移方式；不混用两套包来源，不直接执行不明网站的一键安装脚本。</p>
+<pre><code class="hljs language-bash">nginx -v
+<span class="hljs-built_in">sudo</span> nginx -t
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> --now nginx <span class="hljs-comment"># 仅对新安装、确认可启动的实例执行</span>
+systemctl status nginx --no-pager -l
+curl -I --connect-timeout 3 --max-time 5 http://127.0.0.1/
+</code></pre>
+<p>示例：先校验再启动；<code>enable --now</code>同时设置自启和立即启动。已有手动进程运行时，先完成管理方式切换，不能再启动第二份。安装其他排障工具见 <a href="linux-server-operations-commands.html">服务器常用命令</a>。</p>
+</details>
+<h2 id="2-常用目录与配置结构">2. 常用目录与配置结构</h2>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>系统包常见位置</th>
+<th>自定义安装示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>程序</td>
+<td><code>/usr/sbin/nginx</code></td>
+<td><code>/opt/nginx/sbin/nginx</code></td>
+</tr>
+<tr>
+<td>主配置</td>
+<td><code>/etc/nginx/nginx.conf</code></td>
+<td><code>/opt/nginx/conf/nginx.conf</code></td>
+</tr>
+<tr>
+<td>站点文件</td>
+<td><code>/etc/nginx/conf.d/*.conf</code>，或sites-enabled</td>
+<td>由主配置include决定</td>
+</tr>
+<tr>
+<td>日志</td>
+<td><code>/var/log/nginx/</code></td>
+<td><code>/opt/nginx/logs/</code>或自定义目录</td>
+</tr>
+<tr>
+<td>PID文件</td>
+<td><code>/run/nginx.pid</code>等</td>
+<td>以pid指令及prefix为准</td>
+</tr>
+</tbody>
+</table>
+<p>这些是常见位置，实际以运行参数和配置为准。Debian/Ubuntu可能通过 <code>sites-available</code> 保存、<code>sites-enabled</code>链接启用站点；不要把同一配置在两个include入口里重复加载。</p>
+<p>结构示意如下，不用于覆盖发行版原主配置：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># main：全局层级</span>
+<span class="hljs-attribute">worker_processes</span> auto;
+
+<span class="hljs-section">events</span> {
+    <span class="hljs-attribute">worker_connections</span> <span class="hljs-number">1024</span>;
+}
+
+<span class="hljs-section">http</span> {
+    <span class="hljs-attribute">include</span> /etc/nginx/mime.types;
+    <span class="hljs-attribute">default_type</span> application/octet-stream;
+
+    <span class="hljs-comment"># 站点文件展开后属于http层级</span>
+    <span class="hljs-attribute">include</span> /etc/nginx/conf.d/<span class="hljs-regexp">*.conf</span>;
+}
+</code></pre>
+<p>示例：<code>server</code>通常在http内，<code>location</code>在server内，<code>upstream/map/log_format</code>放在http层级。每条普通指令以 <code>;</code> 结束，块使用 <code>{}</code>；<code>#</code> 后是注释。省略MIME映射可能导致CSS/JS类型错误或被浏览器拒绝。</p>
+<table>
+<thead>
+<tr>
+<th>层级或指令</th>
+<th>主要职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main</td>
+<td>最外层的全局配置，如worker数量、运行用户、PID文件</td>
+</tr>
+<tr>
+<td>events</td>
+<td>连接处理相关配置，如每个worker的连接上限</td>
+</tr>
+<tr>
+<td>http</td>
+<td>HTTP功能的公共配置，可包含多个站点、MIME映射、上游组和日志格式</td>
+</tr>
+<tr>
+<td>server</td>
+<td>一个虚拟站点的监听地址、端口、域名、证书等</td>
+</tr>
+<tr>
+<td>location</td>
+<td>在选定站点内，按请求URI选择静态文件、代理、跳转等处理方式</td>
+</tr>
+<tr>
+<td>include</td>
+<td>在当前位置引入其他配置文件，本身不是独立运行层级</td>
+</tr>
+</tbody>
+</table>
+<p>示例：两个域名可由同一http内的两个server处理，每个server再用不同location区分首页、接口和静态资源；URL查询参数通常不参与location路径匹配。</p>
+<p><code>include</code>是按位置展开配置，不会自动补全层级。<code>nginx -t</code>提示“directive is not allowed here”时，先查指令所在层级。</p>
+<h2 id="3-启动停止reload与自启">3. 启动、停止、reload与自启</h2>
+<p>systemd管理的实例按需选择命令，不要整段连续执行：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl start nginx         <span class="hljs-comment"># 启动</span>
+<span class="hljs-built_in">sudo</span> systemctl stop nginx          <span class="hljs-comment"># 停止，影响访问</span>
+<span class="hljs-built_in">sudo</span> systemctl restart nginx       <span class="hljs-comment"># 停后再启动，可能中断服务</span>
+<span class="hljs-built_in">sudo</span> nginx -t                      <span class="hljs-comment"># 修改后先校验</span>
+<span class="hljs-built_in">sudo</span> systemctl reload nginx        <span class="hljs-comment"># 校验通过再平滑加载配置</span>
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> nginx        <span class="hljs-comment"># 开机自启，不立即启动</span>
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">disable</span> nginx       <span class="hljs-comment"># 关闭自启，不立即停止</span>
+systemctl is-enabled nginx         <span class="hljs-comment"># 查询自启状态</span>
+</code></pre>
+<p>示例：日常修改站点优先“检查 → reload”，不为改一个代理地址直接restart。reload会启动新worker并让旧worker处理已有连接；长连接可能让旧worker暂时保留。语法错误时旧配置通常继续服务，但仍须核对reload结果和日志。</p>
+<p>自定义安装示例，始终保持相同prefix和配置文件：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> /opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf -t <span class="hljs-comment"># 校验</span>
+<span class="hljs-built_in">sudo</span> /opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf    <span class="hljs-comment"># 确认未运行后启动</span>
+<span class="hljs-built_in">sudo</span> /opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf -s reload <span class="hljs-comment"># 重载</span>
+<span class="hljs-built_in">sudo</span> /opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf -s quit   <span class="hljs-comment"># 优雅停止</span>
+</code></pre>
+<p>示例：<code>-p</code>指定prefix，<code>-c</code>指定配置；相对配置路径基于prefix。<code>-s stop</code>是快速停止，<code>-s quit</code>是优雅停止。通过错误的PID文件发信号可能操作失败或误操作其他实例，不能只凭目录名猜测。</p>
+<p>自定义服务自启可复用已有服务单元；不要把默认后台运行的Nginx直接放进 <code>Type=simple</code>。若选择simple，应使用 <code>daemon off;</code> 保持前台运行；已有打包服务优先沿用原方式。管理原理见 <a href="linux-systemd-autostart.html">systemd笔记</a>。</p>
+<h2 id="4-完整示例静态网站">4. 完整示例：静态网站</h2>
+<p>假设主配置已在http内include <code>/etc/nginx/conf.d/*.conf</code>，页面位于 <code>/srv/demo/html/index.html</code>。创建 <code>/etc/nginx/conf.d/demo.conf</code>：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">server</span> {
+    <span class="hljs-attribute">listen</span> <span class="hljs-number">80</span>;
+    <span class="hljs-attribute">server_name</span> demo.example.com;
+
+    <span class="hljs-attribute">root</span> /srv/demo/html;
+    <span class="hljs-attribute">index</span> index.html;
+
+    <span class="hljs-attribute">access_log</span> /var/log/nginx/demo.access.log;
+    <span class="hljs-attribute">error_log</span> /var/log/nginx/demo.<span class="hljs-literal">error</span>.log <span class="hljs-literal">warn</span>;
+
+    <span class="hljs-section">location</span> / {
+        <span class="hljs-attribute">try_files</span> <span class="hljs-variable">$uri</span> <span class="hljs-variable">$uri</span>/ =<span class="hljs-number">404</span>;
+    }
+}
+</code></pre>
+<p>示例：访问 <code>/guide.html</code> 对应 <code>/srv/demo/html/guide.html</code>，不存在就404；目录请求按index和目录规则处理。网站目录和日志目录必须已存在且权限正确，不在生产开启autoindex来“修复”目录403。</p>
+<p>先检查并reload，再指定Host在本机验证：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> nginx -t
+<span class="hljs-built_in">sudo</span> systemctl reload nginx
+curl -i --connect-timeout 3 --max-time 5 -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/
+</code></pre>
+<p>示例：预期返回首页和合适的 <code>Content-Type</code>。仅访问IP可能命中另一个默认站点；DNS还没生效时可用Host头测试HTTP，HTTPS使用后面的 <code>--resolve</code>。</p>
+<p><code>server_name</code>不创建DNS记录，也不开放防火墙。多个站点共享端口时，要同时核对listen地址、端口、Host；未匹配的Host会进入该地址端口的默认server，不由 <code>server_name _</code> 的名字本身决定。</p>
+<h2 id="5-完整示例vue-react前端与后端接口">5. 完整示例：Vue / React前端与后端接口</h2>
+<p>此例用于根路径部署、使用history路由的SPA，后端位于本机8080，后端接口本身带 <code>/api/</code> 前缀。用此server替换上一节的server，不重复添加相同域名站点：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">server</span> {
+    <span class="hljs-attribute">listen</span> <span class="hljs-number">80</span>;
+    <span class="hljs-attribute">server_name</span> demo.example.com;
+    <span class="hljs-attribute">root</span> /srv/demo/html;
+    <span class="hljs-attribute">index</span> index.html;
+
+    <span class="hljs-section">location</span> = /api {
+        <span class="hljs-attribute">return</span> <span class="hljs-number">308</span> /api/;
+    }
+
+    <span class="hljs-section">location</span><span class="hljs-regexp"> ^~</span> /api/ {
+        <span class="hljs-attribute">proxy_pass</span> http://127.0.0.1:8080;
+        <span class="hljs-attribute">proxy_http_version</span> <span class="hljs-number">1</span>.<span class="hljs-number">1</span>;
+        <span class="hljs-attribute">proxy_set_header</span> Host <span class="hljs-variable">$host</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Real-IP <span class="hljs-variable">$remote_addr</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-For <span class="hljs-variable">$proxy_add_x_forwarded_for</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-Proto <span class="hljs-variable">$scheme</span>;
+    }
+
+    <span class="hljs-comment"># 假设构建产物统一放在/assets/，不存在的资源直接404</span>
+    <span class="hljs-section">location</span><span class="hljs-regexp"> ^~</span> /assets/ {
+        <span class="hljs-attribute">try_files</span> <span class="hljs-variable">$uri</span> =<span class="hljs-number">404</span>;
+    }
+
+    <span class="hljs-section">location</span> = /index.html {
+        <span class="hljs-attribute">add_header</span> Cache-Control <span class="hljs-string">&quot;no-cache&quot;</span>;
+    }
+
+    <span class="hljs-section">location</span> / {
+        <span class="hljs-attribute">try_files</span> <span class="hljs-variable">$uri</span> <span class="hljs-variable">$uri</span>/ /index.html;
+    }
+}
+</code></pre>
+<p>示例：浏览器刷新 <code>/users/42</code> 时回退到index，由前端路由处理；<code>/api/users</code>转发为后端 <code>/api/users</code>。<code>/assets/missing.js</code>应404，不能返回index伪装成成功的JS；若构建目录是 <code>/static/</code>，相应调整资源location。</p>
+<pre><code class="hljs language-bash">curl -I -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/users/42
+curl -I -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/assets/missing.js
+curl -i -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/api/health
+</code></pre>
+<p>示例：前两个假设分别返回200和404，最后一个要与后端真实的只读接口相符。子路径部署如 <code>/portal/</code> 还需同步前端base/router、资源路径和Nginx回退目标，不能只改server_name。</p>
+<h2 id="6-proxy_pass末尾斜杠后端到底收到什么">6. proxy_pass末尾斜杠：后端到底收到什么</h2>
+<p>以下假设普通前缀 <code>location /api/</code>，请求为 <code>/api/users?id=1</code>：</p>
+<table>
+<thead>
+<tr>
+<th>proxy_pass</th>
+<th>后端收到的路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>http://127.0.0.1:8080</code></td>
+<td><code>/api/users?id=1</code>，不指定URI部分时保留路径</td>
+</tr>
+<tr>
+<td><code>http://127.0.0.1:8080/</code></td>
+<td><code>/users?id=1</code>，匹配前缀替换成 <code>/</code></td>
+</tr>
+<tr>
+<td><code>http://127.0.0.1:8080/service/</code></td>
+<td><code>/service/users?id=1</code>，匹配前缀替换成 <code>/service/</code></td>
+</tr>
+</tbody>
+</table>
+<p>后端没有 <code>/api</code> 前缀时使用下面片段，替换前一例的对应location：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">location</span><span class="hljs-regexp"> ^~</span> /api/ {
+    <span class="hljs-attribute">proxy_pass</span> http://127.0.0.1:8080/;
+    <span class="hljs-attribute">proxy_set_header</span> Host <span class="hljs-variable">$host</span>;
+    <span class="hljs-attribute">proxy_set_header</span> X-Real-IP <span class="hljs-variable">$remote_addr</span>;
+    <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-For <span class="hljs-variable">$proxy_add_x_forwarded_for</span>;
+    <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-Proto <span class="hljs-variable">$scheme</span>;
+}
+</code></pre>
+<p>示例：<code>/api/health</code>变为后端 <code>/health</code>。遇到后端404先核对路径，不直接加rewrite试错。正则location、命名location、变量proxy_pass及rewrite改变URI的情况有额外规则，不照搬上表。<a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass">proxy_pass规则</a></p>
+<p>Nginx到后端的 <code>localhost/127.0.0.1</code> 指Nginx所在的机器或容器；Nginx与应用分开部署时改用真实可达地址。前端HTTPS并不自动让Nginx到后端也变成HTTPS。</p>
+<h2 id="7-location匹配顺序">7. location匹配顺序</h2>
+<p>对同一server内的平级location，可按下面顺序理解：</p>
+<ol>
+<li><code>location = /health</code>：精确命中则停止查找。</li>
+<li>找出最长的前缀匹配；若该前缀带 <code>^~</code>，跳过这一层的正则匹配。</li>
+<li>否则按配置顺序检查正则，使用第一个命中的正则。</li>
+<li>没有正则命中时使用之前找到的最长前缀。</li>
+</ol>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># 以下片段放在server内</span>
+<span class="hljs-section">location</span> = /health { <span class="hljs-attribute">return</span> <span class="hljs-number">200</span> <span class="hljs-string">&quot;ok\n&quot;</span>; }
+<span class="hljs-section">location</span><span class="hljs-regexp"> ^~</span> /api/ { <span class="hljs-attribute">proxy_pass</span> http://127.0.0.1:8080; }
+<span class="hljs-section">location</span> <span class="hljs-regexp">~* \.(css|js|png)$</span> { <span class="hljs-attribute">try_files</span> <span class="hljs-variable">$uri</span> =<span class="hljs-number">404</span>; }
+<span class="hljs-section">location</span> / { <span class="hljs-attribute">try_files</span> <span class="hljs-variable">$uri</span> <span class="hljs-variable">$uri</span>/ /index.html; }
+</code></pre>
+<p>示例：<code>/health</code>命中精确规则，<code>/api/report.js</code>仍走代理，<code>/logo.PNG</code>走不区分大小写的正则，其他路径走 <code>/</code>。普通前缀并不是按“谁写在前面”决定；<code>~</code>为区分大小写的正则，<code>~*</code>为不区分大小写。</p>
+<p>嵌套location和内部重定向会影响后续匹配，初学配置优先保持平级和明确边界。<code>/api/</code>不会自动作为普通前缀匹配 <code>/api</code> 本身，所以示例单独处理裸路径。<a href="https://nginx.org/en/docs/http/ngx_http_core_module.html#location">location规则</a></p>
+<h3 id="跳转与内部重写">跳转与内部重写</h3>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># server内的两个独立示例</span>
+<span class="hljs-section">location</span> = /old-guide {
+    <span class="hljs-attribute">return</span> <span class="hljs-number">302</span> /guide;
+}
+
+<span class="hljs-section">location</span> /legacy/ {
+    <span class="hljs-attribute">rewrite</span><span class="hljs-regexp"> ^/legacy/(.*)$</span> /api/<span class="hljs-variable">$1</span> <span class="hljs-literal">last</span>;
+}
+</code></pre>
+<p>示例：<code>/old-guide</code>向浏览器返回302，让客户端再次访问 <code>/guide</code>；<code>/legacy/users</code>在Nginx内部改为 <code>/api/users</code>，<code>last</code>让新URI重新选择location，浏览器地址本身不变。<code>$1</code>是正则中的第一组捕获内容，不能用作Shell变量解释。</p>
+<p><code>break</code>会停止当前rewrite指令处理、继续在当前location中处理请求，与 <code>last</code> 的重新匹配不同。长期迁移确认后可考虑永久跳转，但浏览器可能缓存；简单的路径前缀代理优先使用proxy_pass的明确URI映射，不为所有场景叠加rewrite。<a href="https://nginx.org/en/docs/http/ngx_http_rewrite_module.html">rewrite规则</a></p>
+<h2 id="8-root与alias文件路径怎么拼">8. root与alias：文件路径怎么拼</h2>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># 两种独立写法，选一种</span>
+<span class="hljs-section">location</span> /files/ {
+    <span class="hljs-attribute">root</span> /srv/demo;
+}
+</code></pre>
+<p>示例：<code>/files/a.pdf</code>对应 <code>/srv/demo/files/a.pdf</code>，root把完整URI拼到根目录后。</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">location</span> /files/ {
+    <span class="hljs-attribute">alias</span> /srv/shared/;
+}
+</code></pre>
+<p>示例：同样请求对应 <code>/srv/shared/a.pdf</code>，alias用目标目录替换匹配到的 <code>/files/</code>。目录location和alias都保持正确的尾部斜杠，避免边界不清或路径错误；正则location使用alias还涉及捕获组。</p>
+<p>公开静态目录仅放可公开文件，不把配置、密钥、数据库备份放进root/alias目录；关闭目录列表也不能阻止已知路径访问。指向私有目录的符号链接也需要审查。<a href="https://nginx.org/en/docs/http/ngx_http_core_module.html#alias">alias与root说明</a></p>
+<h2 id="9-完整示例https与http跳转">9. 完整示例：HTTPS与HTTP跳转</h2>
+<p>假设已持有 <code>demo.example.com</code> 的有效证书，完整证书链位于 <code>/etc/nginx/certs/demo.fullchain.pem</code>，私钥为同目录 <code>demo.key</code>。此例是独立站点配置：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">server</span> {
+    <span class="hljs-attribute">listen</span> <span class="hljs-number">80</span>;
+    <span class="hljs-attribute">server_name</span> demo.example.com;
+    <span class="hljs-attribute">return</span> <span class="hljs-number">308</span> https://demo.example.com<span class="hljs-variable">$request_uri</span>;
+}
+
+<span class="hljs-section">server</span> {
+    <span class="hljs-attribute">listen</span> <span class="hljs-number">443</span> ssl;
+    <span class="hljs-attribute">server_name</span> demo.example.com;
+
+    <span class="hljs-attribute">ssl_certificate</span> /etc/nginx/certs/demo.fullchain.pem;
+    <span class="hljs-attribute">ssl_certificate_key</span> /etc/nginx/certs/demo.key;
+    <span class="hljs-attribute">ssl_protocols</span> TLSv1.<span class="hljs-number">2</span> TLSv1.<span class="hljs-number">3</span>;
+
+    <span class="hljs-attribute">root</span> /srv/demo/html;
+    <span class="hljs-attribute">index</span> index.html;
+    <span class="hljs-section">location</span> / {
+        <span class="hljs-attribute">try_files</span> <span class="hljs-variable">$uri</span> <span class="hljs-variable">$uri</span>/ =<span class="hljs-number">404</span>;
+    }
+}
+</code></pre>
+<p>示例：HTTP <code>/guide?a=1</code>跳至 <code>https://demo.example.com/guide?a=1</code>。固定目标域名避免把任意Host照搬进跳转地址；308保留请求方法与请求体，但业务仍应直接使用HTTPS入口，不在明文HTTP提交秘密数据。</p>
+<p>证书文件通常包含站点证书和所需中间证书，顺序与内容应正确；私钥只允许必要管理身份读取，不能放进网站目录或公开仓库。TLSv1.3需要对应Nginx/OpenSSL能力，不支持的旧环境应升级并采用相容配置。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> nginx -t
+<span class="hljs-built_in">sudo</span> systemctl reload nginx
+curl -I --resolve demo.example.com:443:192.0.2.10 https://demo.example.com/
+openssl s_client -connect 192.0.2.10:443 -servername demo.example.com \
+  -verify_hostname demo.example.com -verify_return_error &lt; /dev/null
+</code></pre>
+<p>示例：<code>--resolve</code>临时把指定域名和端口指向测试IP，同时保持正确Host、SNI及证书校验，比只加HTTP Host头测试HTTPS更完整。<code>&lt; /dev/null</code>让标准输入立即结束，不是把错误信息丢弃。不要用 <code>curl -k</code> 当作正式验收。</p>
+<p>检查本地证书有效期：</p>
+<pre><code class="hljs language-bash">openssl x509 -<span class="hljs-keyword">in</span> /etc/nginx/certs/demo.fullchain.pem -noout -subject -issuer -dates
+openssl x509 -<span class="hljs-keyword">in</span> /etc/nginx/certs/demo.fullchain.pem -noout -checkend 2592000
+</code></pre>
+<p>示例：第二条检查证书在未来30天（2592000秒）内是否会到期，成功退出表示在该时间范围后仍有效；它不替代完整链和域名验证。证书续期后要校验并reload，且检查<strong>对外实际提供的证书</strong>，不能只看磁盘文件已更新。</p>
+<p>采用ACME工具时，按实际DNS/HTTP验证方式配置自动续期和成功后的reload钩子；本例80端口直接跳转，不包含专门的HTTP-01验证目录，需按证书工具要求补齐。HTTPS和证书链规则见 <a href="https://nginx.org/en/docs/http/configuring_https_servers.html">官方HTTPS说明</a>。</p>
+<h2 id="10-完整示例websocket代理">10. 完整示例：WebSocket代理</h2>
+<p>将下列内容放在http包含的站点文件中，map与server并列。后端位于本机8081，WebSocket路径为 <code>/ws/</code>：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-attribute">map</span> <span class="hljs-variable">$http_upgrade</span> <span class="hljs-variable">$connection_upgrade</span> {
+    <span class="hljs-attribute">default</span> upgrade;
+    &#x27;&#x27; close;
+}
+
+<span class="hljs-section">server</span> {
+    <span class="hljs-attribute">listen</span> <span class="hljs-number">80</span>;
+    <span class="hljs-attribute">server_name</span> ws.example.com;
+
+    <span class="hljs-section">location</span> /ws/ {
+        <span class="hljs-attribute">proxy_pass</span> http://127.0.0.1:8081;
+        <span class="hljs-attribute">proxy_http_version</span> <span class="hljs-number">1</span>.<span class="hljs-number">1</span>;
+        <span class="hljs-attribute">proxy_set_header</span> Upgrade <span class="hljs-variable">$http_upgrade</span>;
+        <span class="hljs-attribute">proxy_set_header</span> Connection <span class="hljs-variable">$connection_upgrade</span>;
+        <span class="hljs-attribute">proxy_set_header</span> Host <span class="hljs-variable">$host</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Real-IP <span class="hljs-variable">$remote_addr</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-For <span class="hljs-variable">$proxy_add_x_forwarded_for</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-Proto <span class="hljs-variable">$scheme</span>;
+        <span class="hljs-attribute">proxy_read_timeout</span> <span class="hljs-number">300s</span>;
+    }
+}
+</code></pre>
+<p>示例：客户端连接 <code>ws://ws.example.com/ws/</code>，后端仍收到 <code>/ws/</code>；成功握手应返回101，再验证真实消息和心跳。后端只支持其他路径时按前面斜杠规则调整。</p>
+<p>Upgrade与Connection是逐跳头，需要明确传递。上面的300秒是两次读取上游数据之间的空闲超时，不是“连接只能活300秒”；后端心跳和客户端重连也要匹配。HTTPS页面应连接 <code>wss://</code>，否则可能被浏览器阻止；可将此location及map结合前节443站点使用。<a href="https://nginx.org/en/docs/http/websocket.html">WebSocket官方说明</a></p>
+<h2 id="11-sse与流式响应">11. SSE与流式响应</h2>
+<p>SSE不是WebSocket，不需要Upgrade头。以下片段放在对应server内，后端提供 <code>/events/</code> 流式接口：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">location</span> /events/ {
+    <span class="hljs-attribute">proxy_pass</span> http://127.0.0.1:8080;
+    <span class="hljs-attribute">proxy_http_version</span> <span class="hljs-number">1</span>.<span class="hljs-number">1</span>;
+    <span class="hljs-attribute">proxy_set_header</span> Connection <span class="hljs-string">&quot;&quot;</span>;
+    <span class="hljs-attribute">proxy_set_header</span> Host <span class="hljs-variable">$host</span>;
+    <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-For <span class="hljs-variable">$proxy_add_x_forwarded_for</span>;
+    <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-Proto <span class="hljs-variable">$scheme</span>;
+    <span class="hljs-attribute">proxy_buffering</span> <span class="hljs-literal">off</span>;
+    <span class="hljs-attribute">proxy_cache</span> <span class="hljs-literal">off</span>;
+    <span class="hljs-attribute">proxy_read_timeout</span> <span class="hljs-number">300s</span>;
+}
+</code></pre>
+<p>示例：响应缓冲关闭后，后端及时flush的事件可更及时送到客户端；应用仍须返回正确的 <code>text/event-stream</code>、持续输出有效事件和心跳。CDN、其他网关和压缩层也可能缓冲，需要逐层排查。</p>
+<pre><code class="hljs language-bash">curl -N --max-time 20 -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/events/
+</code></pre>
+<p>示例：<code>-N</code>关闭curl自身的输出缓冲，观察是否逐条收到事件；20秒后curl主动结束测试，不代表服务异常。不要为一个流式接口全局关闭所有站点的缓冲。<code>proxy_request_buffering</code>控制的是请求体缓冲，与响应缓冲不同。<a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering">缓冲配置</a></p>
+<h2 id="12-上传大小与超时">12. 上传大小与超时</h2>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># server内的示例片段；替换既有/upload/对应规则，避免重复定义</span>
+<span class="hljs-section">location</span> /upload/ {
+    <span class="hljs-attribute">client_max_body_size</span> <span class="hljs-number">20m</span>;
+    <span class="hljs-attribute">proxy_pass</span> http://127.0.0.1:8080;
+    <span class="hljs-attribute">proxy_connect_timeout</span> <span class="hljs-number">3s</span>;
+    <span class="hljs-attribute">proxy_send_timeout</span> <span class="hljs-number">60s</span>;
+    <span class="hljs-attribute">proxy_read_timeout</span> <span class="hljs-number">60s</span>;
+}
+</code></pre>
+<p>示例：请求体超过20MB可能在Nginx层返回413；还要检查后端、其他代理的限制。<code>client_max_body_size</code>限制整个请求体，multipart文件外还有表单开销，因此“20MB文件”不保证能通过20m限制。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>主要含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>client_max_body_size</td>
+<td>允许的请求体大小，0表示禁用该限制，不能为省事默认无限制</td>
+</tr>
+<tr>
+<td>proxy_connect_timeout</td>
+<td>建立到上游连接的等待时间</td>
+</tr>
+<tr>
+<td>proxy_send_timeout</td>
+<td>向上游两次写操作之间的超时</td>
+</tr>
+<tr>
+<td>proxy_read_timeout</td>
+<td>从上游两次读操作之间的超时，不是整个请求总时长</td>
+</tr>
+<tr>
+<td>client_body_timeout</td>
+<td>读取客户端请求体两次读操作之间的超时</td>
+</tr>
+</tbody>
+</table>
+<p>长任务优先评估异步任务/查询状态等方案，不把所有超时全局调成很大。上传临时目录空间、写权限、磁盘I/O也会影响大文件；修改限制后用已授权的测试文件检查，不对生产接口随意发起上传。</p>
+<h2 id="13-完整示例多个后端负载均衡">13. 完整示例：多个后端负载均衡</h2>
+<p>以下upstream与server并列，放在http包含的站点文件中：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">upstream</span> demo_backend {
+    least_conn;
+    <span class="hljs-attribute">server</span> <span class="hljs-number">127.0.0.1:8080</span> max_fails=<span class="hljs-number">3</span> fail_timeout=<span class="hljs-number">30s</span>;
+    <span class="hljs-attribute">server</span> <span class="hljs-number">127.0.0.1:8081</span> max_fails=<span class="hljs-number">3</span> fail_timeout=<span class="hljs-number">30s</span>;
+    <span class="hljs-attribute">keepalive</span> <span class="hljs-number">16</span>;
+}
+
+<span class="hljs-section">server</span> {
+    <span class="hljs-attribute">listen</span> <span class="hljs-number">80</span>;
+    <span class="hljs-attribute">server_name</span> api.example.com;
+
+    <span class="hljs-section">location</span> / {
+        <span class="hljs-attribute">proxy_pass</span> http://demo_backend;
+        <span class="hljs-attribute">proxy_http_version</span> <span class="hljs-number">1</span>.<span class="hljs-number">1</span>;
+        <span class="hljs-attribute">proxy_set_header</span> Connection <span class="hljs-string">&quot;&quot;</span>;
+        <span class="hljs-attribute">proxy_set_header</span> Host <span class="hljs-variable">$host</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Real-IP <span class="hljs-variable">$remote_addr</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-For <span class="hljs-variable">$proxy_add_x_forwarded_for</span>;
+        <span class="hljs-attribute">proxy_set_header</span> X-Forwarded-Proto <span class="hljs-variable">$scheme</span>;
+    }
+}
+</code></pre>
+<p>示例：least_conn倾向活动连接少的后端，适合请求时长有差异的场景；删除该行则使用默认加权轮询。<code>keepalive 16</code>缓存空闲上游连接，并非限制后端总连接数为16。</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>使用考虑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>默认轮询、weight</td>
+<td>一般分流或权重分配，实际请求分配不保证严格逐次交替</td>
+</tr>
+<tr>
+<td>least_conn</td>
+<td>按活动连接情况选择</td>
+</tr>
+<tr>
+<td>ip_hash</td>
+<td>可提供基于IP的黏性，但NAT、代理和客户端IP变化会影响分布</td>
+</tr>
+<tr>
+<td>backup</td>
+<td>主组不可用时的备用节点，需符合负载均衡方法限制</td>
+</tr>
+</tbody>
+</table>
+<p><code>max_fails/fail_timeout</code>属于被动失败判断，不是定时主动请求健康接口；何种响应计为失败还与代理重试配置相关。单后端有特殊处理，不能把多节点故障切换承诺套到单节点。部分主动健康检查能力依赖商业版或其他方案。<a href="https://nginx.org/en/docs/http/ngx_http_upstream_module.html">upstream说明</a></p>
+<p>不要随意对POST等非幂等操作增加重试，避免重复创建订单或写数据。后端已经共享数据库，也不等于登录会话、文件和任务状态天然适合多副本。</p>
+<h2 id="14-转发头真实ip与可信代理">14. 转发头、真实IP与可信代理</h2>
+<p>常见片段，放在代理location内：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-attribute">proxy_set_header</span> Host <span class="hljs-variable">$host</span>;
+<span class="hljs-attribute">proxy_set_header</span> X-Real-IP <span class="hljs-variable">$remote_addr</span>;
+<span class="hljs-attribute">proxy_set_header</span> X-Forwarded-For <span class="hljs-variable">$proxy_add_x_forwarded_for</span>;
+<span class="hljs-attribute">proxy_set_header</span> X-Forwarded-Proto <span class="hljs-variable">$scheme</span>;
+</code></pre>
+<p>示例：后端可依据可信代理传递的协议生成链接，但不能把任意客户端提供的 <code>X-Forwarded-*</code> 当成事实。<code>$proxy_add_x_forwarded_for</code>会在现有链后追加地址，链中较早的值可能由客户端提供；后端应按可信代理链解析，不盲取第一个IP。</p>
+<p>Nginx前面还有负载均衡时，<code>$remote_addr</code>默认可能是负载均衡地址。仅对已经确认的代理来源使用realip片段：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># http或server内；只信任真实代理地址，示例IP必须替换</span>
+<span class="hljs-attribute">set_real_ip_from</span> <span class="hljs-number">192.0.2.20</span>/<span class="hljs-number">32</span>;
+<span class="hljs-attribute">real_ip_header</span> X-Forwarded-For;
+<span class="hljs-attribute">real_ip_recursive</span> <span class="hljs-literal">on</span>;
+</code></pre>
+<p>示例：不设为信任全部互联网，且确认上游会清理/维护正确的头。该模块需编译支持，可在 <code>nginx -V</code> 中核对；HTTPS若终止于前置代理，<code>$scheme</code>仍可能是http，需按可信拓扑处理协议头，不能随意透传客户端值。<a href="https://nginx.org/en/docs/http/ngx_http_realip_module.html">realip说明</a></p>
+<p>Nginx到上游也采用HTTPS时，应另外启用正确的SNI、上游名称及证书链验证；不要只写 <code>proxy_pass https://...</code> 就默认已验证上游身份。</p>
+<h2 id="15-缓存压缩与跨域">15. 缓存、压缩与跨域</h2>
+<p>静态文件缓存片段，假设 <code>/assets/</code> 文件名包含内容hash，改动后会生成新文件名：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-section">location</span><span class="hljs-regexp"> ^~</span> /assets/ {
+    <span class="hljs-attribute">try_files</span> <span class="hljs-variable">$uri</span> =<span class="hljs-number">404</span>;
+    <span class="hljs-attribute">expires</span> <span class="hljs-number">7d</span>;
+}
+
+<span class="hljs-section">location</span> = /index.html {
+    <span class="hljs-attribute">add_header</span> Cache-Control <span class="hljs-string">&quot;no-cache&quot;</span>;
+}
+</code></pre>
+<p>示例：hash资源可缓存，index应允许重新验证，避免发布后入口仍指向旧资源。<code>no-cache</code>不是禁止保存，它要求使用前重新验证；含私密数据时应按需求使用 <code>no-store</code> 等策略。CDN缓存和代理缓存需分别排查。<a href="https://nginx.org/en/docs/http/ngx_http_headers_module.html">响应头与缓存说明</a></p>
+<p>传统 <code>add_header</code> 继承规则容易踩坑：下层定义自己的add_header时，可能不再继承上层同类配置。新版本有相关扩展，跨版本配置不能直接假设追加继承；CORS和安全头实际以curl/浏览器响应为准。</p>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># http/server内的按需压缩片段</span>
+<span class="hljs-attribute">gzip</span> <span class="hljs-literal">on</span>;
+<span class="hljs-attribute">gzip_vary</span> <span class="hljs-literal">on</span>;
+<span class="hljs-attribute">gzip_types</span> text/plain text/css application/javascript application/json;
+</code></pre>
+<p>示例：用于适合压缩的文本，不对已经压缩的图片等一概重复压缩。流式和含敏感数据的响应要结合延迟、客户端及安全要求评估，不全局强套。</p>
+<p>前端和API经同域不同路径代理时通常无需额外CORS；确需跨域时，明确允许的Origin、方法、请求头和凭证策略，OPTIONS也要匹配业务。不要直接复制 <code>Access-Control-Allow-Origin: *</code> 与凭证同时开启的错误组合，也不要让后端和Nginx同时输出重复CORS头。</p>
+<h2 id="16-access日志error日志与耗时">16. access日志、error日志与耗时</h2>
+<p>在http内定义格式，再在server内引用：</p>
+<pre><code class="hljs language-nginx"><span class="hljs-comment"># http层级</span>
+<span class="hljs-attribute">log_format</span> demo_timing <span class="hljs-string">&#x27;<span class="hljs-variable">$remote_addr</span> [<span class="hljs-variable">$time_local</span>] &quot;<span class="hljs-variable">$request</span>&quot; &#x27;</span>
+                       <span class="hljs-string">&#x27;<span class="hljs-variable">$status</span> <span class="hljs-variable">$body_bytes_sent</span> rt=<span class="hljs-variable">$request_time</span> &#x27;</span>
+                       <span class="hljs-string">&#x27;upstream=<span class="hljs-variable">$upstream_addr</span> us=<span class="hljs-variable">$upstream_status</span> &#x27;</span>
+                       <span class="hljs-string">&#x27;uct=<span class="hljs-variable">$upstream_connect_time</span> uht=<span class="hljs-variable">$upstream_header_time</span> &#x27;</span>
+                       <span class="hljs-string">&#x27;urt=<span class="hljs-variable">$upstream_response_time</span>&#x27;</span>;
+
+<span class="hljs-comment"># 对应server内</span>
+<span class="hljs-comment"># access_log /var/log/nginx/demo.access.log demo_timing;</span>
+<span class="hljs-comment"># error_log /var/log/nginx/demo.error.log warn;</span>
+</code></pre>
+<p>示例：实际使用时取消server内两条指令前的注释，并放进目标server。日志包含URI和查询参数，不把token或秘密放进URL；对外分享日志前脱敏。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>怎么看</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>status</td>
+<td>Nginx返回客户端的状态码</td>
+</tr>
+<tr>
+<td>request_time</td>
+<td>请求整体处理耗时，也可能受客户端上传/下载影响</td>
+</tr>
+<tr>
+<td>upstream_addr / upstream_status</td>
+<td>实际上游与状态，多个值可能对应多次尝试</td>
+</tr>
+<tr>
+<td>upstream_connect_time</td>
+<td>上游连接耗时</td>
+</tr>
+<tr>
+<td>upstream_header_time</td>
+<td>获取上游响应头耗时</td>
+</tr>
+<tr>
+<td>upstream_response_time</td>
+<td>上游响应耗时，需结合重试和传输情况看</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 100 /var/log/nginx/demo.error.log <span class="hljs-comment"># 最近日志</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -F /var/log/nginx/demo.access.log    <span class="hljs-comment"># 持续跟踪，适应同名日志轮转</span>
+<span class="hljs-built_in">sudo</span> journalctl -u nginx -b -n 100 --no-pager  <span class="hljs-comment"># 服务管理与启动错误</span>
+<span class="hljs-built_in">sudo</span> grep -nE <span class="hljs-string">&#x27;upstream|timed out|Permission denied&#x27;</span> /var/log/nginx/demo.error.log
+</code></pre>
+<p>示例：先按故障时间关联access/error及后端日志。<code>tail -F</code>按 <code>Ctrl+C</code>退出查看，不停止Nginx。access通常在请求结束时记录，长连接未结束时不一定立即出现最终记录。<a href="https://nginx.org/en/docs/http/ngx_http_log_module.html">访问日志说明</a></p>
+<p>日志轮转优先沿用系统包提供的logrotate配置。手工轮转后需要正确reopen；<code>nginx -s reopen</code>用于重新打开日志文件，不是reload配置。不要把正在写的日志直接删除后就认为空间一定释放，进程仍可能持有文件句柄。</p>
+<h2 id="17-权限selinux与端口">17. 权限、SELinux与端口</h2>
+<pre><code class="hljs language-bash">ps -ww -eo user,pid,args | grep <span class="hljs-string">&#x27;[n]ginx&#x27;</span> <span class="hljs-comment"># 查worker实际用户</span>
+namei -l /srv/demo/html/index.html       <span class="hljs-comment"># 各级目录的访问权限</span>
+<span class="hljs-built_in">ls</span> -l /srv/demo/html/index.html          <span class="hljs-comment"># 文件读权限</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :80&#x27;</span>             <span class="hljs-comment"># 监听者</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :443&#x27;</span>
+getenforce                              <span class="hljs-comment"># 启用SELinux的系统查询模式</span>
+<span class="hljs-built_in">ls</span> -Zd /srv/demo/html                    <span class="hljs-comment"># SELinux上下文</span>
+</code></pre>
+<p>示例：主进程能读取配置不代表worker能读取网页；worker需要父目录的遍历权限和文件读权限。用户可能是nginx、www-data或其他值，按实际身份分配，只读静态站点不必给worker写权限。</p>
+<p>SELinux拒绝读取网页或代理联网时，先查审计拒绝和合适的路径标签/布尔策略；由管理员按业务范围调整。不要用 <code>chmod -R 777</code>、关闭SELinux或让worker以root运行来掩盖问题。</p>
+<p>放行端口还要检查活动防火墙zone、云安全组、负载均衡和实际来源限制；不关闭整台服务器的防火墙。完整操作见 <a href="linux-server-operations-commands.html">服务器命令</a>。</p>
+<h2 id="18-发布与回退每次改完怎么做">18. 发布与回退：每次改完怎么做</h2>
+<p>假设只修改 <code>/etc/nginx/conf.d/demo.conf</code>，先记录并备份，文件名不以 <code>.conf</code> 结尾，避免被通配include再次加载：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cp</span> -p /etc/nginx/conf.d/demo.conf /etc/nginx/conf.d/demo.conf.bak-20261102-153000
+sudoedit /etc/nginx/conf.d/demo.conf <span class="hljs-comment"># 按授权编辑</span>
+<span class="hljs-built_in">sudo</span> nginx -t                     <span class="hljs-comment"># 有错误先修复，不reload</span>
+<span class="hljs-built_in">sudo</span> systemctl reload nginx       <span class="hljs-comment"># 仅校验通过后执行</span>
+systemctl status nginx --no-pager -l
+</code></pre>
+<p>示例：备份名称应按本次时间/版本取唯一值，不能每次覆盖同一份。修改include文件、证书或其他依赖时也需保存相应版本；<code>nginx -t</code>通过不代表代理后端和业务接口正常。</p>
+<pre><code class="hljs language-bash">curl -I -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/
+curl -i --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/api/health
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 50 /var/log/nginx/demo.error.log
+</code></pre>
+<p>示例：分别验证Nginx入口和后端直连，路径必须按实际API调整。HTTPS、WebSocket、上传等按本次改动验收；reload后不要只看到进程还在就宣布成功。</p>
+<p>回退时恢复本次备份，再校验与reload：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cp</span> -p /etc/nginx/conf.d/demo.conf.bak-20261102-153000 /etc/nginx/conf.d/demo.conf
+<span class="hljs-built_in">sudo</span> nginx -t
+<span class="hljs-built_in">sudo</span> systemctl reload nginx
+</code></pre>
+<p>示例：回退配置不恢复前端文件、后端版本、DNS或证书；这些改动也要有对应恢复方案。这里是按步骤执行，不使用分号把“校验失败仍reload”的操作连在一起。</p>
+<h2 id="19-常见故障速查">19. 常见故障速查</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>访问了另一网站</td>
+<td>DNS、listen、Host/SNI、默认server、重复server_name</td>
+</tr>
+<tr>
+<td>403</td>
+<td>index是否存在、目录列表关闭、worker读取/遍历权限、访问规则、SELinux</td>
+</tr>
+<tr>
+<td>静态文件404</td>
+<td>root/alias映射、发布目录、资源base路径、文件是否真的存在</td>
+</tr>
+<tr>
+<td>SPA刷新404</td>
+<td>history路由回退；API和缺失静态资源不能都回退index</td>
+</tr>
+<tr>
+<td>API404</td>
+<td>直连后端路径、proxy_pass是否带URI、后端上下文路径</td>
+</tr>
+<tr>
+<td>413</td>
+<td>Nginx请求体限制、表单开销、其他代理与后端限制</td>
+</tr>
+<tr>
+<td>499</td>
+<td>客户端在响应前断开，结合耗时和代理链查原因，不直接算后端成功</td>
+</tr>
+<tr>
+<td>502</td>
+<td>上游拒绝/断连、协议错误、无法解析/无可用节点、权限，查error日志</td>
+</tr>
+<tr>
+<td>504</td>
+<td>等待上游超时；核对依赖和耗时，不直接无限延长timeout</td>
+</tr>
+<tr>
+<td>WebSocket非101</td>
+<td>请求路径、Upgrade/Connection、认证、源检查、上游支持</td>
+</tr>
+<tr>
+<td>SSE积到最后才返回</td>
+<td>应用flush、响应类型、Nginx/网关/CDN缓冲、压缩</td>
+</tr>
+<tr>
+<td>JS报MIME或Unexpected token <code>&lt;</code></td>
+<td>请求JS实际返回index或错误HTML，检查回退与资源路径</td>
+</tr>
+<tr>
+<td>证书域名/链错误</td>
+<td>SNI、server选择、SAN、证书链、磁盘与实际服务证书是否一致</td>
+</tr>
+<tr>
+<td>redirect循环</td>
+<td>TLS终止位置、可信协议头、应用base URL与跳转规则</td>
+</tr>
+<tr>
+<td>地址已经占用</td>
+<td>ss核对PID，是否另有Nginx、容器或重复启动入口</td>
+</tr>
+<tr>
+<td>修改后不生效</td>
+<td>是否改到实际include文件、是否reload成功、缓存/CDN、是否另一实例</td>
+</tr>
+</tbody>
+</table>
+<p>排查顺序：实际实例与配置 → 监听地址/端口 → 本机带Host或SNI访问 → 上游直连 → access/error日志 → 网络及权限 → 关键业务。</p>
+<p>相关笔记：<a href="linux-service-check-start-troubleshooting.html">服务检查与排障</a>、<a href="linux-server-operations-commands.html">服务器常用命令</a>、<a href="docker-compose-operations-commands.html">Docker与Compose</a>。</p>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#1-先找到实际运行的-nginx">1. 先找到实际运行的 Nginx</a><a class="toc-link level-2" href="#2-常用目录与配置结构">2. 常用目录与配置结构</a><a class="toc-link level-2" href="#3-启动停止reload与自启">3. 启动、停止、reload与自启</a><a class="toc-link level-2" href="#4-完整示例静态网站">4. 完整示例：静态网站</a><a class="toc-link level-2" href="#5-完整示例vue-react前端与后端接口">5. 完整示例：Vue / React前端与后端接口</a><a class="toc-link level-2" href="#6-proxy_pass末尾斜杠后端到底收到什么">6. proxy_pass末尾斜杠：后端到底收到什么</a><a class="toc-link level-2" href="#7-location匹配顺序">7. location匹配顺序</a><a class="toc-link level-3" href="#跳转与内部重写">跳转与内部重写</a><a class="toc-link level-2" href="#8-root与alias文件路径怎么拼">8. root与alias：文件路径怎么拼</a><a class="toc-link level-2" href="#9-完整示例https与http跳转">9. 完整示例：HTTPS与HTTP跳转</a><a class="toc-link level-2" href="#10-完整示例websocket代理">10. 完整示例：WebSocket代理</a><a class="toc-link level-2" href="#11-sse与流式响应">11. SSE与流式响应</a><a class="toc-link level-2" href="#12-上传大小与超时">12. 上传大小与超时</a><a class="toc-link level-2" href="#13-完整示例多个后端负载均衡">13. 完整示例：多个后端负载均衡</a><a class="toc-link level-2" href="#14-转发头真实ip与可信代理">14. 转发头、真实IP与可信代理</a><a class="toc-link level-2" href="#15-缓存压缩与跨域">15. 缓存、压缩与跨域</a><a class="toc-link level-2" href="#16-access日志error日志与耗时">16. access日志、error日志与耗时</a><a class="toc-link level-2" href="#17-权限selinux与端口">17. 权限、SELinux与端口</a><a class="toc-link level-2" href="#18-发布与回退每次改完怎么做">18. 发布与回退：每次改完怎么做</a><a class="toc-link level-2" href="#19-常见故障速查">19. 常见故障速查</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践</span></footer></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" type="search" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
