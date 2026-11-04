@@ -116,24 +116,24 @@ pidstat -u -t -p 24680 1 5
 <span class="hljs-built_in">sudo</span> perf report -i /tmp/demo-cpu.data
 </code></pre>
 <p>示例：热点长期集中在某个解析函数，就检查输入规模和重复解析；热点在GC则结合堆占用、分配速率、GC日志分析。Java等JIT程序可能需要运行时专用工具或符号配置，无法解析的地址不能直接当结论。</p>
-<p>**处理：**减少热点路径上的重复工作、无效轮询和过量分配；并行能力不足时再考虑拆分任务。短时采样也有开销，先限定进程和时长。</p>
-<p>**复查：**在相近吞吐下比较CPU、P99、错误率和每请求CPU成本，避免通过少处理请求换来“CPU下降”。</p>
+<p><strong>处理</strong>：减少热点路径上的重复工作、无效轮询和过量分配；并行能力不足时再考虑拆分任务。短时采样也有开销，先限定进程和时长。</p>
+<p><strong>复查</strong>：在相近吞吐下比较CPU、P99、错误率和每请求CPU成本，避免通过少处理请求换来“CPU下降”。</p>
 <h2 id="3-load高cpu却不高区分阻塞与僵尸">3. load高，CPU却不高：区分阻塞与僵尸</h2>
 <pre><code class="hljs language-bash">ps -eo pid,ppid,<span class="hljs-built_in">stat</span>,wchan:28,<span class="hljs-built_in">comm</span> --<span class="hljs-built_in">sort</span>=<span class="hljs-built_in">stat</span>
 vmstat 1 5
 iostat -xz -y 1 5
 </code></pre>
 <p>示例：大量 <code>D</code> 状态进程且 <code>wchan</code>指向I/O等待，继续查磁盘、NFS、驱动或内存回收；<code>Z</code> 是进程已退出但父进程未回收，通常不消耗CPU，不能把它当作计算热点。</p>
-<p>**处理：**D状态先恢复依赖的存储或内核路径，<code>kill -9</code>也可能要等内核等待结束才生效。Z状态应查PPID对应的父进程为什么没有回收子进程，安排修复或重启父服务。</p>
-<p>**复查：**等待队列和D状态数量下降、业务延迟恢复。僵尸问题则看数量是否停止增长、父进程是否正常回收。</p>
+<p><strong>处理</strong>：D状态先恢复依赖的存储或内核路径，<code>kill -9</code>也可能要等内核等待结束才生效。Z状态应查PPID对应的父进程为什么没有回收子进程，安排修复或重启父服务。</p>
+<p><strong>复查</strong>：等待队列和D状态数量下降、业务延迟恢复。僵尸问题则看数量是否停止增长、父进程是否正常回收。</p>
 <h2 id="4-sy高切换多但看不到持续占cpu的进程">4. sy高、切换多，但看不到持续占CPU的进程</h2>
 <pre><code class="hljs language-bash">vmstat 1 5
 pidstat -w -t 1 5
 ps -eLf | <span class="hljs-built_in">wc</span> -l
 </code></pre>
 <p>示例：<code>cs</code>明显高于平时且线程数激增，可能是线程池过大、锁竞争或大量短任务；进程不断启动退出时，一次top截图可能抓不到。</p>
-<p>**处理：**对照同等流量下的正常基线，查频繁调用外部命令的脚本、进程创建循环、过量线程以及高频锁竞争。切换次数没有适用于所有机器的固定告警值；<code>pidstat</code>的自愿切换多也可能只是正常等待。</p>
-<p>**复查：**线程数、创建速率和每请求切换成本回落，同时吞吐和延迟改善。短命进程需要进程创建事件采样时，使用当前发行版支持的追踪工具，并限定时长。</p>
+<p><strong>处理</strong>：对照同等流量下的正常基线，查频繁调用外部命令的脚本、进程创建循环、过量线程以及高频锁竞争。切换次数没有适用于所有机器的固定告警值；<code>pidstat</code>的自愿切换多也可能只是正常等待。</p>
+<p><strong>复查</strong>：线程数、创建速率和每请求切换成本回落，同时吞吐和延迟改善。短命进程需要进程创建事件采样时，使用当前发行版支持的追踪工具，并限定时长。</p>
 <h2 id="5-内存低swap已使用先看现在是否有压力">5. 内存低、Swap已使用：先看现在是否有压力</h2>
 <pre><code class="hljs language-bash">free -h
 swapon --show
@@ -141,8 +141,8 @@ vmstat 1 5
 pidstat -r -p 24680 1 5
 </code></pre>
 <p>示例：Swap有历史占用，但 <code>si/so</code>长期接近0、Available稳定、延迟正常，不代表正在频繁换页。反之，Available持续下降且换入换出、major fault和延迟同步升高，需要查工作集和内存限制。major fault也可能来自文件读盘，不能单独认定为Swap问题。</p>
-<p>**处理：**先定位增长的是进程堆、文件缓存、共享内存还是内核内存；容器另查cgroup限制。减少无界缓存、批量大小和并发峰值，必要时扩容。内存紧张时直接 <code>swapoff</code> 可能加剧压力，不把清缓存或关Swap作为通用修复。</p>
-<p>**复查：**持续比较Available、换页速率、OOM事件和业务延迟。进一步分类见<a href="linux-kernel-troubleshooting.html">内核内存排查</a>。</p>
+<p><strong>处理</strong>：先定位增长的是进程堆、文件缓存、共享内存还是内核内存；容器另查cgroup限制。减少无界缓存、批量大小和并发峰值，必要时扩容。内存紧张时直接 <code>swapoff</code> 可能加剧压力，不把清缓存或关Swap作为通用修复。</p>
+<p><strong>复查</strong>：持续比较Available、换页速率、OOM事件和业务延迟。进一步分类见<a href="linux-kernel-troubleshooting.html">内核内存排查</a>。</p>
 <h2 id="6-磁盘io高定位设备进程和具体操作">6. 磁盘I/O高：定位设备、进程和具体操作</h2>
 <pre><code class="hljs language-bash"><span class="hljs-comment"># 看设备延迟、队列和读写量；-y跳过开机以来的首份累计报告</span>
 iostat -xz -y 1 5
@@ -159,8 +159,8 @@ pidstat -d 1 5
 <pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 10s strace -f -c -p 24680
 </code></pre>
 <p>示例：<code>fsync</code>、文件创建和删除异常频繁，回查业务是否每次请求都落盘或生成临时文件。<code>-c</code>输出汇总统计；<code>-f</code>跟踪线程与后续子进程。strace会影响被观察程序，繁忙服务应缩短采样或在复现环境使用；被timeout结束时退出码124通常表示采样到时。</p>
-<p>**处理：**修复日志风暴，合并小写入，减少重复读写和临时文件。调整刷盘频率前明确持久性要求，不能直接关闭fsync来换速度。</p>
-<p>**复查：**比较同等业务量下读写次数、设备延迟、队列、应用P99及异常重启后的数据可靠性。</p>
+<p><strong>处理</strong>：修复日志风暴，合并小写入，减少重复读写和临时文件。调整刷盘频率前明确持久性要求，不能直接关闭fsync来换速度。</p>
+<p><strong>复查</strong>：比较同等业务量下读写次数、设备延迟、队列、应用P99及异常重启后的数据可靠性。</p>
 <h2 id="7-磁盘满inode满或删了文件空间没回来">7. 磁盘满、inode满，或删了文件空间没回来</h2>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">df</span> -hT
 <span class="hljs-built_in">df</span> -i
@@ -168,15 +168,15 @@ pidstat -d 1 5
 <span class="hljs-built_in">sudo</span> lsof +L1
 </code></pre>
 <p>示例：<code>df -i</code>为100%但容量还有空余，可能是大量小文件耗尽inode；<code>lsof +L1</code>看到大日志仍被进程打开，说明文件名删除后空间尚未释放。<code>du -x</code>限制在同一文件系统，避免扫进其他挂载盘。</p>
-<p>**处理：**确认文件归属和保留策略后清理历史文件；对已删除仍打开的日志，让应用按文档重新打开日志或安排重启，并修正轮转方式。不要直接删数据库文件、活动日志或容器数据目录。</p>
-<p>**复查：**容量和inode恢复，相关文件句柄释放，应用能继续正常写入。</p>
+<p><strong>处理</strong>：确认文件归属和保留策略后清理历史文件；对已删除仍打开的日志，让应用按文档重新打开日志或安排重启，并修正轮转方式。不要直接删数据库文件、活动日志或容器数据目录。</p>
+<p><strong>复查</strong>：容量和inode恢复，相关文件句柄释放，应用能继续正常写入。</p>
 <h2 id="8-cpu磁盘都空闲接口依然慢">8. CPU、磁盘都空闲，接口依然慢</h2>
 <pre><code class="hljs language-bash">ps -L -p 24680 -o pid,tid,<span class="hljs-built_in">stat</span>,wchan:28,<span class="hljs-built_in">comm</span>
 ss -tanp
 </code></pre>
 <p>示例：线程多数在等待，并不能直接判为死锁。可能在等连接池、锁、下游响应或队列；大量 <code>futex</code> 等待也可能是空闲线程的正常行为。</p>
-<p>**处理：**把总耗时拆成排队、业务执行、SQL、缓存、外部HTTP几段；结合线程栈、链路追踪和连接池指标定位。连接池满时，先查连接持有过久、泄漏和下游变慢，再决定是否增加连接数。</p>
-<p>**复查：**等待时长和队列长度降低，下游吞吐、错误率没有恶化。单纯扩大线程池可能把压力转移到数据库。</p>
+<p><strong>处理</strong>：把总耗时拆成排队、业务执行、SQL、缓存、外部HTTP几段；结合线程栈、链路追踪和连接池指标定位。连接池满时，先查连接持有过久、泄漏和下游变慢，再决定是否增加连接数。</p>
+<p><strong>复查</strong>：等待时长和队列长度降低，下游吞吐、错误率没有恶化。单纯扩大线程池可能把压力转移到数据库。</p>
 <h2 id="9-sql或redis拖慢请求">9. SQL或Redis拖慢请求</h2>
 <p>数据库先看慢查询、当前执行语句、锁等待和连接数。以MySQL为例，在已有连接中执行：</p>
 <pre><code class="hljs language-sql"><span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">FULL</span> PROCESSLIST;
@@ -190,8 +190,8 @@ redis-cli --askpass INFO commandstats
 redis-cli --askpass SLOWLOG GET 10
 </code></pre>
 <p>示例：本以为是纯读接口，命令统计却显示持续写集合，同时持久化和磁盘延迟升高，应检查实际请求路径。慢日志可能包含业务键或参数，转发前先脱敏；它主要记录命令执行耗时，日志为空不能排除网络和其他等待。</p>
-<p>**处理：**优先修复大键、长命令、全量扫描、意外写入和慢SQL。生产排查避免直接执行 <code>KEYS *</code>、长时间MONITOR或无边界全量扫描。改变AOF刷盘策略前先确定允许丢失多少数据。</p>
-<p>**复查：**对比命令/SQL耗时、连接等待、持久化状态与接口P99。Redis诊断指标可参考<a href="https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency/">延迟排查说明</a>。</p>
+<p><strong>处理</strong>：优先修复大键、长命令、全量扫描、意外写入和慢SQL。生产排查避免直接执行 <code>KEYS *</code>、长时间MONITOR或无边界全量扫描。改变AOF刷盘策略前先确定允许丢失多少数据。</p>
+<p><strong>复查</strong>：对比命令/SQL耗时、连接等待、持久化状态与接口P99。Redis诊断指标可参考<a href="https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency/">延迟排查说明</a>。</p>
 <h2 id="10-http慢拆开dnstcptls和首字节">10. HTTP慢：拆开DNS、TCP、TLS和首字节</h2>
 <pre><code class="hljs language-bash">curl -sS -o /dev/null --connect-timeout 3 --max-time 10 \
   -w <span class="hljs-string">&#x27;dns=%{time_namelookup} connect=%{time_connect} tls=%{time_appconnect} first=%{time_starttransfer} total=%{time_total}\n&#x27;</span> \
@@ -206,8 +206,8 @@ dig +tries=1 +<span class="hljs-keyword">time</span>=2 app.example.com
   --connect-timeout 3 --max-time 10 -I https://app.example.com/health
 </code></pre>
 <p>示例：指定地址明显变快，回查解析链路；两者都慢则继续查建连、TLS和应用。<code>-I</code>使用HEAD，需选择支持HEAD的接口；它适合连通性对照，不能替代真实业务请求的性能测量。</p>
-<p>**处理：**核查解析服务可达性、域名记录、缓存和应用连接复用。DNS配置可能由NetworkManager、systemd-resolved或容器管理，不直接覆盖 <code>/etc/resolv.conf</code>，也不把内部域名统一交给公网DNS。</p>
-<p>**复查：**重复测试冷/热解析和真实请求，比较错误率及各阶段分布，避免只凭一次curl得出结论。</p>
+<p><strong>处理</strong>：核查解析服务可达性、域名记录、缓存和应用连接复用。DNS配置可能由NetworkManager、systemd-resolved或容器管理，不直接覆盖 <code>/etc/resolv.conf</code>，也不把内部域名统一交给公网DNS。</p>
+<p><strong>复查</strong>：重复测试冷/热解析和真实请求，比较错误率及各阶段分布，避免只凭一次curl得出结论。</p>
 <h2 id="11-网络超时丢包重传先保留连接证据">11. 网络超时、丢包、重传：先保留连接证据</h2>
 <pre><code class="hljs language-bash">ss -tin
 ip -s <span class="hljs-built_in">link</span> show dev eth0
@@ -218,9 +218,9 @@ sar -n DEV,EDEV 1 5
   -w /tmp/demo-network.pcap <span class="hljs-string">&#x27;host 192.0.2.10 and tcp port 8080&#x27;</span>
 </code></pre>
 <p>示例：网卡丢包计数持续增加且softirq集中在单核，检查网卡队列和处理能力；重传上升但本机网卡正常，需要结合另一端及中间链路定位。计数多为累计值，要看故障窗口的增量。</p>
-<p>**处理：**按握手、请求发送、响应返回分段定位。抓包仍可能包含业务数据，应限制对象并妥善保管；抓包位置、网卡卸载和抓包自身丢包都会影响分析，单端出现“重传”标记不是最终根因证据。</p>
+<p><strong>处理</strong>：按握手、请求发送、响应返回分段定位。抓包仍可能包含业务数据，应限制对象并妥善保管；抓包位置、网卡卸载和抓包自身丢包都会影响分析，单端出现“重传”标记不是最终根因证据。</p>
 <p>小包交互固定增加延迟时，核对应用写入方式、Nagle和延迟确认的配合；先优化写入批次，再按连接测试TCP_NODELAY，不做全局盲改。队列和窗口分析见<a href="linux-kernel-troubleshooting.html">内核网络排查</a>。</p>
-<p>**复查：**连接成功率、RTT、重传增量和业务P99同时改善。</p>
+<p><strong>复查</strong>：连接成功率、RTT、重传增量和业务P99同时改善。</p>
 <h2 id="12-经过nat或容器网络后才出现连接失败">12. 经过NAT或容器网络后才出现连接失败</h2>
 <pre><code class="hljs language-bash">ss -s
 sysctl net.netfilter.nf_conntrack_count net.netfilter.nf_conntrack_max
@@ -228,8 +228,8 @@ sysctl net.netfilter.nf_conntrack_count net.netfilter.nf_conntrack_max
   grep -Ei <span class="hljs-string">&#x27;conntrack|table full|drop&#x27;</span>
 </code></pre>
 <p>示例：连接跟踪数量逼近限制，并出现 <code>table full</code>，优先查连接创建速率、短连接风暴和容量；相关sysctl不存在可能是模块未加载或当前环境不提供，不能因此直接认定网络故障。</p>
-<p>**处理：**核查连接复用、NAT源端口容量、状态表和防火墙丢弃。扩大conntrack上限会增加内存消耗，需先估算容量并验证；不要直接关闭防火墙，也不要照搬已移除的 <code>tcp_tw_recycle</code> 等旧参数。</p>
-<p>**复查：**在流量高峰确认新连接成功率、连接创建速率及状态表余量稳定。</p>
+<p><strong>处理</strong>：核查连接复用、NAT源端口容量、状态表和防火墙丢弃。扩大conntrack上限会增加内存消耗，需先估算容量并验证；不要直接关闭防火墙，也不要照搬已移除的 <code>tcp_tw_recycle</code> 等旧参数。</p>
+<p><strong>复查</strong>：在流量高峰确认新连接成功率、连接创建速率及状态表余量稳定。</p>
 <h2 id="13-容器慢启动慢查限制与启动阶段">13. 容器慢、启动慢：查限制与启动阶段</h2>
 <pre><code class="hljs language-bash">docker stats --no-stream
 docker inspect --format <span class="hljs-string">&#x27;{{json .HostConfig}}&#x27;</span> demo-api
@@ -242,8 +242,8 @@ kubectl logs demo-api-0 -n demo --since=10m --<span class="hljs-built_in">tail</
 </code></pre>
 <p>示例：宿主机空闲，但容器CPU到配额后开始节流，或达到内存上限后OOM；另一类启动慢发生在拉镜像、挂载、DNS、初始化和依赖重试阶段，不应只看应用启动后的CPU。</p>
 <p>在cgroup v2环境，先通过 <code>/proc/&lt;PID&gt;/cgroup</code> 查实际路径，再读取该目录的 <code>cpu.stat</code>、<code>memory.events</code>。<code>nr_throttled</code>、<code>throttled_usec</code> 和OOM等字段应比较两次采样的增量；不同层级和cgroup版本的接口不同，不拼一个固定路径套用所有容器。</p>
-<p>**处理：**调整不合理的资源限制、初始化逻辑和依赖重试；结合实测启动时间配置startup/readiness/liveness探针。探针失败引发重复重启时，单纯加大重启次数不能解决问题。</p>
-<p>**复查：**检查启动耗时各阶段、节流增量、OOM与重启次数，以及高峰期服务延迟。常用操作见<a href="docker-compose-operations-commands.html">Docker运维</a>和<a href="kubernetes-operations-commands.html">Kubernetes运维</a>。</p>
+<p><strong>处理</strong>：调整不合理的资源限制、初始化逻辑和依赖重试；结合实测启动时间配置startup/readiness/liveness探针。探针失败引发重复重启时，单纯加大重启次数不能解决问题。</p>
+<p><strong>复查</strong>：检查启动耗时各阶段、节流增量、OOM与重启次数，以及高峰期服务延迟。常用操作见<a href="docker-compose-operations-commands.html">Docker运维</a>和<a href="kubernetes-operations-commands.html">Kubernetes运维</a>。</p>
 <h2 id="14-优化后怎样确认真的解决了">14. 优化后怎样确认真的解决了</h2>
 <table>
 <thead>
