@@ -1,14 +1,20 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="接口慢、机器卡、吞吐下降时，先确定慢在哪里，再找占用资源的进程和操作。下文PID 24680 、网卡 eth0 、域名 app.example.com 、IP 192.0.2.10 都需要替换。 1. 服务慢了，先用一分钟判断方向 date"><meta name="color-scheme" content="light dark"><title>Linux 性能瓶颈排查与优化 · 知行笔记</title><link rel="stylesheet" href="../assets/style.css"><script src="../assets/app.js" defer></script></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="接口慢、机器卡、吞吐下降时，先确定慢在哪里，再找占用资源的进程和操作。下文PID 24680 、网卡 eth0 、域名 app.example.com 、IP 192.0.2.10 都需要替换。 1. 服务慢了，先用一分钟判断方向 执行顺序"><meta name="color-scheme" content="light dark"><title>Linux 性能瓶颈排查与优化 · 知行笔记</title><link rel="stylesheet" href="../assets/style.css"><script src="../assets/app.js" defer></script></head>
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
 <aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">7</span></summary><a class="nav-link" href="../articles/linux-kernel-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link active" href="../articles/linux-performance-troubleshooting.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>9 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 性能瓶颈排查与优化</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-04</time><span class="meta-dot">·</span><span>约 15 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">performance</span><span class="tag">cpu</span><span class="tag">io</span><span class="tag">network</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>接口慢、机器卡、吞吐下降时，先确定慢在哪里，再找占用资源的进程和操作。下文PID <code>24680</code>、网卡 <code>eth0</code>、域名 <code>app.example.com</code>、IP <code>192.0.2.10</code> 都需要替换。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 性能瓶颈排查与优化</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-04</time><span class="meta-dot">·</span><span>约 48 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">performance</span><span class="tag">cpu</span><span class="tag">io</span><span class="tag">network</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>接口慢、机器卡、吞吐下降时，先确定慢在哪里，再找占用资源的进程和操作。下文PID <code>24680</code>、网卡 <code>eth0</code>、域名 <code>app.example.com</code>、IP <code>192.0.2.10</code> 都需要替换。</p>
 <h2 id="1-服务慢了先用一分钟判断方向">1. 服务慢了，先用一分钟判断方向</h2>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">date</span>
+<p><strong>执行顺序</strong>：记录时间和请求指标 → 看整机资源 → 根据表格选择下一分支；不必把所有工具全跑一遍。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 记录当前时间，方便与业务和系统日志对齐</span>
+<span class="hljs-built_in">date</span>
+<span class="hljs-comment"># 查看运行时长和1、5、15分钟平均负载</span>
 <span class="hljs-built_in">uptime</span>
+<span class="hljs-comment"># 查看整机可用内存、缓存和Swap占用</span>
 free -h
+<span class="hljs-comment"># 每秒采样整机运行队列、阻塞、换页、I/O和CPU，共5次</span>
 vmstat 1 5
+<span class="hljs-comment"># 交互查看进程；按1看每核、P按CPU排序、M按内存排序，q退出</span>
 top
 </code></pre>
 <p>示例：<code>vmstat</code>后几行的 <code>r</code> 持续超过可用CPU数量、<code>us</code>很高，优先查计算热点；<code>b</code>增多、<code>wa</code>升高则查I/O和阻塞。第一行通常是开机以来的平均值，不能当成刚发生的变化。<code>top</code>按 <code>q</code> 退出，也可以按Ctrl+C。</p>
@@ -61,27 +67,129 @@ top
 </table>
 <details class="install-guide">
 <summary>安装诊断工具：按发行版展开查看</summary>
+<p>先执行 <code>command -v 命令名</code> 检查，缺什么再安装对应包。系统自带不代表所有最小化镜像都已安装。</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>Ubuntu / Debian包</th>
+<th>RHEL系包</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>top、ps、free、vmstat、pmap</td>
+<td>procps</td>
+<td>procps-ng</td>
+<td>整机与进程状态</td>
+</tr>
+<tr>
+<td>pidstat、iostat、mpstat、sar</td>
+<td>sysstat</td>
+<td>sysstat</td>
+<td>按间隔采样CPU、内存、I/O与网络</td>
+</tr>
+<tr>
+<td>ss、ip、nstat</td>
+<td>iproute2</td>
+<td>iproute</td>
+<td>连接、路由及协议计数</td>
+</tr>
+<tr>
+<td>tc</td>
+<td>iproute2</td>
+<td>iproute-tc，部分旧版本在iproute</td>
+<td>排队和限速规则</td>
+</tr>
+<tr>
+<td>pstree</td>
+<td>psmisc</td>
+<td>psmisc</td>
+<td>父子进程关系</td>
+</tr>
+<tr>
+<td>findmnt、lsblk、taskset、chrt、swapon</td>
+<td>util-linux</td>
+<td>util-linux</td>
+<td>挂载、设备、调度及Swap</td>
+</tr>
+<tr>
+<td>lsof、strace、tcpdump、ethtool</td>
+<td>同名包</td>
+<td>同名包</td>
+<td>文件、系统调用、抓包和网卡</td>
+</tr>
+<tr>
+<td>dig</td>
+<td>dnsutils</td>
+<td>bind-utils</td>
+<td>DNS查询</td>
+</tr>
+<tr>
+<td>curl</td>
+<td>curl</td>
+<td>curl</td>
+<td>HTTP阶段耗时</td>
+</tr>
+<tr>
+<td>ping、tracepath</td>
+<td>iputils-ping、iputils-tracepath</td>
+<td>iputils</td>
+<td>连通性与路径MTU线索</td>
+</tr>
+<tr>
+<td>nft</td>
+<td>nftables</td>
+<td>nftables</td>
+<td>读取nftables规则</td>
+</tr>
+<tr>
+<td>perf</td>
+<td>linux-tools或linux-perf，见下方说明</td>
+<td>perf</td>
+<td>热点与事件采样</td>
+</tr>
+</tbody>
+</table>
 <pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian，按需安装</span>
+<span class="hljs-comment"># 更新软件包索引，会访问当前已配置的软件源</span>
 <span class="hljs-built_in">sudo</span> apt-get update
-<span class="hljs-built_in">sudo</span> apt-get install sysstat lsof strace tcpdump dnsutils iproute2 ethtool
+<span class="hljs-comment"># Ubuntu / Debian：安装下方列出的排查工具，会修改已安装软件</span>
+<span class="hljs-built_in">sudo</span> apt-get install sysstat lsof strace tcpdump dnsutils iproute2 ethtool procps psmisc util-linux curl
 
 <span class="hljs-comment"># RHEL / Rocky / AlmaLinux，按需安装</span>
-<span class="hljs-built_in">sudo</span> dnf install sysstat lsof strace tcpdump bind-utils iproute ethtool perf
+<span class="hljs-comment"># RHEL系：安装下方列出的排查工具，会修改已安装软件</span>
+<span class="hljs-built_in">sudo</span> dnf install sysstat lsof strace tcpdump bind-utils iproute ethtool perf procps-ng psmisc util-linux curl
 
 <span class="hljs-comment"># 检查常用工具是否可用</span>
+<span class="hljs-comment"># 确认这些命令是否已安装及其可执行文件路径</span>
 <span class="hljs-built_in">command</span> -v pidstat iostat mpstat sar lsof strace tcpdump dig perf
+
+<span class="hljs-comment"># Ubuntu：需要perf时，安装发行版工具及匹配当前内核的工具包</span>
+<span class="hljs-built_in">sudo</span> apt-get install linux-tools-common <span class="hljs-string">&quot;linux-tools-<span class="hljs-subst">$(uname -r)</span>&quot;</span>
+<span class="hljs-comment"># Debian：perf通常由linux-perf包提供，与上面的Ubuntu命令按发行版选择</span>
+<span class="hljs-built_in">sudo</span> apt-get install linux-perf
+<span class="hljs-comment"># Ubuntu / Debian：需要第19节的路径探测和防火墙查看时安装</span>
+<span class="hljs-built_in">sudo</span> apt-get install iputils-ping iputils-tracepath nftables
+<span class="hljs-comment"># RHEL系：需要第19节的tc、路径探测和防火墙查看时安装</span>
+<span class="hljs-built_in">sudo</span> dnf install iproute-tc iputils nftables
 </code></pre>
 <p>示例：安装sysstat后可使用 <code>pidstat</code>、<code>iostat</code>、<code>mpstat</code>、<code>sar</code>。安装并不代表已经有历史采样；<code>sar</code>历史数据需要事先启用采集。旧系统可能使用yum；Ubuntu的perf包需要与发行版和内核版本匹配。</p>
 <p>当前用户不是root时，先直接运行查看命令。查看其他用户进程、内核日志、抓包和性能采样可能需要在命令前加 <code>sudo</code>；没有sudo权限时请管理员执行对应命令，不要直接放宽整个系统的权限设置。</p>
 </details>
 <h2 id="2-cpu高找到哪一核哪个线程哪段代码">2. CPU高：找到哪一核、哪个线程、哪段代码</h2>
+<p><strong>执行顺序</strong>：先看每核CPU类型 → 找高CPU进程 → 看该进程的线程 → 再采样热点函数。</p>
 <pre><code class="hljs language-bash"><span class="hljs-comment"># 看每个CPU，而不只是整机平均值</span>
+<span class="hljs-comment"># 每秒查看各CPU忙闲、中断和I/O等待，共5次</span>
 mpstat -P ALL 1 5
 
 <span class="hljs-comment"># 找CPU占用高的进程</span>
+<span class="hljs-comment"># 每秒查看进程CPU占用，定位高CPU来源，共5次</span>
 pidstat -u 1 5
 
 <span class="hljs-comment"># 看目标进程的线程</span>
+<span class="hljs-comment"># 每秒查看目标进程各线程CPU使用和调度等待，共5次</span>
 pidstat -u -t -p 24680 1 5
 </code></pre>
 <p>示例：只有一核接近100%，其他核空闲，可能是单线程热点或流量集中；目标进程只有一个线程忙，增加服务器核数未必改善。</p>
@@ -112,118 +220,207 @@ pidstat -u -t -p 24680 1 5
 </tbody>
 </table>
 <p>需要代码热点时做短时采样：</p>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> perf record -F 49 -g -p 24680 -o /tmp/demo-cpu.data -- <span class="hljs-built_in">sleep</span> 15
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 对目标进程按49Hz采集调用栈15秒，并保存采样文件</span>
+<span class="hljs-built_in">sudo</span> perf record -F 49 -g -p 24680 -o /tmp/demo-cpu.data -- <span class="hljs-built_in">sleep</span> 15
+<span class="hljs-comment"># 读取上一步的采样文件，分析热点调用栈</span>
 <span class="hljs-built_in">sudo</span> perf report -i /tmp/demo-cpu.data
 </code></pre>
 <p>示例：热点长期集中在某个解析函数，就检查输入规模和重复解析；热点在GC则结合堆占用、分配速率、GC日志分析。Java等JIT程序可能需要运行时专用工具或符号配置，无法解析的地址不能直接当结论。</p>
 <p><strong>处理</strong>：减少热点路径上的重复工作、无效轮询和过量分配；并行能力不足时再考虑拆分任务。短时采样也有开销，先限定进程和时长。</p>
 <p><strong>复查</strong>：在相近吞吐下比较CPU、P99、错误率和每请求CPU成本，避免通过少处理请求换来“CPU下降”。</p>
+<h3 id="perf只显示地址unknown或调用树展不开">perf只显示地址、unknown，或调用树展不开</h3>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 使用采样时相同的容器文件系统解析符号；24680为仍存活的容器进程在宿主机上的PID</span>
+<span class="hljs-built_in">sudo</span> perf report -i /tmp/demo-cpu.data --symfs /proc/24680/root
+<span class="hljs-comment"># 已有栈但显示阈值过高时，将调用树显示阈值降为0.1%，不会补回未采集的栈</span>
+<span class="hljs-built_in">sudo</span> perf report -i /tmp/demo-cpu.data -g graph,0.1
+</code></pre>
+<p>示例：容器内的库在宿主机同路径不存在，使用匹配文件系统后能解析函数；若容器已重建或库已更新，必须找回采样时版本。二进制被strip、缺调试信息、栈展开方式不匹配或JIT符号缺失，也是不同原因；不是所有unknown都靠安装一个包解决。</p>
+<p><strong>处理</strong>：先核对perf警告与二进制/库版本，再补匹配的调试符号。Java可用JVM分析工具，或按JDK版本配置JIT符号映射及栈展开；不要为解析符号直接把容器改成privileged，或全机放开perf_event_paranoid。</p>
 <h2 id="3-load高cpu却不高区分阻塞与僵尸">3. load高，CPU却不高：区分阻塞与僵尸</h2>
-<pre><code class="hljs language-bash">ps -eo pid,ppid,<span class="hljs-built_in">stat</span>,wchan:28,<span class="hljs-built_in">comm</span> --<span class="hljs-built_in">sort</span>=<span class="hljs-built_in">stat</span>
+<p><strong>执行顺序</strong>：先查进程状态及等待点 → 用vmstat确认阻塞趋势 → 用iostat核对I/O → 分别处理D和Z。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 列出进程、父进程、状态和内核等待位置</span>
+ps -eo pid,ppid,<span class="hljs-built_in">stat</span>,wchan:28,<span class="hljs-built_in">comm</span> --<span class="hljs-built_in">sort</span>=<span class="hljs-built_in">stat</span>
+<span class="hljs-comment"># 每秒采样整机运行队列、阻塞、换页、I/O和CPU，共5次</span>
 vmstat 1 5
+<span class="hljs-comment"># 每秒采样设备I/O延迟、队列和读写量，共5次；-y跳过首份累计报告</span>
 iostat -xz -y 1 5
 </code></pre>
 <p>示例：大量 <code>D</code> 状态进程且 <code>wchan</code>指向I/O等待，继续查磁盘、NFS、驱动或内存回收；<code>Z</code> 是进程已退出但父进程未回收，通常不消耗CPU，不能把它当作计算热点。</p>
 <p><strong>处理</strong>：D状态先恢复依赖的存储或内核路径，<code>kill -9</code>也可能要等内核等待结束才生效。Z状态应查PPID对应的父进程为什么没有回收子进程，安排修复或重启父服务。</p>
 <p><strong>复查</strong>：等待队列和D状态数量下降、业务延迟恢复。僵尸问题则看数量是否停止增长、父进程是否正常回收。</p>
 <h2 id="4-sy高切换多但看不到持续占cpu的进程">4. sy高、切换多，但看不到持续占CPU的进程</h2>
-<pre><code class="hljs language-bash">vmstat 1 5
+<p><strong>执行顺序</strong>：先查整机cs/in → 找线程级上下文切换 → 对照线程数与业务并发 → 必要时追踪短命进程。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 每秒采样整机运行队列、阻塞、换页、I/O和CPU，共5次</span>
+vmstat 1 5
+<span class="hljs-comment"># 每秒查看线程自愿/非自愿上下文切换，共5次</span>
 pidstat -w -t 1 5
+<span class="hljs-comment"># 统计全机线程列表行数，含一行表头</span>
 ps -eLf | <span class="hljs-built_in">wc</span> -l
 </code></pre>
 <p>示例：<code>cs</code>明显高于平时且线程数激增，可能是线程池过大、锁竞争或大量短任务；进程不断启动退出时，一次top截图可能抓不到。</p>
 <p><strong>处理</strong>：对照同等流量下的正常基线，查频繁调用外部命令的脚本、进程创建循环、过量线程以及高频锁竞争。切换次数没有适用于所有机器的固定告警值；<code>pidstat</code>的自愿切换多也可能只是正常等待。</p>
+<p><code>cswch/s</code>是自愿切换，常见于等待资源；<code>nvcswch/s</code>是非自愿切换，结合CPU竞争与优先级分析。<code>pidstat</code>的 <code>%wait</code> 是等待CPU调度，不能拿它和top的iowait直接比较。旧sysstat没有该字段时，先结合vmstat运行队列和线程切换判断；单核机器看不到RES重调度中断，也不代表没有调度竞争。</p>
 <p><strong>复查</strong>：线程数、创建速率和每请求切换成本回落，同时吞吐和延迟改善。短命进程需要进程创建事件采样时，使用当前发行版支持的追踪工具，并限定时长。</p>
 <h2 id="5-内存低swap已使用先看现在是否有压力">5. 内存低、Swap已使用：先看现在是否有压力</h2>
-<pre><code class="hljs language-bash">free -h
+<p><strong>执行顺序</strong>：先看Available和Swap存量 → 看si/so当前活动 → 查目标进程缺页和RSS → 再确认内存类型。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 查看整机可用内存、缓存和Swap占用</span>
+free -h
+<span class="hljs-comment"># 列出当前启用的Swap及其占用</span>
 swapon --show
+<span class="hljs-comment"># 每秒采样整机运行队列、阻塞、换页、I/O和CPU，共5次</span>
 vmstat 1 5
+<span class="hljs-comment"># 每秒观察目标进程的缺页、RSS和虚拟内存，共5次</span>
 pidstat -r -p 24680 1 5
 </code></pre>
 <p>示例：Swap有历史占用，但 <code>si/so</code>长期接近0、Available稳定、延迟正常，不代表正在频繁换页。反之，Available持续下降且换入换出、major fault和延迟同步升高，需要查工作集和内存限制。major fault也可能来自文件读盘，不能单独认定为Swap问题。</p>
 <p><strong>处理</strong>：先定位增长的是进程堆、文件缓存、共享内存还是内核内存；容器另查cgroup限制。减少无界缓存、批量大小和并发峰值，必要时扩容。内存紧张时直接 <code>swapoff</code> 可能加剧压力，不把清缓存或关Swap作为通用修复。</p>
 <p><strong>复查</strong>：持续比较Available、换页速率、OOM事件和业务延迟。进一步分类见<a href="linux-kernel-troubleshooting.html">内核内存排查</a>。</p>
 <h2 id="6-磁盘io高定位设备进程和具体操作">6. 磁盘I/O高：定位设备、进程和具体操作</h2>
+<p><strong>执行顺序</strong>：先找异常设备 → 用pidstat找PID → lsof看文件 → 必要时限时strace确认调用。</p>
 <pre><code class="hljs language-bash"><span class="hljs-comment"># 看设备延迟、队列和读写量；-y跳过开机以来的首份累计报告</span>
+<span class="hljs-comment"># 每秒采样设备I/O延迟、队列和读写量，共5次；-y跳过首份累计报告</span>
 iostat -xz -y 1 5
 
 <span class="hljs-comment"># 找进程读写来源</span>
+<span class="hljs-comment"># 每秒查看各进程的存储读写量，共5次</span>
 pidstat -d 1 5
 
 <span class="hljs-comment"># 看目标进程打开的文件</span>
+<span class="hljs-comment"># 列出目标进程打开的文件与文件描述符</span>
 <span class="hljs-built_in">sudo</span> lsof -p 24680
 </code></pre>
 <p>示例：日志目录写入明显增加，同时目标进程写速率高、设备延迟上升，先检查日志级别和重复报错。读请求变成大量写入，也可能是临时文件、排序落盘或请求路径中意外写数据。</p>
 <p><code>await</code>是已完成I/O请求的平均耗时，需结合读写类型和队列观察；多队列NVMe、RAID和虚拟磁盘不能仅凭 <code>%util=100</code> 断言全部性能已用尽。网络文件系统还要查远端，不能只看本地块设备。</p>
+<p><code>r/s + w/s</code>辅助看IOPS，<code>rkB/s + wkB/s</code>看吞吐；<code>r_await</code>和 <code>w_await</code>分别是读、写平均时延，不能直接相加当成总体响应时间。<code>aqu-sz</code>结合请求大小和基线看排队，不设通用“超过1就异常”的规则。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 将/srv/data替换为实际慢文件所在目录，确认它属于哪个挂载和设备</span>
+findmnt -T /srv/data
+<span class="hljs-comment"># 查看块设备、分区与文件系统关系，避免把分区和整盘统计重复累加</span>
+lsblk -o NAME,TYPE,SIZE,FSTYPE,MOUNTPOINT
+<span class="hljs-comment"># 假设已确认实际整盘为vda，只读查看可用与当前调度器，方括号表示当前选择</span>
+<span class="hljs-built_in">cat</span> /sys/block/vda/queue/scheduler
+<span class="hljs-comment"># 只读该设备的预读设置，单位为KB</span>
+<span class="hljs-built_in">cat</span> /sys/block/vda/queue/read_ahead_kb
+</code></pre>
+<p>示例：路径在网络文件系统上时，本地块盘空闲并不意外；路径在LVM、RAID或虚拟盘上时，要把逻辑层与底层设备对应起来。新内核常见mq-deadline、none、bfq等，不能照搬旧系统的CFQ/NOOP配置；预读有利于部分顺序读取，对随机访问也可能放大无效I/O。</p>
 <p>需要确认系统调用时，短时观察目标进程：</p>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 10s strace -f -c -p 24680
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 对目标进程和线程做10秒系统调用汇总，可能影响业务时延</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 10s strace -f -c -p 24680
 </code></pre>
 <p>示例：<code>fsync</code>、文件创建和删除异常频繁，回查业务是否每次请求都落盘或生成临时文件。<code>-c</code>输出汇总统计；<code>-f</code>跟踪线程与后续子进程。strace会影响被观察程序，繁忙服务应缩短采样或在复现环境使用；被timeout结束时退出码124通常表示采样到时。</p>
 <p><strong>处理</strong>：修复日志风暴，合并小写入，减少重复读写和临时文件。调整刷盘频率前明确持久性要求，不能直接关闭fsync来换速度。</p>
 <p><strong>复查</strong>：比较同等业务量下读写次数、设备延迟、队列、应用P99及异常重启后的数据可靠性。</p>
 <h2 id="7-磁盘满inode满或删了文件空间没回来">7. 磁盘满、inode满，或删了文件空间没回来</h2>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">df</span> -hT
+<p><strong>执行顺序</strong>：先查容量 → 再查inode → 限范围统计目录 → 查已删除但仍打开的文件。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 查看各文件系统容量与类型</span>
+<span class="hljs-built_in">df</span> -hT
+<span class="hljs-comment"># 查看各文件系统inode是否耗尽</span>
 <span class="hljs-built_in">df</span> -i
+<span class="hljs-comment"># 按一级目录统计日志空间，限制在同一文件系统</span>
 <span class="hljs-built_in">sudo</span> <span class="hljs-built_in">du</span> -xhd1 /var/log
+<span class="hljs-comment"># 查找已删除但仍被进程打开、尚未释放空间的文件</span>
 <span class="hljs-built_in">sudo</span> lsof +L1
 </code></pre>
 <p>示例：<code>df -i</code>为100%但容量还有空余，可能是大量小文件耗尽inode；<code>lsof +L1</code>看到大日志仍被进程打开，说明文件名删除后空间尚未释放。<code>du -x</code>限制在同一文件系统，避免扫进其他挂载盘。</p>
 <p><strong>处理</strong>：确认文件归属和保留策略后清理历史文件；对已删除仍打开的日志，让应用按文档重新打开日志或安排重启，并修正轮转方式。不要直接删数据库文件、活动日志或容器数据目录。</p>
 <p><strong>复查</strong>：容量和inode恢复，相关文件句柄释放，应用能继续正常写入。</p>
 <h2 id="8-cpu磁盘都空闲接口依然慢">8. CPU、磁盘都空闲，接口依然慢</h2>
-<pre><code class="hljs language-bash">ps -L -p 24680 -o pid,tid,<span class="hljs-built_in">stat</span>,wchan:28,<span class="hljs-built_in">comm</span>
+<p><strong>执行顺序</strong>：先看线程等待和连接 → 对照应用线程池/连接池 → 拆分下游耗时 → 再决定修代码还是改容量。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 查看目标进程各线程状态与内核等待位置</span>
+ps -L -p 24680 -o pid,tid,<span class="hljs-built_in">stat</span>,wchan:28,<span class="hljs-built_in">comm</span>
+<span class="hljs-comment"># 查看TCP连接状态、队列和进程；查看其他用户进程可能需要sudo</span>
 ss -tanp
 </code></pre>
 <p>示例：线程多数在等待，并不能直接判为死锁。可能在等连接池、锁、下游响应或队列；大量 <code>futex</code> 等待也可能是空闲线程的正常行为。</p>
 <p><strong>处理</strong>：把总耗时拆成排队、业务执行、SQL、缓存、外部HTTP几段；结合线程栈、链路追踪和连接池指标定位。连接池满时，先查连接持有过久、泄漏和下游变慢，再决定是否增加连接数。</p>
+<p>示例：非阻塞socket返回 <code>EAGAIN</code> 可能只是暂时不可读/写，应用应等待就绪通知；反复立即重试才可能造成忙等。epoll表示就绪，不代表磁盘I/O已异步完成，也不保证响应已经送达对端。</p>
 <p><strong>复查</strong>：等待时长和队列长度降低，下游吞吐、错误率没有恶化。单纯扩大线程池可能把压力转移到数据库。</p>
 <h2 id="9-sql或redis拖慢请求">9. SQL或Redis拖慢请求</h2>
+<p><strong>执行顺序</strong>：先查数据库会话/等待 → 对照慢查询或Redis命令统计 → 查持久化与I/O → 定位实际业务操作。</p>
 <p>数据库先看慢查询、当前执行语句、锁等待和连接数。以MySQL为例，在已有连接中执行：</p>
-<pre><code class="hljs language-sql"><span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">FULL</span> PROCESSLIST;
+<pre><code class="hljs language-sql"><span class="hljs-comment">-- 在MySQL连接中查看当前会话及正在执行的完整语句</span>
+<span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">FULL</span> PROCESSLIST;
 </code></pre>
 <p>示例：许多请求等待同一事务释放锁，应查阻塞事务的持有时间和访问顺序；同一SQL扫描量持续增长，应查索引、过滤条件、排序和分页，而非先扩大连接池。查看全部会话需要相应数据库权限。</p>
 <p>Redis可先查看持久化状态、命令统计和慢日志：</p>
 <pre><code class="hljs language-bash"><span class="hljs-comment"># 默认本机端口；非本机实例补充实际-h、-p及TLS等参数</span>
 <span class="hljs-comment"># --askpass交互输入密码，避免写入命令行历史</span>
+<span class="hljs-comment"># 交互输入密码，查看Redis持久化及后台任务状态</span>
 redis-cli --askpass INFO persistence
+<span class="hljs-comment"># 交互输入密码，查看Redis各类命令累计调用次数和耗时</span>
 redis-cli --askpass INFO commandstats
+<span class="hljs-comment"># 交互输入密码，读取最近10条Redis慢日志，结果可能含业务参数</span>
 redis-cli --askpass SLOWLOG GET 10
 </code></pre>
 <p>示例：本以为是纯读接口，命令统计却显示持续写集合，同时持久化和磁盘延迟升高，应检查实际请求路径。慢日志可能包含业务键或参数，转发前先脱敏；它主要记录命令执行耗时，日志为空不能排除网络和其他等待。</p>
 <p><strong>处理</strong>：优先修复大键、长命令、全量扫描、意外写入和慢SQL。生产排查避免直接执行 <code>KEYS *</code>、长时间MONITOR或无边界全量扫描。改变AOF刷盘策略前先确定允许丢失多少数据。</p>
 <p><strong>复查</strong>：对比命令/SQL耗时、连接等待、持久化状态与接口P99。Redis诊断指标可参考<a href="https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency/">延迟排查说明</a>。</p>
 <h2 id="10-http慢拆开dnstcptls和首字节">10. HTTP慢：拆开DNS、TCP、TLS和首字节</h2>
-<pre><code class="hljs language-bash">curl -sS -o /dev/null --connect-timeout 3 --max-time 10 \
+<p><strong>执行顺序</strong>：先用curl拆阶段 → 用getent/dig核对解析 → 用--resolve对照 → 再进入对应阶段排查。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 请求健康检查地址，输出DNS、TCP、TLS、首字节及总耗时</span>
+curl -sS -o /dev/null --connect-timeout 3 --max-time 10 \
   -w <span class="hljs-string">&#x27;dns=%{time_namelookup} connect=%{time_connect} tls=%{time_appconnect} first=%{time_starttransfer} total=%{time_total}\n&#x27;</span> \
   https://app.example.com/health
 
+<span class="hljs-comment"># 按系统实际解析配置查询域名地址，包括hosts等来源</span>
 getent ahosts app.example.com
+<span class="hljs-comment"># 查询DNS应答，单次等待最多2秒、不做额外重试</span>
 dig +tries=1 +<span class="hljs-keyword">time</span>=2 app.example.com
 </code></pre>
 <p>示例：<code>dns=1.2 connect=1.21 tls=1.24 first=1.30 total=1.30</code>，说明大部分耗时在解析阶段。curl这些值是从请求开始累计计时，不能把connect和tls直接当作各阶段独立耗时；在无代理、无跳转、单次直连情况下可用相邻值相减辅助判断。</p>
 <p>绕过DNS做对照，同时保留Host和TLS域名校验：</p>
-<pre><code class="hljs language-bash">curl --resolve app.example.com:443:192.0.2.10 \
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 为此请求指定目标IP，保留域名Host和TLS校验，验证DNS影响</span>
+curl --resolve app.example.com:443:192.0.2.10 \
   --connect-timeout 3 --max-time 10 -I https://app.example.com/health
 </code></pre>
 <p>示例：指定地址明显变快，回查解析链路；两者都慢则继续查建连、TLS和应用。<code>-I</code>使用HEAD，需选择支持HEAD的接口；它适合连通性对照，不能替代真实业务请求的性能测量。</p>
+<p>如果是ping、抓包输出“隔几秒才出现”，还要排除显示时的反向解析：</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 使用数字地址且禁止反向解析，对照是否仅名称显示变慢</span>
+ping -n -c 3 -W 2 192.0.2.10
+<span class="hljs-comment"># 查看已存在抓包文件，不做IP和端口名称解析，也不发送新网络流量</span>
+tcpdump -nn -tttt -r /tmp/demo-network.pcap
+</code></pre>
+<p>示例：ICMP本身RTT很小，但不加-n时输出迟迟不显示，可能是PTR反查超时；这与真正的请求链路慢是两条排查线。抓包尚未生成时先按下一节采集。</p>
 <p><strong>处理</strong>：核查解析服务可达性、域名记录、缓存和应用连接复用。DNS配置可能由NetworkManager、systemd-resolved或容器管理，不直接覆盖 <code>/etc/resolv.conf</code>，也不把内部域名统一交给公网DNS。</p>
 <p><strong>复查</strong>：重复测试冷/热解析和真实请求，比较错误率及各阶段分布，避免只凭一次curl得出结论。</p>
 <h2 id="11-网络超时丢包重传先保留连接证据">11. 网络超时、丢包、重传：先保留连接证据</h2>
-<pre><code class="hljs language-bash">ss -tin
+<p><strong>执行顺序</strong>：先查连接和网卡增量 → 看包速率/错误 → 限定目标抓包 → 必要时对端同步采集。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 查看TCP连接的RTT、重传、窗口及队列</span>
+ss -tin
+<span class="hljs-comment"># 查看网卡收发字节、包数、错误与丢弃累计计数</span>
 ip -s <span class="hljs-built_in">link</span> show dev eth0
+<span class="hljs-comment"># 每秒查看网卡吞吐、包速率和错误/丢弃，共5次</span>
 sar -n DEV,EDEV 1 5
 
 <span class="hljs-comment"># 只抓指定对端和端口，限制时长、包数与每包长度</span>
+<span class="hljs-comment"># 限定15秒、最多200包、每包128字节抓取指定流量并保存文件</span>
 <span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 15s tcpdump -i eth0 -nn -s 128 -c 200 \
   -w /tmp/demo-network.pcap <span class="hljs-string">&#x27;host 192.0.2.10 and tcp port 8080&#x27;</span>
 </code></pre>
 <p>示例：网卡丢包计数持续增加且softirq集中在单核，检查网卡队列和处理能力；重传上升但本机网卡正常，需要结合另一端及中间链路定位。计数多为累计值，要看故障窗口的增量。</p>
 <p><strong>处理</strong>：按握手、请求发送、响应返回分段定位。抓包仍可能包含业务数据，应限制对象并妥善保管；抓包位置、网卡卸载和抓包自身丢包都会影响分析，单端出现“重传”标记不是最终根因证据。</p>
 <p>小包交互固定增加延迟时，核对应用写入方式、Nagle和延迟确认的配合；先优化写入批次，再按连接测试TCP_NODELAY，不做全局盲改。队列和窗口分析见<a href="linux-kernel-troubleshooting.html">内核网络排查</a>。</p>
+<details class="install-guide">
+<summary>离线查看重传、零窗口和TCP流，需要时安装TShark</summary>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian分析机：安装命令行包分析工具，会修改已安装软件</span>
+<span class="hljs-built_in">sudo</span> apt-get install tshark
+<span class="hljs-comment"># RHEL系分析机：选择此命令安装</span>
+<span class="hljs-built_in">sudo</span> dnf install wireshark-cli
+<span class="hljs-comment"># 第1步：仅显示已保存抓包中的重传或零窗口线索，-Y是显示过滤，不是抓包过滤</span>
+tshark -r /tmp/demo-network.pcap \
+  -Y <span class="hljs-string">&#x27;tcp.analysis.retransmission || tcp.analysis.zero_window&#x27;</span>
+<span class="hljs-comment"># 第2步：筛选一条TCP流，流编号0需替换为前一步实际连接的tcp.stream编号</span>
+tshark -r /tmp/demo-network.pcap -Y <span class="hljs-string">&#x27;tcp.stream == 0&#x27;</span>
+</code></pre>
+<p>示例：在Wireshark里按IP、端口和tcp.stream选同一连接，使用Flow Graph看握手与请求的时间关系。TCP会分段、合并和复用，单个数据包不等于一个业务请求；加密或HTTP/2复用时，结合请求ID和调用链判断。双端时钟没有校准时，不能直接把跨主机时间戳相减当成单向网络耗时。</p>
+</details>
 <p><strong>复查</strong>：连接成功率、RTT、重传增量和业务P99同时改善。</p>
 <h2 id="12-经过nat或容器网络后才出现连接失败">12. 经过NAT或容器网络后才出现连接失败</h2>
-<pre><code class="hljs language-bash">ss -s
+<p><strong>执行顺序</strong>：先确认故障是否只经过NAT出现 → 看连接数与状态表限制 → 核对内核丢弃日志 → 再查复用和容量。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 查看整机套接字与TCP连接状态汇总</span>
+ss -s
+<span class="hljs-comment"># 只读：查看当前连接跟踪数量及其上限</span>
 sysctl net.netfilter.nf_conntrack_count net.netfilter.nf_conntrack_max
+<span class="hljs-comment"># 筛选最近30分钟内核中的连接跟踪、状态表满及丢包记录</span>
 <span class="hljs-built_in">sudo</span> journalctl -k --since <span class="hljs-string">&#x27;30 minutes ago&#x27;</span> --no-pager | \
   grep -Ei <span class="hljs-string">&#x27;conntrack|table full|drop&#x27;</span>
 </code></pre>
@@ -231,20 +428,44 @@ sysctl net.netfilter.nf_conntrack_count net.netfilter.nf_conntrack_max
 <p><strong>处理</strong>：核查连接复用、NAT源端口容量、状态表和防火墙丢弃。扩大conntrack上限会增加内存消耗，需先估算容量并验证；不要直接关闭防火墙，也不要照搬已移除的 <code>tcp_tw_recycle</code> 等旧参数。</p>
 <p><strong>复查</strong>：在流量高峰确认新连接成功率、连接创建速率及状态表余量稳定。</p>
 <h2 id="13-容器慢启动慢查限制与启动阶段">13. 容器慢、启动慢：查限制与启动阶段</h2>
-<pre><code class="hljs language-bash">docker stats --no-stream
+<p><strong>执行顺序</strong>：先看容器用量与限制 → 查事件/日志 → 对照cgroup累计事件增量 → 按启动或运行期分别采样。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 输出一份容器CPU、内存、网络及I/O使用快照</span>
+docker stats --no-stream
+<span class="hljs-comment"># 查看容器资源限制等启动配置</span>
 docker inspect --format <span class="hljs-string">&#x27;{{json .HostConfig}}&#x27;</span> demo-api
+<span class="hljs-comment"># 查看容器最近10分钟的末尾100行日志</span>
 docker logs --since 10m --<span class="hljs-built_in">tail</span> 100 demo-api
 
 <span class="hljs-comment"># Kubernetes：top需要集群提供Metrics API</span>
+<span class="hljs-comment"># 查看指定Pod的CPU、内存，依赖集群Metrics API</span>
 kubectl top pod demo-api-0 -n demo
+<span class="hljs-comment"># 查看Pod调度、拉镜像、探针和重启等状态与事件</span>
 kubectl describe pod demo-api-0 -n demo
+<span class="hljs-comment"># 查看指定Pod最近10分钟的末尾100行日志</span>
 kubectl logs demo-api-0 -n demo --since=10m --<span class="hljs-built_in">tail</span>=100
 </code></pre>
 <p>示例：宿主机空闲，但容器CPU到配额后开始节流，或达到内存上限后OOM；另一类启动慢发生在拉镜像、挂载、DNS、初始化和依赖重试阶段，不应只看应用启动后的CPU。</p>
 <p>在cgroup v2环境，先通过 <code>/proc/&lt;PID&gt;/cgroup</code> 查实际路径，再读取该目录的 <code>cpu.stat</code>、<code>memory.events</code>。<code>nr_throttled</code>、<code>throttled_usec</code> 和OOM等字段应比较两次采样的增量；不同层级和cgroup版本的接口不同，不拼一个固定路径套用所有容器。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 先确认cgroup2的挂载位置；以下路径示例仅用于挂载在/sys/fs/cgroup的cgroup v2宿主机</span>
+findmnt -t cgroup2
+<span class="hljs-comment"># 将24680替换为容器入口进程在宿主机上的PID，提取0::这一行的相对路径</span>
+demo_cgroup_path=$(awk -F: <span class="hljs-string">&#x27;$1 == &quot;0&quot; {print $3}&#x27;</span> /proc/24680/cgroup)
+<span class="hljs-comment"># 输出路径供核对；为空时停止，不继续套用后续路径</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$demo_cgroup_path</span>&quot;</span>
+<span class="hljs-comment"># 确认路径正确后，只读CPU配额和周期；max表示这一层不设带宽上限</span>
+<span class="hljs-built_in">cat</span> <span class="hljs-string">&quot;/sys/fs/cgroup<span class="hljs-variable">${demo_cgroup_path}</span>/cpu.max&quot;</span>
+<span class="hljs-comment"># 读取累计CPU使用和节流事件，故障窗口取两次比较</span>
+<span class="hljs-built_in">cat</span> <span class="hljs-string">&quot;/sys/fs/cgroup<span class="hljs-variable">${demo_cgroup_path}</span>/cpu.stat&quot;</span>
+<span class="hljs-comment"># 读取内存硬上限，单位为字节或max</span>
+<span class="hljs-built_in">cat</span> <span class="hljs-string">&quot;/sys/fs/cgroup<span class="hljs-variable">${demo_cgroup_path}</span>/memory.max&quot;</span>
+<span class="hljs-comment"># 读取内存限制与OOM累计事件</span>
+<span class="hljs-built_in">cat</span> <span class="hljs-string">&quot;/sys/fs/cgroup<span class="hljs-variable">${demo_cgroup_path}</span>/memory.events&quot;</span>
+</code></pre>
+<p>示例：<code>cpu.max</code>为 <code>10000 100000</code>，对应带宽配额约0.1核；节流计数持续增长且启动变慢，就查配额是否不合理。还要考虑父cgroup的限制和cpuset有效CPU，不能只看这一层。这里的赋值只是保存路径，<code>$(...)</code>表示把括号内命令的输出作为变量值。</p>
 <p><strong>处理</strong>：调整不合理的资源限制、初始化逻辑和依赖重试；结合实测启动时间配置startup/readiness/liveness探针。探针失败引发重复重启时，单纯加大重启次数不能解决问题。</p>
 <p><strong>复查</strong>：检查启动耗时各阶段、节流增量、OOM与重启次数，以及高峰期服务延迟。常用操作见<a href="docker-compose-operations-commands.html">Docker运维</a>和<a href="kubernetes-operations-commands.html">Kubernetes运维</a>。</p>
 <h2 id="14-优化后怎样确认真的解决了">14. 优化后怎样确认真的解决了</h2>
+<p><strong>执行顺序</strong>：固定请求与数据 → 保存改动前采样 → 单项调整 → 同条件比较 → 验证成功率和回退。</p>
 <table>
 <thead>
 <tr>
@@ -280,6 +501,273 @@ kubectl logs demo-api-0 -n demo --since=10m --<span class="hljs-built_in">tail</
 </tbody>
 </table>
 <p>固定测试入口、并发、数据量和持续时间，保留改动前后的采样。一次只改一个主要变量，准备恢复方式；先在测试或灰度环境验证，再扩大范围。线上不直接运行无边界压测、磁盘写满测试或故障注入。</p>
+<h2 id="15-top抓不到的高cpu追踪短命进程">15. top抓不到的高CPU：追踪短命进程</h2>
+<p><strong>现象</strong>：整机CPU高，但top/pidstat没有稳定的高CPU进程，或同名进程PID不停变化。</p>
+<p><strong>执行顺序</strong>：看父子关系 → 短时追踪exec → 按PPID回到调用者 → 对照失败重试、权限及代码。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：查看目标服务进程的祖先和命令参数，参数中可能含敏感值</span>
+pstree -aps 24680
+<span class="hljs-comment"># 第2步：查看目标服务的子进程树，观察是否反复调用shell或外部命令</span>
+pstree -ap 24680
+<span class="hljs-comment"># 第3步：Ubuntu / Debian的BCC命令，抓取10秒进程执行事件</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 10s execsnoop-bpfcc
+</code></pre>
+<p>示例：同一PPID反复执行某个程序，RET为负且每秒出现多次，先检查执行失败原因和无间隔重试；RET为0只表示exec成功，不等于该程序之后的业务成功。只fork不exec的worker不会被execsnoop完整覆盖。</p>
+<p><strong>处理</strong>：修复错误的权限、文件路径或重试逻辑；高频外部命令可以评估改为库调用或复用工作进程。父进程已存在很久，不代表子进程没有在高频创建。</p>
+<p><strong>复查</strong>：exec频率、系统CPU和接口P99一起恢复，调用失败不再出现。BCC安装与其他发行版命令位置见第22节。</p>
+<h2 id="16-swap是谁占的缓存又是谁刷起来的">16. Swap是谁占的，缓存又是谁刷起来的</h2>
+<p><strong>执行顺序</strong>：先确认正在换页 → 查VmSwap归属 → 查文件缓存/Slab增长 → 对齐大扫描、拷贝与备份时间。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：查看每秒换入si、换出so，共5次，跳过第一行累计报告判断当前状态</span>
+vmstat 1 5
+<span class="hljs-comment"># 第2步：读取各进程VmSwap并按kB倒序，最多显示10行；进程退出导致读取失败时跳过</span>
+<span class="hljs-comment"># for遍历status文件；awk提取PID/名称/换出量；管道把结果依次交给sort和head</span>
+<span class="hljs-keyword">for</span> status_file <span class="hljs-keyword">in</span> /proc/[0-9]*/status; <span class="hljs-keyword">do</span>
+  <span class="hljs-comment"># 仅将可读取且有VmSwap字段的进程输出为“kB PID 名称”</span>
+  awk <span class="hljs-string">&#x27;/^Name:/ {name=$2} /^Pid:/ {pid=$2} /^VmSwap:/ {swap=$2; found=1} END {if (found) printf &quot;%d %s %s\n&quot;, swap, pid, name}&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$status_file</span>&quot;</span> 2&gt;/dev/null
+<span class="hljs-keyword">done</span> | <span class="hljs-built_in">sort</span> -nr | <span class="hljs-built_in">head</span> -n 10
+<span class="hljs-comment"># 第3步：检查文件缓存、共享内存和可回收Slab，区别不同增长来源</span>
+grep -E <span class="hljs-string">&#x27;^(Cached|Buffers|Shmem|SReclaimable|SUnreclaim):&#x27;</span> /proc/meminfo
+<span class="hljs-comment"># 第4步：输出一次Slab分类，查目录扫描引起的dentry/inode缓存</span>
+<span class="hljs-built_in">sudo</span> slabtop -o
+<span class="hljs-comment"># 第5步：Ubuntu / Debian的BCC命令，短时观察各进程缓存访问</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 10s cachetop-bpfcc 1
+</code></pre>
+<p>示例：备份时Cached上涨、其他进程VmSwap增加且si/so活跃，可能是工作集被大扫描挤压；若SReclaimable主要是dentry/inode增长，则回查递归find、du或海量小文件访问。cachetop是内核事件估算，不能仅凭“命中率100%”断言所有业务读都命中缓存，O_DIRECT等路径可能不在统计中。</p>
+<p><strong>处理</strong>：错峰和限制离线任务资源、调整缓存与批量读取策略；需要Direct I/O的数据库保留其设计，普通文件读再评估缓存收益。VmSwap也不是进程所有共享内存换出的完整汇总。</p>
+<p><strong>复查</strong>：同等在线负载下换页下降、热点读盘和延迟恢复；Swap存量不立即归零也可能已经正常。</p>
+<h2 id="17-日志写爆或临时文件过多从pid定位到文件">17. 日志写爆或临时文件过多：从PID定位到文件</h2>
+<p><strong>执行顺序</strong>：iostat确认设备 → pidstat找到PID → filetop/opensnoop找文件 → FD对应路径 → 回查产生日志或临时文件的代码。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：确认哪块设备在等待，观察r_await、w_await和aqu-sz</span>
+iostat -xz -y 1 5
+<span class="hljs-comment"># 第2步：确认哪个进程的读写速率升高</span>
+pidstat -d 1 5
+<span class="hljs-comment"># 第3步：Ubuntu / Debian的BCC命令，按文件观察目标进程10秒</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 10s filetop-bpfcc -p 24680 1
+<span class="hljs-comment"># 第4步：记录该进程打开文件的路径，便于捕捉短暂创建后删除的文件</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 10s opensnoop-bpfcc -p 24680
+<span class="hljs-comment"># 第5步：已有strace显示fd=38时，查看它在该进程里对应的路径</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">readlink</span> /proc/24680/fd/38
+<span class="hljs-comment"># 第6步：列出该进程的文件描述符与文件名进行交叉核对</span>
+<span class="hljs-built_in">sudo</span> lsof -p 24680
+</code></pre>
+<p>示例：同一请求反复创建、写入、读取、删除临时文件，filetop显示写入量高，但ls时文件已经消失；另一类是rsyslog写入很大，实际日志来源却是另一个服务在持续报错。需要继续查日志内容的来源，不能只停掉日志采集器。</p>
+<p><strong>处理</strong>：减少重复落盘，设置有界内存缓冲、批量处理和正确清理；避免把无限临时数据直接移到tmpfs而造成OOM。日志处理优先修复重复错误、合理调级与轮转，不删除正在使用的日志文件。</p>
+<p><strong>复查</strong>：设备写入与目标文件操作下降，异常日志停止，日志留存和业务结果仍满足要求。</p>
+<h2 id="18-sql慢把系统io证据和执行计划接起来">18. SQL慢：把系统I/O证据和执行计划接起来</h2>
+<p><strong>执行顺序</strong>：确认数据库PID/设备 → 查看当前SQL与等待 → 将FD对应到数据/日志/临时文件 → 看执行计划和索引 → 复查真实查询。</p>
+<pre><code class="hljs language-sql"><span class="hljs-comment">-- 第1步：查看当前会话、执行时间和完整语句，需要有相应数据库权限</span>
+<span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">FULL</span> PROCESSLIST;
+<span class="hljs-comment">-- 第2步：检查示例表的结构、存储引擎和已有索引，替换schema和表名</span>
+<span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">CREATE TABLE</span> demo.items;
+<span class="hljs-comment">-- 第3步：查看选择性过滤的索引是否存在，不直接创建新索引</span>
+<span class="hljs-keyword">SHOW</span> INDEX <span class="hljs-keyword">FROM</span> demo.items;
+<span class="hljs-comment">-- 第4步：仅解释这条SELECT的计划；示例字段需替换为实际查询</span>
+EXPLAIN <span class="hljs-keyword">SELECT</span> id, name <span class="hljs-keyword">FROM</span> demo.items <span class="hljs-keyword">WHERE</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;sample&#x27;</span>;
+</code></pre>
+<p>示例：<code>type=ALL</code>、<code>key=NULL</code>且估算扫描行数大，结合过滤选择性与实际数据量判断是否缺索引；小表全扫未必有问题，<code>type=index</code>也可能只是全索引扫描，不能一律视为理想。rows通常是估算，不等于实测行数。</p>
+<p>如果strace输出的是TID而lsof查不到，先查该线程status里的Tgid，再用进程ID查询文件：</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 将24681替换成strace中出现的线程TID，读取其所属进程ID</span>
+grep <span class="hljs-string">&#x27;^Tgid:&#x27;</span> /proc/24681/status
+<span class="hljs-comment"># 假设上一步Tgid为24680，查看fd=38对应文件，避免将TID当成PID误查</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">readlink</span> /proc/24680/fd/38
+<span class="hljs-comment"># 查看数据文件路径所在的文件系统及挂载来源，替换为实际路径</span>
+findmnt -T /var/lib/mysql/demo/items.ibd
+</code></pre>
+<p><strong>处理</strong>：先处理锁等待、无效扫描和不合理SQL；增加索引前评估选择性、写入代价、磁盘空间与DDL影响。还要检查外部备份、缓存清理和I/O竞争，数据库引擎不同，缓存行为也不同。不要把一个MyISAM案例泛化为全部MySQL，也不在生产盲用会真正执行语句的EXPLAIN ANALYZE。</p>
+<p><strong>复查</strong>：在相同参数和相近冷热缓存下比较扫描量、实际时延、I/O和写入性能，避免仅凭执行计划变了就宣布恢复。</p>
+<h2 id="19-丢包要按层查握手成功也不代表业务可用">19. 丢包要按层查，握手成功也不代表业务可用</h2>
+<p><strong>执行顺序</strong>：路由/网卡 → qdisc → 防火墙与连接跟踪 → 协议栈 → 双端抓包 → 应用。涉及容器时在实际网络命名空间内复查。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：查看到目标IP实际使用的路由、出口网卡与源IP</span>
+ip route get 192.0.2.10
+<span class="hljs-comment"># 第2步：查看网卡MTU、状态、收发错误与丢弃</span>
+ip -s -s <span class="hljs-built_in">link</span> show dev eth0
+<span class="hljs-comment"># 第3步：查看驱动层的丢弃、队列及错误统计</span>
+<span class="hljs-built_in">sudo</span> ethtool -S eth0
+<span class="hljs-comment"># 第4步：只读qdisc队列、限速、netem及丢弃统计，不删除规则</span>
+tc -s qdisc show dev eth0
+<span class="hljs-comment"># 第5步：读取协议栈累计错误和丢弃，间隔取两份看增量</span>
+nstat -az
+<span class="hljs-comment"># 第6步：nftables系统查看带句柄的规则和已有counter，需管理员权限</span>
+<span class="hljs-built_in">sudo</span> nft -a list ruleset
+<span class="hljs-comment"># 第6步的另一种环境：iptables系统查看规则及包/字节累计计数，不执行清空或归零</span>
+<span class="hljs-built_in">sudo</span> iptables -nvL
+</code></pre>
+<p>示例：qdisc存在netem丢包配置，先确认是否遗留演练或有意限流；修复后仍有丢包，则继续看防火墙与协议栈。一个故障可能同时存在多个丢包点。没有counter的nft规则，不能仅凭规则列表判断命中量；CNI/eBPF数据路径还要查其自身指标。</p>
+<h3 id="syn能通http数据或大包却超时">SYN能通，HTTP数据或大包却超时</h3>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：查看路径MTU线索；目标路径须允许此类探测</span>
+tracepath -n 192.0.2.10
+<span class="hljs-comment"># 第2步：IPv4发3个禁止分片的测试包；1472载荷加28字节IP/ICMP头对应1500字节</span>
+ping -n -c 3 -W 2 -M <span class="hljs-keyword">do</span> -s 1472 192.0.2.10
+<span class="hljs-comment"># 第3步：换较小载荷对照，仍仅3包；不是要求将所有网卡MTU改成此值</span>
+ping -n -c 3 -W 2 -M <span class="hljs-keyword">do</span> -s 1200 192.0.2.10
+</code></pre>
+<p>示例：小包成功而大包失败，检查VXLAN/VPN封装开销、链路MTU和PMTU所需ICMP是否被拦；ICMP禁用时，上述失败也不能证明业务TCP路径丢包。SYN比业务请求小，仅握手成功仍可能存在MTU黑洞。</p>
+<p><strong>处理</strong>：按真实路径修复MTU、路由、限流或过滤规则，保留必要的PMTU反馈；有非对称路由时不能照搬严格rp_filter。修改前保存配置并确认SSH管理通道，不直接flush防火墙或删除所有qdisc。</p>
+<p><strong>复查</strong>：用实际请求、不同报文大小、同一时间窗口的丢弃增量验证，避免只测ping。</p>
+<h2 id="20-吞吐下降检查成功请求文件句柄和临时端口">20. 吞吐下降：检查成功请求、文件句柄和临时端口</h2>
+<p><strong>执行顺序</strong>：先看成功率与P99 → 查代理/后端日志 → 查进程FD上限 → 查监听队列和临时端口 → 调整后重新确认瓶颈。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：查看目标服务最近10分钟日志，关注超时、连接池和资源限制错误</span>
+<span class="hljs-built_in">sudo</span> journalctl -u demo-api --since <span class="hljs-string">&#x27;10 minutes ago&#x27;</span> -n 100 --no-pager
+<span class="hljs-comment"># 第2步：读取运行中进程真正生效的限制，不能用当前shell的ulimit代替</span>
+grep -E <span class="hljs-string">&#x27;Max open files|Max processes&#x27;</span> /proc/24680/limits
+<span class="hljs-comment"># 第3步：统计该进程当前打开的文件描述符，查看所有者进程可能需要sudo</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">ls</span> /proc/24680/fd | <span class="hljs-built_in">wc</span> -l
+<span class="hljs-comment"># 第4步：查看systemd配置的文件句柄限制，修改配置后仍需按发布流程生效</span>
+systemctl show demo-api -p LimitNOFILE
+<span class="hljs-comment"># 第5步：只读临时端口范围及保留端口，排查Cannot assign requested address</span>
+sysctl net.ipv4.ip_local_port_range net.ipv4.ip_local_reserved_ports
+<span class="hljs-comment"># 第6步：查看面向后端8080的大量短连接及TIME-WAIT</span>
+ss -nt state time-wait <span class="hljs-string">&#x27;( dport = :8080 )&#x27;</span>
+</code></pre>
+<p>示例：<code>Too many open files</code>查运行进程FD与限制；<code>Cannot assign requested address</code>查源地址有效性及到指定对端的端口压力；代理日志499表示客户端提前关闭，应结合客户端超时与服务耗时判断，不能仅凭499就认定服务器原因。RPS上涨但几乎全是5xx，属于更快地失败，不能算优化成功。</p>
+<p><strong>处理</strong>：先修复FD/连接泄漏，合理复用上游连接，再按容量预算调整限制和worker/线程池。解除一个瓶颈后可能暴露下一个，应重新观察CPU、队列、错误和下游，避免不断堆大所有参数。</p>
+<p><strong>复查</strong>：看成功完成的业务吞吐、P95/P99、错误率、句柄和端口余量，而非只比较压测工具最后一行RPS。</p>
+<h2 id="21-syn突然暴增soft高区分攻击与正常突发">21. SYN突然暴增、soft高：区分攻击与正常突发</h2>
+<p><strong>执行顺序</strong>：看PPS与字节吞吐 → 看SYN状态与Cookie计数 → 小范围抓包 → 对照业务流量 → 选择入口侧防护。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：每秒采样网卡包速率与字节吞吐，观察小包是否异常增多</span>
+sar -n DEV,EDEV 1 5
+<span class="hljs-comment"># 第2步：查看8080半连接，连接很多时只保留前20行作为样本</span>
+ss -nt state syn-recv <span class="hljs-string">&#x27;( sport = :8080 )&#x27;</span> | <span class="hljs-built_in">head</span> -n 20
+<span class="hljs-comment"># 第3步：读取握手失败和SYN Cookie计数，两次采样比较增量</span>
+nstat -az TcpAttemptFails TcpExtSyncookiesSent TcpExtListenDrops
+<span class="hljs-comment"># 第4步：只抓最多50个SYN包且不超过5秒，查看来源与分布</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">timeout</span> 5s tcpdump -i eth0 -nn -s 96 -c 50 \
+  <span class="hljs-string">&#x27;tcp dst port 8080 and (tcp[tcpflags] &amp; (tcp-syn|tcp-ack) == tcp-syn)&#x27;</span>
+</code></pre>
+<p>示例：PPS很高、字节吞吐不大、半连接和Cookie计数上升，提示SYN压力；仍需排除正常流量高峰、丢回程包及客户端重试，源IP还可能被伪造。</p>
+<p><strong>处理</strong>：按证据在负载均衡、上游防火墙或清洗平台限流；带宽被打满时仅靠本机丢弃不能恢复入口容量。应用层低速攻击则检查连接期限、请求体/头部读取超时和WAF策略。Cookie是异常压力下的保护，不能代替容量治理；不直接照搬固定每秒1次之类规则拦掉正常业务。</p>
+<p><strong>复查</strong>：正常用户的连接成功率和延迟恢复，管理通道可用，防护没有大面积误伤。</p>
+<h2 id="22-bcc进阶工具安装命令位置与替代方案">22. BCC进阶工具：安装、命令位置与替代方案</h2>
+<details class="install-guide">
+<summary>需要execsnoop、filetop、opensnoop、cachetop或memleak时展开</summary>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>解决什么问题</th>
+<th>缺少时先用什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>execsnoop</td>
+<td>短命程序反复执行，top抓不到</td>
+<td>pstree、短时perf，注意采样可能漏事件</td>
+</tr>
+<tr>
+<td>opensnoop</td>
+<td>短暂打开/关闭的文件及失败路径</td>
+<td>限定时长和系统调用的strace</td>
+</tr>
+<tr>
+<td>filetop</td>
+<td>哪个进程在读写哪个文件</td>
+<td>pidstat -d与lsof配合</td>
+</tr>
+<tr>
+<td>cachetop</td>
+<td>按进程观察缓存访问事件</td>
+<td>meminfo、sar -B、pidstat和具体文件检查</td>
+</tr>
+<tr>
+<td>memleak</td>
+<td>原生内存分配未释放的调用栈</td>
+<td>pmap、smaps、语言运行时的内存分析</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian：使用本发行版仓库安装BCC工具，按需执行，会修改已安装软件</span>
+<span class="hljs-built_in">sudo</span> apt-get install bpfcc-tools
+<span class="hljs-comment"># Ubuntu / Debian：部分BCC版本编译BPF需要与当前内核匹配的头文件</span>
+<span class="hljs-built_in">sudo</span> apt-get install <span class="hljs-string">&quot;linux-headers-<span class="hljs-subst">$(uname -r)</span>&quot;</span>
+<span class="hljs-comment"># RHEL系：使用已配置仓库安装BCC工具，不和apt命令重复执行</span>
+<span class="hljs-built_in">sudo</span> dnf install bcc-tools
+<span class="hljs-comment"># RHEL系：需要编译支持时安装匹配当前运行内核的开发包</span>
+<span class="hljs-built_in">sudo</span> dnf install <span class="hljs-string">&quot;kernel-devel-<span class="hljs-subst">$(uname -r)</span>&quot;</span>
+<span class="hljs-comment"># Ubuntu / Debian通常带-bpfcc后缀：确认本机安装的入口</span>
+<span class="hljs-built_in">command</span> -v execsnoop-bpfcc opensnoop-bpfcc filetop-bpfcc cachetop-bpfcc memleak-bpfcc
+<span class="hljs-comment"># RHEL系等常见位置：只列出文件，确认实际路径</span>
+<span class="hljs-built_in">ls</span> /usr/share/bcc/tools/{execsnoop,opensnoop,filetop,cachetop,memleak}
+<span class="hljs-comment"># 执行前查看本机选项，避免照搬另一版本参数</span>
+memleak-bpfcc --<span class="hljs-built_in">help</span>
+</code></pre>
+<p>示例：RHEL系若文件在 <code>/usr/share/bcc/tools/</code>，把前文 <code>execsnoop-bpfcc</code> 换成 <code>/usr/share/bcc/tools/execsnoop</code>，其余同理。没有匹配内核包时，先检查发行版仓库；不为单个排查工具临时添加来历不明的软件源或升级生产内核。</p>
+<p>工具依赖内核配置、BPF/追踪权限及发行版版本，安装成功不代表每个事件都可用。旧CentOS 7上的能力以实际回移功能为准。命令可能显示文件路径、进程参数等敏感信息，采样应限定范围和时间。</p>
+</details>
+<h3 id="原生内存持续增长时进一步追分配栈">原生内存持续增长时，进一步追分配栈</h3>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 先确认本机memleak支持-p、采样率-s和interval/count参数</span>
+memleak-bpfcc --<span class="hljs-built_in">help</span>
+<span class="hljs-comment"># 指定进程，约每100次分配采样一次，每5秒输出一次、共3次；只跟踪启动后的事件</span>
+<span class="hljs-built_in">sudo</span> memleak-bpfcc -p 24680 -s 100 5 3
+</code></pre>
+<p>示例：某调用栈未释放的分配持续增加，再去核对成功、异常和跨线程释放路径；“尚未释放”可能是正常缓存，采样也可能漏掉分配/释放，所以不能凭一次输出断言泄漏。该工具不替代JVM/Go等运行时的堆分析；采样追踪本身仍有成本。</p>
+<p><strong>处理</strong>：修复生命周期和无上界缓存，保留对应版本二进制、依赖库和调试符号。容器内地址显示unknown时，先解决路径/符号匹配，不把应用文件直接复制到宿主机根目录覆盖原文件。</p>
+<p><strong>复查</strong>：在相近请求量和时长下，未释放分配趋势与进程内存一同趋稳。<a href="https://github.com/iovisor/bcc/blob/master/INSTALL.md">BCC工具安装</a></p>
+<h2 id="23-内核线程高cpu或调用栈太长用火焰图找热点">23. 内核线程高CPU或调用栈太长：用火焰图找热点</h2>
+<p><strong>执行顺序</strong>：先区分ksoftirqd、kswapd与kworker → 对应网络、回收或工作队列 → 采样目标线程 → 离线展示调用栈。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：找出内核线程，记录实际PID/TID，不能照抄其他机器的编号</span>
+ps -eo pid,ppid,<span class="hljs-built_in">stat</span>,pcpu,<span class="hljs-built_in">comm</span> --<span class="hljs-built_in">sort</span>=-pcpu | <span class="hljs-built_in">head</span> -n 25
+<span class="hljs-comment"># 第2步：示例对已确认的高CPU线程24681采样15秒；按实际编号替换</span>
+<span class="hljs-built_in">sudo</span> perf record -F 49 -g -p 24681 -o /tmp/demo-worker.data -- <span class="hljs-built_in">sleep</span> 15
+<span class="hljs-comment"># 第3步：读取完整文本调用栈，避免交互界面宽度遮住后半段</span>
+<span class="hljs-built_in">sudo</span> perf report -i /tmp/demo-worker.data --stdio
+</code></pre>
+<p>示例：ksoftirqd栈集中于收包、网桥、netfilter时，继续查包速率、转发和连接跟踪；kswapd则转查内存压力；kworker要按具体工作函数判断，不能一概认定是磁盘。不要通过kill内核线程解决问题。</p>
+<details class="install-guide">
+<summary>下载FlameGraph并把采样转换为火焰图</summary>
+<p>可把采样文件安全拷到分析机离线处理；分析机需能解析对应版本的程序、库和符号。下面只在自己的分析目录中下载工具。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian分析机：安装Git和Perl，会修改已安装软件</span>
+<span class="hljs-built_in">sudo</span> apt-get install git perl
+<span class="hljs-comment"># RHEL系分析机：改用此命令安装</span>
+<span class="hljs-built_in">sudo</span> dnf install git perl
+<span class="hljs-comment"># 在当前分析目录下载工具源码；已有同名目录时先确认，不覆盖</span>
+git <span class="hljs-built_in">clone</span> --depth 1 https://github.com/brendangregg/FlameGraph.git
+<span class="hljs-comment"># 把采样转换为文本栈，输出可能包含内部函数名与路径</span>
+<span class="hljs-built_in">sudo</span> perf script -i /tmp/demo-worker.data &gt; demo-worker.stacks
+<span class="hljs-comment"># 合并相同调用栈，保存中间文件；在FlameGraph目录的上一级执行</span>
+perl FlameGraph/stackcollapse-perf.pl demo-worker.stacks &gt; demo-worker.folded
+<span class="hljs-comment"># 生成SVG，用本地浏览器打开查看</span>
+perl FlameGraph/flamegraph.pl demo-worker.folded &gt; demo-worker.svg
+</code></pre>
+<p>示例：横向宽度表示采样权重，纵向表示调用深度；不是随时间向右的执行时间轴。颜色通常用于区分函数，不代表危险等级。Self与Children比例不能把父子层简单累加。</p>
+</details>
+<p><strong>处理</strong>：沿最宽调用栈找可解释的热点，并与资源指标核对。CPU空闲的swapper/do_idle不是Swap换页；CPU低、请求却在等锁或I/O时，on-CPU图可能找不到原因，要结合线程栈或off-CPU工具。缺页事件火焰图也不等于泄漏分配图，先明确采集的数据是什么。</p>
+<p><strong>复查</strong>：用相同采样方式对比改动前后，并验证成功吞吐、P99与错误率。<a href="https://github.com/brendangregg/FlameGraph">FlameGraph工具</a></p>
+<h2 id="24-只在启动时慢提前采样别等启动完再看">24. 只在启动时慢：提前采样，别等启动完再看</h2>
+<p><strong>执行顺序</strong>：事件和日志分段 → 在复现前准备采样 → 获取新的PID → 查CPU节流和OOM → 对齐JVM与容器限制。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 第1步：查看容器状态，结合OOMKilled、ExitCode和Error，不能只凭137认定OOM</span>
+docker inspect --format <span class="hljs-string">&#x27;{{json .State}}&#x27;</span> demo-api
+<span class="hljs-comment"># 第2步：查看启动时间、重启与应用初始化日志</span>
+docker logs --timestamps --since 10m --<span class="hljs-built_in">tail</span> 200 demo-api
+<span class="hljs-comment"># 第3步：读取当前容器入口进程在宿主机上的PID，重启后需重新获取</span>
+docker inspect --format <span class="hljs-string">&#x27;{{.State.Pid}}&#x27;</span> demo-api
+<span class="hljs-comment"># 第4步：将24680替换为新PID，采样正在启动的进程线程</span>
+pidstat -u -w -t -p 24680 1 10
+<span class="hljs-comment"># 第5步：确认此进程所属cgroup，按实际版本与路径读取资源限制</span>
+<span class="hljs-built_in">cat</span> /proc/24680/cgroup
+</code></pre>
+<p>示例：容器只配0.1核，宿主机有大量空闲，但Java进程稳定在约0.1核且启动耗时很长；需结合cpu.stat节流增量和线程等待确认。等服务启动完才采样，看到CPU全0不能说明启动阶段没有瓶颈。</p>
+<p><strong>处理</strong>：按启动需求合理分配CPU、预热镜像和初始化数据，区分调度、镜像拉取、挂载、网络配置、应用初始化和依赖重试。JVM是否识别容器边界取决于版本、参数和cgroup支持；堆上限还要给堆外、元空间、线程栈等留空间，不能把Xmx设置为容器全部内存。</p>
+<p><strong>复查</strong>：比较相同冷/热状态下各启动阶段时长、节流、OOM及readiness就绪时间，而非只看容器进入Running。</p>
+<h2 id="25-如何做有意义的基准对照">25. 如何做有意义的基准对照</h2>
+<p><strong>执行顺序</strong>：明确目标与停止条件 → 测试环境独立运行负载 → 固定数据与参数 → 同时看成功率和资源 → 保留基线。</p>
+<details class="install-guide">
+<summary>安装及小规模网络、HTTP对照命令，仅在已安排的测试环境执行</summary>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian测试机：安装iperf3与ApacheBench</span>
+<span class="hljs-built_in">sudo</span> apt-get install iperf3 apache2-utils
+<span class="hljs-comment"># RHEL系测试机：选择此命令安装，不重复执行apt命令</span>
+<span class="hljs-built_in">sudo</span> dnf install iperf3 httpd-tools
+<span class="hljs-comment"># 服务端终端：指定本机测试IP，接收一次测试后退出，端口应仅允许测试机访问</span>
+iperf3 -s -1 -B 192.0.2.10 -p 5201
+<span class="hljs-comment"># 另一台测试机：单连接、目标10Mbit/s、持续10秒测TCP，不代表链路线速</span>
+iperf3 -c 192.0.2.10 -p 5201 -P 1 -b 10M -t 10
+<span class="hljs-comment"># HTTP测试：仅10并发、共100请求、单请求超时5秒，对已获准测试的接口执行</span>
+ab -c 10 -n 100 -s 5 http://192.0.2.10:8080/health
+</code></pre>
+<p>示例：iperf快但真实接口慢，说明不能只拿传输吞吐证明应用正常。ab第二行“across all concurrent requests”的Time per request是总时间按请求数折算的吞吐倒数，不能当成单个用户的真实延迟；两行与并发数有关，判断用户体验要看响应分布与P95/P99。</p>
+<p>测试需固定是否启用Keep-Alive、TLS、缓存冷热、请求体与认证；压测机本身也可能先成为瓶颈。磁盘fio应另做专门测试方案，不能直接对业务裸盘回放写I/O。</p>
+</details>
+<p><strong>处理</strong>：先优化影响目标最大的瓶颈，保留变更和恢复方式，再重新测量；不要以空响应、错误响应或缓存命中率改变偷换测试条件。</p>
+<p><strong>复查</strong>：同负载下成功吞吐、P99、错误率及资源余量均达到目标。监控至少覆盖资源的使用率/饱和度/错误，以及应用请求速率/错误/时延，并保留调用链和时间对齐的日志供事后分析。</p>
 <p>相关内容：<a href="linux-kernel-troubleshooting.html">内核问题排查</a>、<a href="linux-system-status-commands.html">系统状态命令</a>、<a href="linux-server-operations-commands.html">服务器运维命令</a>。</p>
-</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#1-服务慢了先用一分钟判断方向">1. 服务慢了，先用一分钟判断方向</a><a class="toc-link level-2" href="#2-cpu高找到哪一核哪个线程哪段代码">2. CPU高：找到哪一核、哪个线程、哪段代码</a><a class="toc-link level-2" href="#3-load高cpu却不高区分阻塞与僵尸">3. load高，CPU却不高：区分阻塞与僵尸</a><a class="toc-link level-2" href="#4-sy高切换多但看不到持续占cpu的进程">4. sy高、切换多，但看不到持续占CPU的进程</a><a class="toc-link level-2" href="#5-内存低swap已使用先看现在是否有压力">5. 内存低、Swap已使用：先看现在是否有压力</a><a class="toc-link level-2" href="#6-磁盘io高定位设备进程和具体操作">6. 磁盘I/O高：定位设备、进程和具体操作</a><a class="toc-link level-2" href="#7-磁盘满inode满或删了文件空间没回来">7. 磁盘满、inode满，或删了文件空间没回来</a><a class="toc-link level-2" href="#8-cpu磁盘都空闲接口依然慢">8. CPU、磁盘都空闲，接口依然慢</a><a class="toc-link level-2" href="#9-sql或redis拖慢请求">9. SQL或Redis拖慢请求</a><a class="toc-link level-2" href="#10-http慢拆开dnstcptls和首字节">10. HTTP慢：拆开DNS、TCP、TLS和首字节</a><a class="toc-link level-2" href="#11-网络超时丢包重传先保留连接证据">11. 网络超时、丢包、重传：先保留连接证据</a><a class="toc-link level-2" href="#12-经过nat或容器网络后才出现连接失败">12. 经过NAT或容器网络后才出现连接失败</a><a class="toc-link level-2" href="#13-容器慢启动慢查限制与启动阶段">13. 容器慢、启动慢：查限制与启动阶段</a><a class="toc-link level-2" href="#14-优化后怎样确认真的解决了">14. 优化后怎样确认真的解决了</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践</span></footer></div>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#1-服务慢了先用一分钟判断方向">1. 服务慢了，先用一分钟判断方向</a><a class="toc-link level-2" href="#2-cpu高找到哪一核哪个线程哪段代码">2. CPU高：找到哪一核、哪个线程、哪段代码</a><a class="toc-link level-3" href="#perf只显示地址unknown或调用树展不开">perf只显示地址、unknown，或调用树展不开</a><a class="toc-link level-2" href="#3-load高cpu却不高区分阻塞与僵尸">3. load高，CPU却不高：区分阻塞与僵尸</a><a class="toc-link level-2" href="#4-sy高切换多但看不到持续占cpu的进程">4. sy高、切换多，但看不到持续占CPU的进程</a><a class="toc-link level-2" href="#5-内存低swap已使用先看现在是否有压力">5. 内存低、Swap已使用：先看现在是否有压力</a><a class="toc-link level-2" href="#6-磁盘io高定位设备进程和具体操作">6. 磁盘I/O高：定位设备、进程和具体操作</a><a class="toc-link level-2" href="#7-磁盘满inode满或删了文件空间没回来">7. 磁盘满、inode满，或删了文件空间没回来</a><a class="toc-link level-2" href="#8-cpu磁盘都空闲接口依然慢">8. CPU、磁盘都空闲，接口依然慢</a><a class="toc-link level-2" href="#9-sql或redis拖慢请求">9. SQL或Redis拖慢请求</a><a class="toc-link level-2" href="#10-http慢拆开dnstcptls和首字节">10. HTTP慢：拆开DNS、TCP、TLS和首字节</a><a class="toc-link level-2" href="#11-网络超时丢包重传先保留连接证据">11. 网络超时、丢包、重传：先保留连接证据</a><a class="toc-link level-2" href="#12-经过nat或容器网络后才出现连接失败">12. 经过NAT或容器网络后才出现连接失败</a><a class="toc-link level-2" href="#13-容器慢启动慢查限制与启动阶段">13. 容器慢、启动慢：查限制与启动阶段</a><a class="toc-link level-2" href="#14-优化后怎样确认真的解决了">14. 优化后怎样确认真的解决了</a><a class="toc-link level-2" href="#15-top抓不到的高cpu追踪短命进程">15. top抓不到的高CPU：追踪短命进程</a><a class="toc-link level-2" href="#16-swap是谁占的缓存又是谁刷起来的">16. Swap是谁占的，缓存又是谁刷起来的</a><a class="toc-link level-2" href="#17-日志写爆或临时文件过多从pid定位到文件">17. 日志写爆或临时文件过多：从PID定位到文件</a><a class="toc-link level-2" href="#18-sql慢把系统io证据和执行计划接起来">18. SQL慢：把系统I/O证据和执行计划接起来</a><a class="toc-link level-2" href="#19-丢包要按层查握手成功也不代表业务可用">19. 丢包要按层查，握手成功也不代表业务可用</a><a class="toc-link level-3" href="#syn能通http数据或大包却超时">SYN能通，HTTP数据或大包却超时</a><a class="toc-link level-2" href="#20-吞吐下降检查成功请求文件句柄和临时端口">20. 吞吐下降：检查成功请求、文件句柄和临时端口</a><a class="toc-link level-2" href="#21-syn突然暴增soft高区分攻击与正常突发">21. SYN突然暴增、soft高：区分攻击与正常突发</a><a class="toc-link level-2" href="#22-bcc进阶工具安装命令位置与替代方案">22. BCC进阶工具：安装、命令位置与替代方案</a><a class="toc-link level-3" href="#原生内存持续增长时进一步追分配栈">原生内存持续增长时，进一步追分配栈</a><a class="toc-link level-2" href="#23-内核线程高cpu或调用栈太长用火焰图找热点">23. 内核线程高CPU或调用栈太长：用火焰图找热点</a><a class="toc-link level-2" href="#24-只在启动时慢提前采样别等启动完再看">24. 只在启动时慢：提前采样，别等启动完再看</a><a class="toc-link level-2" href="#25-如何做有意义的基准对照">25. 如何做有意义的基准对照</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践</span></footer></div>
 <dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" type="search" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
