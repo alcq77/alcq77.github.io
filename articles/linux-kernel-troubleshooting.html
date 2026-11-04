@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="遇到内存异常、系统卡顿、TCP重传或网络吞吐下降时，从这里按现象定位。示例PID 24680 、服务 demo-api 、网卡 eth0 和IP 192.0.2.10 均按实际值替换；采样命令默认只观察，不修改内核参数。 1. 先决定查哪条"><meta name="color-scheme" content="light dark"><title>Linux 内核问题排查与处理 · 知行笔记</title><link rel="stylesheet" href="../assets/style.css"><script src="../assets/app.js" defer></script></head>
+<body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
+<aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><div class="nav-label">知识目录</div><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">7</span></summary><a class="nav-link active" href="../articles/linux-kernel-troubleshooting.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">2</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>9 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
+<div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 内核问题排查与处理</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><time>2026-11-04</time><span class="meta-dot">·</span><span>约 14 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">kernel</span><span class="tag">memory</span><span class="tag">page-cache</span><span class="tag">oom</span><span class="tag">tcp</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>遇到内存异常、系统卡顿、TCP重传或网络吞吐下降时，从这里按现象定位。示例PID <code>24680</code>、服务 <code>demo-api</code>、网卡 <code>eth0</code> 和IP <code>192.0.2.10</code> 均按实际值替换；采样命令默认只观察，不修改内核参数。</p>
+<h2 id="1-先决定查哪条线">1. 先决定查哪条线</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查</th>
+<th>后续动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>load升高、进程卡住</td>
+<td>vmstat、D状态、回收和I/O</td>
+<td>区分CPU排队、存储等待、内存回收</td>
+</tr>
+<tr>
+<td>内存越来越少</td>
+<td>meminfo、进程RSS/PSS、Shmem、Slab</td>
+<td>找到增长的内存类型，再查归属</td>
+</tr>
+<tr>
+<td>机器有空闲内存，容器却OOM</td>
+<td>cgroup限制及事件</td>
+<td>查容器边界，而非只查整机</td>
+</tr>
+<tr>
+<td>短时延迟毛刺、sys CPU升高</td>
+<td>回收、规整、THP、热点栈</td>
+<td>按毛刺发生时间关联证据</td>
+</tr>
+<tr>
+<td>新连接超时或排队</td>
+<td>SYN队列、accept队列、应用处理能力</td>
+<td>查连接阶段与监听队列</td>
+</tr>
+<tr>
+<td>已连接但传输慢</td>
+<td>RTT、重传、收发队列、窗口</td>
+<td>查链路及收发两端</td>
+</tr>
+<tr>
+<td>单核软中断高</td>
+<td>网卡队列、中断分布、包速率</td>
+<td>查流量分布和CPU余量</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">date</span>
+<span class="hljs-built_in">uname</span> -r
+<span class="hljs-built_in">uptime</span>
+vmstat 1 5
+free -h
+</code></pre>
+<p>示例：load升高且 <code>vmstat</code> 的 <code>b</code> 增多，就继续查阻塞和I/O；<code>r</code>持续高、CPU忙则转查CPU。不要看到load高就直接认定CPU不够。<code>vmstat</code>第一行通常包含开机以来的平均值，后续才是间隔采样。</p>
+<details class="install-guide">
+<summary>安装排查工具与确认内核功能</summary>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian，按需选包</span>
+<span class="hljs-built_in">sudo</span> apt-get update
+<span class="hljs-built_in">sudo</span> apt-get install sysstat lsof tcpdump iproute2 ethtool numactl strace
+
+<span class="hljs-comment"># RHEL系，改选本机对应仓库中的包</span>
+<span class="hljs-comment"># sudo dnf install sysstat lsof tcpdump iproute ethtool numactl strace perf</span>
+</code></pre>
+<p>示例：<code>sysstat</code>提供sar、mpstat、pidstat、iostat；Ubuntu的perf通常来自匹配内核的linux-tools包，Debian常见包名为linux-perf，先核对系统和仓库。不要为运行perf安装不匹配的内核工具或修改整机安全限制。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v sar iostat numactl ethtool perf
+perf --version
+perf list
+</code></pre>
+<p>示例：PSI、smaps_rollup、tracepoint、cgroup文件依赖内核版本及配置。文件不存在或权限不足时，先确认功能支持与授权；CentOS 7等旧环境不能照搬新内核路径。</p>
+</details>
+<h2 id="2-free很少是否真的缺内存">2. free很少，是否真的缺内存</h2>
+<pre><code class="hljs language-bash">grep -E <span class="hljs-string">&#x27;^(MemTotal|MemFree|MemAvailable|Cached|Buffers|AnonPages|Shmem|Slab|SReclaimable|SUnreclaim|Dirty|Writeback|SwapTotal|SwapFree):&#x27;</span> /proc/meminfo
+ps -eo pid,<span class="hljs-built_in">comm</span>,rss,vsz --<span class="hljs-built_in">sort</span>=-rss | <span class="hljs-built_in">head</span> -n 15
+</code></pre>
+<p>示例：Cached较大但MemAvailable仍充足、业务正常，不需要“清缓存”。AnonPages增长查进程匿名内存；Shmem增长查共享内存/tmpfs；SUnreclaim增长查内核分配。<code>| head</code>只保留前15行输出。</p>
+<p>**处理：**以可用内存、交换活动、业务延迟及增长趋势判断压力。不能直接把各进程RSS相加当成实际物理占用，共享页会重复计数；meminfo里的不同分类也不应简单相加。</p>
+<p>**复查：**在同类负载下连续观察，确认MemAvailable不再持续下降、没有回收抖动和OOM。<a href="https://man7.org/linux/man-pages/man5/proc_meminfo.5.html">字段说明</a></p>
+<h2 id="3-load飙高延迟变大检查回收和脏页">3. load飙高、延迟变大：检查回收和脏页</h2>
+<pre><code class="hljs language-bash">sar -B 1 5
+iostat -xz -y 1 5
+grep -E <span class="hljs-string">&#x27;^(Dirty|Writeback):&#x27;</span> /proc/meminfo
+grep -E <span class="hljs-string">&#x27;pgscan|pgsteal|allocstall|compact_stall|nr_dirty|nr_writeback&#x27;</span> /proc/vmstat
+</code></pre>
+<p>示例：sar显示直接回收活动增加，且存储延迟和Dirty/Writeback在同一时间异常，才进一步怀疑回收/回写拖慢应用。<code>/proc/vmstat</code>里的许多值是累计计数，应间隔采样看增量，不能凭非零就认定正在故障。</p>
+<p>**处理：**先减少批处理、突发写入和内存竞争，定位慢存储；有泄漏先处理泄漏。确需调整回收水位或脏页策略时，先记录现值，再按机器内存和存储能力做小范围试验，不直接套固定GB值或比例。</p>
+<pre><code class="hljs language-bash">sysctl vm.min_free_kbytes vm.watermark_scale_factor
+sysctl vm.dirty_background_ratio vm.dirty_ratio
+sysctl vm.dirty_background_bytes vm.dirty_bytes
+</code></pre>
+<p>示例：这些命令只读取参数；旧内核可能没有其中某项。bytes与ratio控制方式需按内核规则选择，不能把两组值当作互不相关的限制随意同时配置。</p>
+<p>**复查：**比较相近流量下的直接回收增量、I/O延迟和P95/P99；内存预留增加也会压缩应用可用容量。<a href="https://docs.kernel.org/admin-guide/sysctl/vm.html">VM参数说明</a></p>
+<h2 id="4-清过缓存后更慢检查热点数据反复读盘">4. 清过缓存后更慢：检查热点数据反复读盘</h2>
+<pre><code class="hljs language-bash">sar -B 1 5
+pidstat -r -p 24680 1 5
+pidstat -d -p 24680 1 5
+</code></pre>
+<p>示例：延迟升高同时出现主要缺页、读盘增加和缓存下降，要检查是否有人定时执行drop_caches，或其他大扫描挤出了热点缓存。主要缺页增加也可能涉及交换，需结合I/O和映射判断。</p>
+<p>**处理：**取消无依据的周期清缓存，错开全盘扫描/备份和在线业务；对延迟敏感服务合理预热、隔离竞争和配置内存。不要为了让free数字变大而每天清Page Cache。</p>
+<p>**复查：**观察热点请求的读盘量、缺页活动和延迟是否恢复；冷启动与缓存预热后的结果分别记录。</p>
+<h2 id="5-进程rss持续涨区分堆映射与共享页">5. 进程RSS持续涨：区分堆、映射与共享页</h2>
+<pre><code class="hljs language-bash">grep -E <span class="hljs-string">&#x27;VmRSS|VmSize|RssAnon|RssFile|RssShmem|VmSwap&#x27;</span> /proc/24680/status
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cat</span> /proc/24680/smaps_rollup
+pmap -x 24680
+</code></pre>
+<p>示例：匿名常驻页持续增长时继续查堆/匿名映射；文件映射增长时查映射文件及生命周期。smaps_rollup中的PSS按共享比例分摊，更适合辅助判断归属；文件存在与读取权限以系统为准。</p>
+<p>**处理：**先按应用语言使用堆分析、分配采样或运行时诊断，区分泄漏、缓存、分配器保留和负载增长；为异常服务限制流量并保留现场。生产上不直接启动全量Valgrind或无上限采样。</p>
+<p>**复查：**在稳定负载和相近运行时长下，检查内存是否趋稳、GC后是否回落，以及错误率和延迟有没有恶化。</p>
+<h2 id="6-rss不高shmem很大查tmpfs与共享内存">6. RSS不高、Shmem很大：查tmpfs与共享内存</h2>
+<pre><code class="hljs language-bash">grep <span class="hljs-string">&#x27;^Shmem:&#x27;</span> /proc/meminfo
+findmnt -t tmpfs
+<span class="hljs-built_in">df</span> -hT /dev/shm /run
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">du</span> -xhd1 /dev/shm /run
+ipcs -m
+<span class="hljs-built_in">sudo</span> lsof +L1
+</code></pre>
+<p>示例：<code>/run</code>或 <code>/dev/shm</code>占用增长，且Shmem同步增长，即使应用已经关闭文件也可能保留数据；<code>ipcs -m</code>查看System V共享内存，不能覆盖所有共享内存类型。已删除但仍打开的文件还会占用空间。</p>
+<p>**处理：**找到创建者与保留规则，再清理确认无用的临时文件或修复应用生命周期。不要清空 <code>/run</code>、盲目 <code>ipcrm</code> 或直接删除仍被业务使用的共享文件；tmpfs数据也不等于可随时丢弃。</p>
+<p>**复查：**文件系统占用与Shmem均回落，并确认服务连接、锁、PID和共享数据仍正常。</p>
+<h2 id="7-内核内存持续增长查slab驱动与分配点">7. 内核内存持续增长：查Slab、驱动与分配点</h2>
+<pre><code class="hljs language-bash">grep -E <span class="hljs-string">&#x27;^(Slab|SReclaimable|SUnreclaim|VmallocUsed|KernelStack|PageTables):&#x27;</span> /proc/meminfo
+<span class="hljs-built_in">sudo</span> slabtop -o
+lsmod
+<span class="hljs-built_in">sudo</span> journalctl -k -b -n 100 --no-pager
+</code></pre>
+<p>示例：SUnreclaim持续上升而进程占用相对稳定，记录slab对象类别的变化；必要时让内核/驱动维护人员进一步检查vmallocinfo与分配栈。某个值大并不足以证明泄漏。</p>
+<p>**处理：**关联近期驱动、模块和内核更新，优先在测试环境复现并升级/回退问题组件；内核态泄漏不会因为重启一个Java进程就必然释放。kmemleak、kprobe等依赖构建选项与诊断成本，不在生产临时随意开启。</p>
+<p>**复查：**对比相同负载下对象数量、内存增长斜率及错误日志，确认不是暂时缓存下降。</p>
+<h2 id="8-服务被杀容器oom先确认边界">8. 服务被杀、容器OOM：先确认边界</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> journalctl -k -b --no-pager | grep -Ei <span class="hljs-string">&#x27;out of memory|oom-kill|killed process&#x27;</span>
+<span class="hljs-built_in">cat</span> /proc/24680/cgroup
+systemctl show demo-api -p ControlGroup -p MemoryMax
+</code></pre>
+<p>示例：整机还有空闲内存，不代表服务没有超出cgroup限额；OOM被杀的进程也不一定是最早引起压力的进程。结合时间、PID、分组和实际限额判断。</p>
+<p>确认使用cgroup v2、ControlGroup为 <code>/system.slice/demo-api.service</code> 后读取：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /sys/fs/cgroup/system.slice/demo-api.service/memory.current
+<span class="hljs-built_in">cat</span> /sys/fs/cgroup/system.slice/demo-api.service/memory.max
+<span class="hljs-built_in">cat</span> /sys/fs/cgroup/system.slice/demo-api.service/memory.events
+</code></pre>
+<p>示例：关注 <code>oom/oom_kill</code>计数是否在事故期间增加，区分达到限额与实际杀进程；这些是累计事件，需结合分组生命周期。cgroup v1用其对应控制器文件，不能硬套v2路径。</p>
+<p>**处理：**先减负载、处理泄漏或在容量允许时调整限额；JVM堆外、线程栈、页缓存等也需预留空间。避免给所有业务设置不可被OOM杀死的保护，导致压力转嫁给整机。</p>
+<p>**复查：**观察同类负载下的memory.current、事件增量和业务状态。<a href="https://docs.kernel.org/admin-guide/cgroup-v2.html">cgroup v2说明</a></p>
+<h2 id="9-有空闲内存还卡顿查numa和透明大页">9. 有空闲内存还卡顿：查NUMA和透明大页</h2>
+<pre><code class="hljs language-bash">numactl --hardware
+numastat -p 24680
+sysctl vm.zone_reclaim_mode
+<span class="hljs-built_in">cat</span> /sys/kernel/mm/transparent_hugepage/enabled
+<span class="hljs-built_in">cat</span> /sys/kernel/mm/transparent_hugepage/defrag
+grep -E <span class="hljs-string">&#x27;compact_stall|compact_fail|compact_success|thp_&#x27;</span> /proc/vmstat
+</code></pre>
+<p>示例：NUMA可能出现某节点紧张、其他节点空闲；THP启用状态本身不是故障证据，需要结合毛刺期间规整活动、热点栈及应用特征。THP当前模式通常由方括号标出，新内核还可能有按页大小的独立策略。</p>
+<p>**处理：**检查不合理绑核/绑内存和本地回收策略；THP按数据库/JVM等具体版本的建议及A/B测试选择，不对所有业务统一“always”或“never”。切换策略不代表现有大页立即全部拆分，也不自动持久化。</p>
+<p>**复查：**比较延迟尾部、CPU、内存占用和吞吐，不能只看平均延迟。<a href="https://docs.kernel.org/admin-guide/mm/transhuge.html">THP当前接口</a></p>
+<h2 id="10-新连接超时分清握手与accept排队">10. 新连接超时：分清握手与accept排队</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :8080&#x27;</span>
+ss -nt state syn-recv <span class="hljs-string">&#x27;( sport = :8080 )&#x27;</span>
+nstat -az TcpExtListenOverflows TcpExtListenDrops TcpExtSyncookiesSent
+sysctl net.core.somaxconn net.ipv4.tcp_max_syn_backlog net.ipv4.tcp_syncookies
+</code></pre>
+<p>示例：监听socket的Recv-Q反映等待应用accept的连接，Send-Q对应其backlog上限含义；不能用ESTABLISHED连接的队列含义直接解释。ListenOverflows在事故窗口增加时，进一步查应用是否accept慢、线程池/依赖是否阻塞。</p>
+<p>**处理：**先恢复应用消费连接的能力，控制突发连接并合理复用连接；确需增大backlog时，同时核对应用listen参数与系统上限。SYN压力、accept排队和连接跟踪耗尽是不同问题，不能靠调大一个参数包治。</p>
+<p>**复查：**以连接成功率、建连耗时、队列趋势和溢出计数增量验收。<a href="https://docs.kernel.org/networking/ip-sysctl.html">TCP参数说明</a></p>
+<h2 id="11-连接已建立但很慢检查重传rtt和收发窗口">11. 连接已建立但很慢：检查重传、RTT和收发窗口</h2>
+<pre><code class="hljs language-bash">ss -tin <span class="hljs-string">&#x27;( dport = :8080 or sport = :8080 )&#x27;</span>
+nstat -az TcpRetransSegs TcpOutSegs
+ip -s <span class="hljs-built_in">link</span> show dev eth0
+</code></pre>
+<p>示例：同一连接重传增加、RTT升高与请求变慢同时出现时，再定位链路；全机TCP重传计数不能直接算作某个服务的重传率。Recv-Q长时间积压要查应用是否及时读，Send-Q积压可能涉及对端接收、链路或发送阻塞。</p>
+<p>**处理：**两端按同一时间窗口采样，结合抓包分辨发送迟、链路丢、接收不及时。零窗口通常应查接收方应用与内存压力；只换拥塞控制算法不会修复对端不读数据的问题。</p>
+<p>**复查：**比较目标连接的重传、RTT、队列及业务延迟；不要把调整应用发送超时等同于直接改变TCP内核RTO。</p>
+<h2 id="12-软中断占满单核检查网卡队列和流量分布">12. 软中断占满单核：检查网卡队列和流量分布</h2>
+<pre><code class="hljs language-bash">mpstat -P ALL 1 5
+sar -n DEV,EDEV 1 5
+grep -E <span class="hljs-string">&#x27;NET_RX|NET_TX&#x27;</span> /proc/softirqs
+<span class="hljs-built_in">cat</span> /proc/interrupts
+<span class="hljs-built_in">sudo</span> ethtool -l eth0
+<span class="hljs-built_in">sudo</span> ethtool -k eth0
+<span class="hljs-built_in">sudo</span> ethtool -S eth0
+</code></pre>
+<p>示例：单核soft高且包速率/丢包同时异常，查中断是否集中、是否大量小包。softirqs/interrupts为累计值，要比较增量；ethtool能查看的队列/统计因驱动和虚拟网卡而异。</p>
+<p>**处理：**先查异常流量和硬件RSS/IRQ分配，再评估RPS/RFS与offload。软件分流也消耗CPU，整机已忙时可能进一步压缩业务时间；不要默认把所有卸载特性关闭，或给所有网卡写相同CPU掩码。</p>
+<p>**复查：**同时看总CPU、单核soft、丢包、吞吐和P99；分布变均匀但吞吐下降不算优化成功。<a href="https://docs.kernel.org/networking/scaling.html">网络扩展机制</a></p>
+<h2 id="13-间歇性卡顿用压力与短时采样留证">13. 间歇性卡顿：用压力与短时采样留证</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /proc/pressure/cpu
+<span class="hljs-built_in">cat</span> /proc/pressure/memory
+<span class="hljs-built_in">cat</span> /proc/pressure/io
+<span class="hljs-built_in">sudo</span> perf record -F 49 -g -p 24680 -o /tmp/demo-kernel-perf.data -- <span class="hljs-built_in">sleep</span> 15
+<span class="hljs-built_in">sudo</span> perf report -i /tmp/demo-kernel-perf.data --stdio
+</code></pre>
+<p>示例：PSI反映资源争用造成的停顿趋势，不是资源使用率；系统级CPU的full不能照搬内存/I/O的解读。perf只在获得授权、可承受开销时对目标进程短时采样，<code>-- sleep 15</code>限定采样时段。<a href="https://docs.kernel.org/accounting/psi.html">PSI接口</a></p>
+<p>**处理：**先把毛刺时间与回收、规整、软中断、业务指标对齐，再由热点栈决定是否深入tracepoint/eBPF。不要一开始就全机长期开高频追踪。</p>
+<p>**复查：**在同等请求量下，确认停顿与业务尾延迟一起改善；保留内核版本、旧配置、变更项及回退方法。</p>
+<p>相关内容：<a href="linux-performance-troubleshooting.html">Linux性能瓶颈排查与优化</a>、<a href="linux-server-operations-commands.html">服务器常用命令</a>。</p>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#1-先决定查哪条线">1. 先决定查哪条线</a><a class="toc-link level-2" href="#2-free很少是否真的缺内存">2. free很少，是否真的缺内存</a><a class="toc-link level-2" href="#3-load飙高延迟变大检查回收和脏页">3. load飙高、延迟变大：检查回收和脏页</a><a class="toc-link level-2" href="#4-清过缓存后更慢检查热点数据反复读盘">4. 清过缓存后更慢：检查热点数据反复读盘</a><a class="toc-link level-2" href="#5-进程rss持续涨区分堆映射与共享页">5. 进程RSS持续涨：区分堆、映射与共享页</a><a class="toc-link level-2" href="#6-rss不高shmem很大查tmpfs与共享内存">6. RSS不高、Shmem很大：查tmpfs与共享内存</a><a class="toc-link level-2" href="#7-内核内存持续增长查slab驱动与分配点">7. 内核内存持续增长：查Slab、驱动与分配点</a><a class="toc-link level-2" href="#8-服务被杀容器oom先确认边界">8. 服务被杀、容器OOM：先确认边界</a><a class="toc-link level-2" href="#9-有空闲内存还卡顿查numa和透明大页">9. 有空闲内存还卡顿：查NUMA和透明大页</a><a class="toc-link level-2" href="#10-新连接超时分清握手与accept排队">10. 新连接超时：分清握手与accept排队</a><a class="toc-link level-2" href="#11-连接已建立但很慢检查重传rtt和收发窗口">11. 连接已建立但很慢：检查重传、RTT和收发窗口</a><a class="toc-link level-2" href="#12-软中断占满单核检查网卡队列和流量分布">12. 软中断占满单核：检查网卡队列和流量分布</a><a class="toc-link level-2" href="#13-间歇性卡顿用压力与短时采样留证">13. 间歇性卡顿：用压力与短时采样留证</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践</span></footer></div>
+<dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" type="search" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
