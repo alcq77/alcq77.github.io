@@ -3,8 +3,9 @@
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
 <aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><a class="home-link" href="../support.html"><span aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><details class="nav-group"><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon">≡</span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon">≡</span><span>Kubernetes 应用部署与配置实践</span></a></details><details class="nav-group"><summary><span class="folder-icon">▤</span>消息队列<span class="group-count">3</span></summary><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon">≡</span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon">≡</span><span>Kafka 核心机制与源码排查</span></a><a class="nav-link" href="../articles/kafka-reliability.html"><span class="doc-icon">≡</span><span>Kafka 消息生产、消费与可靠性实践</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">7</span></summary><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-kernel-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link active" href="../articles/nginx-operations.html" aria-current="page"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>14 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Nginx 配置、部署与日常运维</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 37 分钟阅读</span></div><div class="tag-row"><span class="tag">nginx</span><span class="tag">linux</span><span class="tag">proxy</span><span class="tag">https</span><span class="tag">websocket</span><span class="tag">operations</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>配置 Nginx 静态网站、前后端代理和 HTTPS，并处理日志、权限及常见访问故障。示例域名 <code>demo.example.com</code>、服务器地址 <code>192.0.2.10</code>、目录 <code>/srv/demo</code> 按实际环境替换；普通用户执行管理命令需要相应sudo授权。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Nginx 配置、部署与日常运维</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 50 分钟阅读</span></div><div class="tag-row"><span class="tag">nginx</span><span class="tag">linux</span><span class="tag">proxy</span><span class="tag">https</span><span class="tag">websocket</span><span class="tag">operations</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>配置 Nginx 静态网站、前后端代理和 HTTPS，并处理日志、权限及常见访问故障。示例域名 <code>demo.example.com</code>、服务器地址 <code>192.0.2.10</code>、目录 <code>/srv/demo</code> 按实际环境替换；普通用户执行管理命令需要相应sudo授权。</p>
 <p>各配置按场景分别使用。“完整站点配置”放在已被 <code>http</code> 包含的站点文件中，“片段”放入指定层级，避免重复定义站点或 location。</p>
+<p>查配置含义看第2项的“常用配置项速查”；修改后的备份、校验、加载、验证与回退统一看第18项。</p>
 <h2 id="1-先找到实际运行的-nginx">1. 先找到实际运行的 Nginx</h2>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v nginx                        <span class="hljs-comment"># 当前PATH是否能找到</span>
 ps -ww -eo pid,ppid,user,args | grep <span class="hljs-string">&#x27;[n]ginx&#x27;</span> <span class="hljs-comment"># 主进程、worker和参数</span>
@@ -17,9 +18,9 @@ systemctl <span class="hljs-built_in">cat</span> nginx --no-pager           <spa
 <pre><code class="hljs language-bash">nginx -v                 <span class="hljs-comment"># 版本，通常输出到标准错误</span>
 nginx -V                 <span class="hljs-comment"># 编译参数、模块和默认路径</span>
 <span class="hljs-built_in">sudo</span> nginx -t            <span class="hljs-comment"># 检查语法，并尝试打开引用的文件</span>
-<span class="hljs-built_in">sudo</span> nginx -T            <span class="hljs-comment"># 检查并输出所加载的完整配置</span>
+<span class="hljs-built_in">sudo</span> nginx -T            <span class="hljs-comment"># 检查并输出磁盘上的主配置及include文件，不会加载到运行进程</span>
 </code></pre>
-<p>示例：<code>-V</code>中的 <code>--conf-path</code> 可帮助找到默认主配置；<code>-T</code>还会输出实际include的内容。完整配置可能包含内网地址、认证信息或令牌，分享前脱敏。服务若指定了额外的 <code>-p/-c</code>，检查命令也要使用相同参数。</p>
+<p>示例：<code>-V</code>中的 <code>--conf-path</code> 可帮助找到默认主配置；<code>-T</code>还会输出实际include的内容，但不能证明运行进程已经应用这些内容。完整配置可能包含内网地址、认证信息或令牌，分享前脱敏。服务若指定了额外的 <code>-p/-c/-g</code>，检查命令也要保留相应参数。</p>
 <p>命令参数见 <a href="https://nginx.org/en/docs/switches.html">Nginx官方说明</a>。</p>
 <details class="install-guide">
 <summary>尚未安装？展开查看安装与验证方法</summary>
@@ -141,6 +142,264 @@ curl -I --connect-timeout 3 --max-time 5 http://127.0.0.1/
 </table>
 <p>示例：两个域名可由同一http内的两个server处理，每个server再用不同location区分首页、接口和静态资源；URL查询参数通常不参与location路径匹配。</p>
 <p><code>include</code>是按位置展开配置，不会自动补全层级。<code>nginx -t</code>提示“directive is not allowed here”时，先查指令所在层级。</p>
+<h3 id="21-常用配置项速查属性含义位置和示例">2.1 常用配置项速查：属性含义、位置和示例</h3>
+<p>Nginx配置中的“属性”通常称为指令。下面的值用于解释写法，不是建议统一套用的默认值；按本机版本、编译模块和业务需求选择。表内 <code>http / server / location</code> 表示指令允许放在这些层级，不需要每层重复写。</p>
+<p><strong>进程、连接和公共配置</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>配置项与示例</th>
+<th>放在哪</th>
+<th>作用与注意点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user nginx;</code></td>
+<td>main</td>
+<td>worker运行身份；按实际账户设置，需要网页及父目录的读取/遍历权限</td>
+</tr>
+<tr>
+<td><code>worker_processes auto;</code></td>
+<td>main</td>
+<td>自动确定worker数量，不是最大并发请求数</td>
+</tr>
+<tr>
+<td><code>pid /run/nginx.pid;</code></td>
+<td>main</td>
+<td>master PID文件；应与服务单元、实际目录和管理命令一致</td>
+</tr>
+<tr>
+<td><code>worker_connections 1024;</code></td>
+<td>events</td>
+<td>单个worker的连接上限，包含客户端和上游等连接；还受文件句柄限制影响</td>
+</tr>
+<tr>
+<td><code>include /etc/nginx/conf.d/*.conf;</code></td>
+<td>按被引入内容的层级</td>
+<td>在当前位置展开匹配文件；放在http内时，站点文件通常直接写server块</td>
+</tr>
+<tr>
+<td><code>default_type application/octet-stream;</code></td>
+<td>http / server / location</td>
+<td>没有匹配到MIME类型时的默认响应类型，不能代替 <code>mime.types</code> 映射</td>
+</tr>
+<tr>
+<td><code>sendfile on;</code></td>
+<td>http / server / location</td>
+<td>静态文件发送方式，按文件系统和运行环境验证效果</td>
+</tr>
+<tr>
+<td><code>keepalive_timeout 65s;</code></td>
+<td>http / server / location</td>
+<td>客户端空闲长连接保留时间，不是后端响应总超时</td>
+</tr>
+<tr>
+<td><code>server_tokens off;</code></td>
+<td>http / server / location</td>
+<td>隐藏部分响应头及错误页中的版本号，不代替安全更新</td>
+</tr>
+</tbody>
+</table>
+<p><strong>站点、静态文件、日志和响应</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>配置项与示例</th>
+<th>放在哪</th>
+<th>作用与注意点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>listen 80;</code></td>
+<td>server</td>
+<td>监听地址与端口；<code>127.0.0.1:80</code>仅本机可连，<code>default_server</code>决定该监听入口的默认站点</td>
+</tr>
+<tr>
+<td><code>server_name demo.example.com;</code></td>
+<td>server</td>
+<td>按请求域名选站点，不创建DNS记录，不开放端口</td>
+</tr>
+<tr>
+<td><code>root /srv/demo/html;</code></td>
+<td>http / server / location</td>
+<td>用根目录拼接URI定位文件，具体映射见第8节</td>
+</tr>
+<tr>
+<td><code>alias /srv/files/;</code></td>
+<td>location</td>
+<td>将匹配路径映射到另一目录，路径替换规则与root不同</td>
+</tr>
+<tr>
+<td><code>index index.html;</code></td>
+<td>http / server / location</td>
+<td>目录请求尝试的首页文件，不是所有404的回退页</td>
+</tr>
+<tr>
+<td><code>try_files $uri $uri/ =404;</code></td>
+<td>server / location</td>
+<td>顺序检查文件或目录，最后一项为回退URI、命名location或状态码</td>
+</tr>
+<tr>
+<td><code>autoindex off;</code></td>
+<td>http / server / location</td>
+<td>控制目录列表；关闭列表导致的403先查首页和访问需求</td>
+</tr>
+<tr>
+<td><code>client_max_body_size 20m;</code></td>
+<td>http / server / location</td>
+<td>限制请求体大小，超限常见413；还需核对上游与其他网关限制</td>
+</tr>
+<tr>
+<td><code>access_log /var/log/nginx/demo.access.log;</code></td>
+<td>http / server / location等</td>
+<td>请求访问日志，可另指定已定义的格式；通常在请求结束时记录</td>
+</tr>
+<tr>
+<td><code>error_log /var/log/nginx/demo.error.log warn;</code></td>
+<td>main / http / server / location等</td>
+<td>错误日志路径与最低级别；加载阶段错误还可能写到原全局error日志</td>
+</tr>
+<tr>
+<td><code>add_header X-Content-Type-Options nosniff always;</code></td>
+<td>http / server / location等</td>
+<td>添加响应头；<code>always</code>扩大适用状态码范围，继承行为见第15节</td>
+</tr>
+<tr>
+<td><code>expires 1h;</code></td>
+<td>http / server / location等</td>
+<td>生成客户端缓存相关响应头；修改后还需检查浏览器/CDN已有缓存</td>
+</tr>
+<tr>
+<td><code>return 301 https://demo.example.com$request_uri;</code></td>
+<td>server / location等</td>
+<td>返回状态码或跳转；固定目标域名，永久跳转可能被客户端缓存</td>
+</tr>
+</tbody>
+</table>
+<p><strong>反向代理与HTTPS</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>配置项与示例</th>
+<th>放在哪</th>
+<th>作用与注意点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>upstream demo_backend { server 127.0.0.1:8080; }</code></td>
+<td>http</td>
+<td>定义后端组；这里的server是上游成员，不是虚拟站点块</td>
+</tr>
+<tr>
+<td><code>proxy_pass http://demo_backend;</code></td>
+<td>location等</td>
+<td>转发到后端；带不带URI及末尾斜杠会影响路径，见第6节</td>
+</tr>
+<tr>
+<td><code>proxy_set_header Host $host;</code></td>
+<td>http / server / location</td>
+<td>设置发给后端的请求头，按后端期望的Host及可信代理边界选择</td>
+</tr>
+<tr>
+<td><code>proxy_http_version 1.1;</code></td>
+<td>http / server / location</td>
+<td>明确Nginx到后端使用的HTTP版本，不改变浏览器到Nginx的协议版本</td>
+</tr>
+<tr>
+<td><code>proxy_connect_timeout 3s;</code></td>
+<td>http / server / location</td>
+<td>建立上游连接的超时，不是整个请求的总时限</td>
+</tr>
+<tr>
+<td><code>proxy_send_timeout 60s;</code></td>
+<td>http / server / location</td>
+<td>向上游连续两次写操作之间的超时，不是整个上传的总时间</td>
+</tr>
+<tr>
+<td><code>proxy_read_timeout 60s;</code></td>
+<td>http / server / location</td>
+<td>从上游连续两次读操作之间的超时，不是整个响应的总时间</td>
+</tr>
+<tr>
+<td><code>proxy_buffering off;</code></td>
+<td>http / server / location</td>
+<td>关闭上游响应缓冲，常见于SSE流式响应；不等于关闭请求体缓冲</td>
+</tr>
+<tr>
+<td><code>proxy_request_buffering off;</code></td>
+<td>http / server / location</td>
+<td>控制请求体先缓冲再转发还是边接收边转发；按上传和后端能力选择</td>
+</tr>
+<tr>
+<td><code>ssl_certificate /etc/nginx/certs/demo.fullchain.pem;</code></td>
+<td>http / server</td>
+<td>站点证书及中间证书链文件</td>
+</tr>
+<tr>
+<td><code>ssl_certificate_key /etc/nginx/certs/demo.key;</code></td>
+<td>http / server</td>
+<td>证书私钥路径；限制文件权限，不能放进网页目录</td>
+</tr>
+<tr>
+<td><code>ssl_protocols TLSv1.2 TLSv1.3;</code></td>
+<td>http / server</td>
+<td>允许的TLS版本；需Nginx及链接库支持，CentOS 7旧环境先核对能力</td>
+</tr>
+</tbody>
+</table>
+<p>示例：接口出现413时先找实际生效位置的 <code>client_max_body_size</code>；接口连接不上查 <code>proxy_pass</code> 和连接超时；SSE一直积攒到最后才返回查 <code>proxy_buffering</code>，并核对应用flush及整条代理链。不要把所有timeout一律调大。</p>
+<h3 id="22-配置中的变量和继承怎么看">2.2 配置中的变量和继承怎么看</h3>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>含义与例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$uri</code></td>
+<td>当前规范化URI，不含查询参数，内部重写后可能变化，如 <code>/api/orders</code></td>
+</tr>
+<tr>
+<td><code>$request_uri</code></td>
+<td>原始请求URI，包含参数，如 <code>/api/orders?page=1</code>；跳转保留参数常用它</td>
+</tr>
+<tr>
+<td><code>$args</code></td>
+<td>当前查询参数，如 <code>page=1</code>，rewrite等操作可能修改它</td>
+</tr>
+<tr>
+<td><code>$host</code></td>
+<td>根据请求行、Host头或匹配站点名等确定的主机名；不能把任意客户端输入当可信域名</td>
+</tr>
+<tr>
+<td><code>$http_host</code></td>
+<td>收到的Host请求头原值，可能含端口，也可能为空</td>
+</tr>
+<tr>
+<td><code>$remote_addr</code></td>
+<td>Nginx看到的对端IP；经过其他代理时不一定是真实用户IP</td>
+</tr>
+<tr>
+<td><code>$proxy_add_x_forwarded_for</code></td>
+<td>在已有X-Forwarded-For后追加对端IP；已有部分可能由客户端伪造</td>
+</tr>
+<tr>
+<td><code>$scheme</code></td>
+<td>当前请求到达Nginx时的http或https；前置网关终止TLS时未必等于外部协议</td>
+</tr>
+<tr>
+<td><code>$request_time</code></td>
+<td>请求处理总耗时，单位秒，结合上游耗时字段判断慢在哪层</td>
+</tr>
+</tbody>
+</table>
+<p>示例：<code>try_files $uri $uri/ /index.html;</code>里的变量由Nginx处理，不是Linux shell变量，不要把配置内容直接作为未加保护的shell命令执行。</p>
+<p>较外层配置常可作为内层默认值，但<strong>继承规则由具体指令决定</strong>。<code>root</code>、请求体限制等按层级选择；<code>add_header</code>、<code>proxy_set_header</code>等成组指令在内层重新定义时，传统规则可能不再继承上层同类配置。不要只看http层就认定某个location一定使用同一个值。表格列出的层级为常用位置，细节及版本要求见<a href="https://nginx.org/en/docs/ngx_core_module.html">核心进程指令</a>、<a href="https://nginx.org/en/docs/http/ngx_http_core_module.html">HTTP核心指令</a>、<a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html">代理指令</a>、<a href="https://nginx.org/en/docs/http/ngx_http_ssl_module.html">HTTPS指令</a>。</p>
 <h2 id="3-启动停止reload与自启">3. 启动、停止、reload与自启</h2>
 <p>systemd管理的实例按需选择命令，不要整段连续执行：</p>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl start nginx         <span class="hljs-comment"># 启动</span>
@@ -596,26 +855,93 @@ getsebool httpd_can_network_connect <span class="hljs-comment"># 查询HTTP服�
 <p>示例：先确认拒绝是否属于Nginx，再决定是否需要路径标签或代理联网权限。包名差异见<a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/selinux_users_and_administrators_guide/chap-security-enhanced_linux-working_with_selinux">RHEL 7 SELinux工具说明</a>。</p>
 </details>
 <p>放行端口还要检查活动防火墙zone、云安全组、负载均衡和实际来源限制；不关闭整台服务器的防火墙。完整操作见 <a href="linux-server-operations-commands.html">服务器命令</a>。</p>
-<h2 id="18-发布与回退每次改完怎么做">18. 发布与回退：每次改完怎么做</h2>
-<p>假设只修改 <code>/etc/nginx/conf.d/demo.conf</code>，先记录并备份，文件名不以 <code>.conf</code> 结尾，避免被通配include再次加载：</p>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cp</span> -p /etc/nginx/conf.d/demo.conf /etc/nginx/conf.d/demo.conf.bak-20261102-153000
-sudoedit /etc/nginx/conf.d/demo.conf <span class="hljs-comment"># 按授权编辑</span>
-<span class="hljs-built_in">sudo</span> nginx -t                     <span class="hljs-comment"># 有错误先修复，不reload</span>
-<span class="hljs-built_in">sudo</span> systemctl reload nginx       <span class="hljs-comment"># 仅校验通过后执行</span>
-systemctl status nginx --no-pager -l
+<h2 id="18-发布与回退修改配置后的校验加载和验证">18. 发布与回退：修改配置后的校验、加载和验证</h2>
+<p>执行顺序：确认实际实例与配置 → 备份 → 修改 → 校验成功后reload → 验证日志和业务 → 异常时回退。systemd管理与手动安装选择对应一套操作，不能混用默认路径与自定义实例。</p>
+<h3 id="181-备份并修改实际加载的文件">18.1 备份并修改实际加载的文件</h3>
+<p>假设主配置已include <code>/etc/nginx/conf.d/*.conf</code>，本次只修改 <code>/etc/nginx/conf.d/demo.conf</code>。以下变量和命令在同一Bash终端逐步执行，备份或编辑失败时先处理错误，不继续加载：</p>
+<pre><code class="hljs language-bash">NGINX_CONF=/etc/nginx/conf.d/demo.conf <span class="hljs-comment"># 改为本次实际修改的文件；手动安装时也要改路径</span>
+NGINX_BACKUP=<span class="hljs-string">&quot;<span class="hljs-variable">${NGINX_CONF}</span>.bak-<span class="hljs-subst">$(date +%Y%m%d-%H%M%S)</span>&quot;</span> <span class="hljs-comment"># 保存本次备份文件名，避免重复覆盖</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cp</span> -p -- <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_CONF</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_BACKUP</span>&quot;</span> <span class="hljs-comment"># 保留属性备份原配置，失败则停止</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_BACKUP</span>&quot;</span> <span class="hljs-comment"># 记录备份位置，供本次回退使用</span>
+sudoedit <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_CONF</span>&quot;</span> <span class="hljs-comment"># 按授权编辑并保存，普通用户不必开启整个root会话</span>
 </code></pre>
-<p>示例：备份名称应按本次时间/版本取唯一值，不能每次覆盖同一份。修改include文件、证书或其他依赖时也需保存相应版本；<code>nginx -t</code>通过不代表代理后端和业务接口正常。</p>
-<pre><code class="hljs language-bash">curl -I -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/
-curl -i --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/api/health
-<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 50 /var/log/nginx/demo.error.log
+<p>示例：备份名不以 <code>.conf</code> 结尾，避免被上述 <code>*.conf</code> 再次include；实际include若匹配所有文件，应备份到不被加载的目录。若同时改主配置、多个include、证书或前端文件，要保存整套对应版本；不是恢复一个站点文件就能回退全部变化。</p>
+<h3 id="182-校验并加载配置">18.2 校验并加载配置</h3>
+<p>保存配置文件不会自动生效。<code>nginx -t</code>只做检查，<code>nginx -T</code>再加上输出磁盘配置；两者都不会让正在运行的worker改用新配置。普通站点、代理和证书配置修改通常使用reload；它会让新worker承接新连接，旧worker处理已有连接后退出。不要用再次执行 <code>nginx</code> 代替reload，那是在尝试启动实例。</p>
+<p><strong>systemd管理</strong>：先完成上面的备份和修改，确认 <code>systemctl cat nginx</code> 中的程序、<code>-p/-c/-g</code>参数与校验命令一致。默认安装且没有额外参数时：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> nginx -t &amp;&amp; <span class="hljs-built_in">sudo</span> systemctl reload nginx <span class="hljs-comment"># 校验成功才重载；失败则停在这里修复</span>
+systemctl status nginx --no-pager -l         <span class="hljs-comment"># 查看服务状态与最近的管理日志</span>
+<span class="hljs-built_in">sudo</span> journalctl -u nginx --since <span class="hljs-string">&#x27;5 minutes ago&#x27;</span> --no-pager <span class="hljs-comment"># 查看本次reload附近的服务日志</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 50 /var/log/nginx/error.log     <span class="hljs-comment"># 核对原全局error_log路径，检查新worker或绑定失败</span>
+curl -i --connect-timeout 3 --max-time 5 -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/ <span class="hljs-comment"># 用新连接验证目标HTTP站点</span>
 </code></pre>
-<p>示例：分别验证Nginx入口和后端直连，路径必须按实际API调整。HTTPS、WebSocket、上传等按本次改动验收；reload后不要只看到进程还在就宣布成功。</p>
-<p>回退时恢复本次备份，再校验与reload：</p>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cp</span> -p /etc/nginx/conf.d/demo.conf.bak-20261102-153000 /etc/nginx/conf.d/demo.conf
-<span class="hljs-built_in">sudo</span> nginx -t
-<span class="hljs-built_in">sudo</span> systemctl reload nginx
+<p>示例：<code>&amp;&amp;</code>表示左侧退出码为0才执行右侧。校验通常会显示 <code>syntax is ok</code> 和 <code>test is successful</code>；有warning时也要检查，重复域名警告可能使某一站点配置被忽略。<code>systemctl daemon-reload</code>重新读取的是systemd单元文件，<strong>不会替Nginx加载nginx.conf</strong>；只有修改服务单元时才另行使用它。</p>
+<p><strong>手动安装</strong>：同样先备份、修改，始终使用原实例的二进制、prefix、配置和PID路径。下面只校验与重载，不启动第二份：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> /opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf -t &amp;&amp; <span class="hljs-built_in">sudo</span> /opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf -s reload <span class="hljs-comment"># 两侧参数必须一致</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 50 /opt/nginx/logs/error.log    <span class="hljs-comment"># 按原实例实际error_log路径检查加载错误</span>
+ps -ww -eo pid,ppid,user,args | grep <span class="hljs-string">&#x27;[n]ginx&#x27;</span> <span class="hljs-comment"># master通常不变，新worker出现，旧worker可能暂留</span>
+curl -i --connect-timeout 3 --max-time 5 -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/ <span class="hljs-comment"># 验证对应实例的实际监听入口</span>
 </code></pre>
-<p>示例：回退配置不恢复前端文件、后端版本、DNS或证书；这些改动也要有对应恢复方案。这里是按步骤执行，不使用分号把“校验失败仍reload”的操作连在一起。</p>
+<p>示例：<code>-s reload</code>返回成功主要说明信号发送成功，不能独自证明master完成新配置应用。master尝试打开新日志和监听socket等失败时，会继续使用旧配置；因此还要查原error日志，并验证本次修改的行为。只有绑定在其他地址/端口的实例，curl也要改为相应入口。<a href="https://nginx.org/en/docs/control.html#reconfiguration">重载过程说明</a></p>
+<h3 id="183-验证本次改动是否生效">18.3 验证本次改动是否生效</h3>
+<table>
+<thead>
+<tr>
+<th>改了什么</th>
+<th>怎么验证</th>
+<th>看到什么才算符合预期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>静态目录、首页</td>
+<td>带正确Host请求一个已知文件</td>
+<td>正文是新文件，类型正确，不只是HTTP 200</td>
+</tr>
+<tr>
+<td>域名、监听地址或端口</td>
+<td><code>ss</code>检查端口，再带Host/SNI请求</td>
+<td>端口归属正确，命中目标站点</td>
+</tr>
+<tr>
+<td>代理地址、路径</td>
+<td>请求Nginx接口，对照后端直连与两端日志</td>
+<td>后端收到预期URI，响应正文与业务状态正确</td>
+</tr>
+<tr>
+<td>HTTPS证书</td>
+<td>使用正确域名/SNI建立新连接</td>
+<td>返回的是新证书，域名、证书链与有效期校验通过</td>
+</tr>
+<tr>
+<td>响应头、缓存、压缩</td>
+<td><code>curl -I</code>查看实际目标资源，必要时显式发送Accept-Encoding</td>
+<td>响应头符合配置，且浏览器/CDN缓存行为符合预期</td>
+</tr>
+<tr>
+<td>上传限制、流式响应</td>
+<td>在获准测试环境用边界大小文件或SSE/WebSocket客户端检查</td>
+<td>上传结果、流式到达时间或101升级符合预期</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :80&#x27;</span> <span class="hljs-comment"># 改监听后检查实际端口及进程归属，端口按需替换</span>
+curl -I --connect-timeout 3 --max-time 5 --resolve demo.example.com:443:192.0.2.10 https://demo.example.com/ <span class="hljs-comment"># 绕过DNS选IP，同时保留域名/SNI及证书验证</span>
+</code></pre>
+<p>示例：<code>nginx -T</code>显示新配置但请求还是旧行为，按“实际实例与include → 本次reload日志 → 新连接 → Host/SNI及请求路径 → 上游 → 浏览器/CDN缓存”逐项核对。多台Nginx或负载均衡时逐台验证，不只改一台就检查公共入口。证书和长连接的详细验收见第9、10节；失败先保留日志，按下面的回退步骤恢复。</p>
+<p>对代理接口，再把Nginx入口与后端直连分开验证；示例路径必须替换为实际存在的只读接口：</p>
+<pre><code class="hljs language-bash">curl -i --connect-timeout 3 --max-time 5 -H <span class="hljs-string">&#x27;Host: demo.example.com&#x27;</span> http://127.0.0.1/api/health <span class="hljs-comment"># 验证经过Nginx的接口路径与结果</span>
+curl -i --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/api/health <span class="hljs-comment"># 按proxy_pass映射改为后端实际路径，对照上游状态</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 50 /var/log/nginx/demo.access.log <span class="hljs-comment"># 核对请求是否命中目标站点，按实际日志路径调整</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tail</span> -n 50 /var/log/nginx/demo.error.log <span class="hljs-comment"># 查看对应请求的上游、路径或权限错误</span>
+</code></pre>
+<h3 id="184-加载失败或业务异常时回退">18.4 加载失败或业务异常时回退</h3>
+<p>若本次只改了前述站点文件，恢复同一终端中记录的备份；新开终端时先将两个变量设为实际路径，不能留空或使用另一轮备份：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_CONF</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_BACKUP</span>&quot;</span> <span class="hljs-comment"># 先确认目标与备份路径属于本次变更</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cp</span> -p -- <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_BACKUP</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$NGINX_CONF</span>&quot;</span> <span class="hljs-comment"># 确认路径后恢复文件；失败则停止，不继续加载</span>
+<span class="hljs-built_in">sudo</span> nginx -t &amp;&amp; <span class="hljs-built_in">sudo</span> systemctl reload nginx <span class="hljs-comment"># 仅适用默认配置的systemd实例，校验通过才加载回退配置</span>
+</code></pre>
+<p>示例：手动安装改用18.2中相同二进制、prefix及配置参数的“校验成功再 <code>-s reload</code>”，不要套用系统服务命令。恢复后重新执行18.3的日志和业务检查；回退配置不恢复后端版本、DNS、证书或已缓存的响应，这些变化按各自备份恢复。</p>
 <h2 id="19-常见故障速查">19. 常见故障速查</h2>
 <table>
 <thead>
@@ -693,5 +1019,5 @@ curl -i --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/api/health
 </table>
 <p>排查顺序：实际实例与配置 → 监听地址/端口 → 本机带Host或SNI访问 → 上游直连 → access/error日志 → 网络及权限 → 关键业务。</p>
 <p>相关笔记：<a href="linux-service-check-start-troubleshooting.html">服务检查与排障</a>、<a href="linux-server-operations-commands.html">服务器常用命令</a>、<a href="docker-compose-operations-commands.html">Docker与Compose</a>。</p>
-</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#1-先找到实际运行的-nginx">1. 先找到实际运行的 Nginx</a><a class="toc-link level-2" href="#2-常用目录与配置结构">2. 常用目录与配置结构</a><a class="toc-link level-2" href="#3-启动停止reload与自启">3. 启动、停止、reload与自启</a><a class="toc-link level-2" href="#4-完整示例静态网站">4. 完整示例：静态网站</a><a class="toc-link level-2" href="#5-完整示例vue-react前端与后端接口">5. 完整示例：Vue / React前端与后端接口</a><a class="toc-link level-2" href="#6-proxy_pass末尾斜杠后端到底收到什么">6. proxy_pass末尾斜杠：后端到底收到什么</a><a class="toc-link level-2" href="#7-location匹配顺序">7. location匹配顺序</a><a class="toc-link level-3" href="#跳转与内部重写">跳转与内部重写</a><a class="toc-link level-2" href="#8-root与alias文件路径怎么拼">8. root与alias：文件路径怎么拼</a><a class="toc-link level-2" href="#9-完整示例https与http跳转">9. 完整示例：HTTPS与HTTP跳转</a><a class="toc-link level-2" href="#10-完整示例websocket代理">10. 完整示例：WebSocket代理</a><a class="toc-link level-2" href="#11-sse与流式响应">11. SSE与流式响应</a><a class="toc-link level-2" href="#12-上传大小与超时">12. 上传大小与超时</a><a class="toc-link level-2" href="#13-完整示例多个后端负载均衡">13. 完整示例：多个后端负载均衡</a><a class="toc-link level-2" href="#14-转发头真实ip与可信代理">14. 转发头、真实IP与可信代理</a><a class="toc-link level-2" href="#15-缓存压缩与跨域">15. 缓存、压缩与跨域</a><a class="toc-link level-2" href="#16-access日志error日志与耗时">16. access日志、error日志与耗时</a><a class="toc-link level-2" href="#17-权限selinux与端口">17. 权限、SELinux与端口</a><a class="toc-link level-2" href="#18-发布与回退每次改完怎么做">18. 发布与回退：每次改完怎么做</a><a class="toc-link level-2" href="#19-常见故障速查">19. 常见故障速查</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践 · <a href="../support.html">支持本站</a></span></footer></div>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><a class="toc-link level-2" href="#1-先找到实际运行的-nginx">1. 先找到实际运行的 Nginx</a><a class="toc-link level-2" href="#2-常用目录与配置结构">2. 常用目录与配置结构</a><a class="toc-link level-3" href="#21-常用配置项速查属性含义位置和示例">2.1 常用配置项速查：属性含义、位置和示例</a><a class="toc-link level-3" href="#22-配置中的变量和继承怎么看">2.2 配置中的变量和继承怎么看</a><a class="toc-link level-2" href="#3-启动停止reload与自启">3. 启动、停止、reload与自启</a><a class="toc-link level-2" href="#4-完整示例静态网站">4. 完整示例：静态网站</a><a class="toc-link level-2" href="#5-完整示例vue-react前端与后端接口">5. 完整示例：Vue / React前端与后端接口</a><a class="toc-link level-2" href="#6-proxy_pass末尾斜杠后端到底收到什么">6. proxy_pass末尾斜杠：后端到底收到什么</a><a class="toc-link level-2" href="#7-location匹配顺序">7. location匹配顺序</a><a class="toc-link level-3" href="#跳转与内部重写">跳转与内部重写</a><a class="toc-link level-2" href="#8-root与alias文件路径怎么拼">8. root与alias：文件路径怎么拼</a><a class="toc-link level-2" href="#9-完整示例https与http跳转">9. 完整示例：HTTPS与HTTP跳转</a><a class="toc-link level-2" href="#10-完整示例websocket代理">10. 完整示例：WebSocket代理</a><a class="toc-link level-2" href="#11-sse与流式响应">11. SSE与流式响应</a><a class="toc-link level-2" href="#12-上传大小与超时">12. 上传大小与超时</a><a class="toc-link level-2" href="#13-完整示例多个后端负载均衡">13. 完整示例：多个后端负载均衡</a><a class="toc-link level-2" href="#14-转发头真实ip与可信代理">14. 转发头、真实IP与可信代理</a><a class="toc-link level-2" href="#15-缓存压缩与跨域">15. 缓存、压缩与跨域</a><a class="toc-link level-2" href="#16-access日志error日志与耗时">16. access日志、error日志与耗时</a><a class="toc-link level-2" href="#17-权限selinux与端口">17. 权限、SELinux与端口</a><a class="toc-link level-2" href="#18-发布与回退修改配置后的校验加载和验证">18. 发布与回退：修改配置后的校验、加载和验证</a><a class="toc-link level-3" href="#181-备份并修改实际加载的文件">18.1 备份并修改实际加载的文件</a><a class="toc-link level-3" href="#182-校验并加载配置">18.2 校验并加载配置</a><a class="toc-link level-3" href="#183-验证本次改动是否生效">18.3 验证本次改动是否生效</a><a class="toc-link level-3" href="#184-加载失败或业务异常时回退">18.4 加载失败或业务异常时回退</a><a class="toc-link level-2" href="#19-常见故障速查">19. 常见故障速查</a><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践 · <a href="../support.html">支持本站</a></span></footer></div>
 <dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" type="search" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
