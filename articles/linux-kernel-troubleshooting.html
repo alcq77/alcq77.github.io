@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="遇到内存异常、系统卡顿、TCP重传或网络吞吐下降时，从这里按现象定位。示例PID 24680 、服务 demo-api 、网卡 eth0 和IP 192.0.2.10 均按实际值替换；采样命令默认只观察，不修改内核参数。 1. 先决定查哪条"><meta name="color-scheme" content="light dark"><title>Linux 内核问题排查与处理 · 知行笔记</title><link rel="stylesheet" href="../assets/style.css"><script src="../assets/app.js" defer></script></head>
 <body data-base="../"><a class="skip-link" href="#main">跳到正文</a>
-<aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><a class="home-link" href="../support.html"><span aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><details class="nav-group"><summary><span class="folder-icon">▤</span>消息队列<span class="group-count">3</span></summary><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon">≡</span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon">≡</span><span>Kafka 核心机制与源码排查</span></a><a class="nav-link" href="../articles/kafka-reliability.html"><span class="doc-icon">≡</span><span>Kafka 消息生产、消费与可靠性实践</span></a></details><details class="nav-group"><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon">≡</span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon">≡</span><span>Kubernetes 应用部署与配置实践</span></a><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">7</span></summary><a class="nav-link active" href="../articles/linux-kernel-troubleshooting.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>14 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
+<aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span>⌂</span>知识库首页</a><a class="home-link" href="../support.html"><span aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><details class="nav-group"><summary><span class="folder-icon">▤</span>容器运维<span class="group-count">4</span></summary><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon">≡</span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon">≡</span><span>Kubernetes 应用部署与配置实践</span></a></details><details class="nav-group"><summary><span class="folder-icon">▤</span>消息队列<span class="group-count">3</span></summary><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon">≡</span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon">≡</span><span>Kafka 核心机制与源码排查</span></a><a class="nav-link" href="../articles/kafka-reliability.html"><span class="doc-icon">≡</span><span>Kafka 消息生产、消费与可靠性实践</span></a></details><details class="nav-group" open><summary><span class="folder-icon">▤</span>Linux 运维<span class="group-count">7</span></summary><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link active" href="../articles/linux-kernel-troubleshooting.html" aria-current="page"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a></details></nav><div class="sidebar-footer"><span class="status-dot"></span>14 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>Linux 运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>公开知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header>
-<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 内核问题排查与处理</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 34 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">kernel</span><span class="tag">memory</span><span class="tag">page-cache</span><span class="tag">oom</span><span class="tag">tcp</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>遇到内存异常、系统卡顿、TCP重传或网络吞吐下降时，从这里按现象定位。示例PID <code>24680</code>、服务 <code>demo-api</code>、网卡 <code>eth0</code> 和IP <code>192.0.2.10</code> 均按实际值替换；采样命令默认只观察，不修改内核参数。</p>
+<div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">Linux 运维</div><h1>Linux 内核问题排查与处理</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 37 分钟阅读</span></div><div class="tag-row"><span class="tag">linux</span><span class="tag">kernel</span><span class="tag">memory</span><span class="tag">page-cache</span><span class="tag">oom</span><span class="tag">tcp</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>遇到内存异常、系统卡顿、TCP重传或网络吞吐下降时，从这里按现象定位。示例PID <code>24680</code>、服务 <code>demo-api</code>、网卡 <code>eth0</code> 和IP <code>192.0.2.10</code> 均按实际值替换；采样命令默认只观察，不修改内核参数。</p>
 <h2 id="1-先决定查哪条线">1. 先决定查哪条线</h2>
 <p><strong>执行顺序</strong>：按现象选分支 → 记录时间和内核 → 看整机趋势 → 再进入对应章节。</p>
 <table>
@@ -133,6 +133,14 @@ free -h
 <span class="hljs-built_in">sudo</span> apt-get install linux-perf
 </code></pre>
 <p>示例：<code>sysstat</code>提供sar、mpstat、pidstat、iostat；Ubuntu的perf通常来自匹配内核的linux-tools包，Debian常见包名为linux-perf，先核对系统和仓库。不要为运行perf安装不匹配的内核工具或修改整机安全限制。</p>
+<p>CentOS 7按现有批准仓库选用：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> yum install sysstat lsof tcpdump iproute ethtool numactl strace procps-ng util-linux <span class="hljs-comment"># 安装基础采样工具</span>
+rpm -q kernel perf          <span class="hljs-comment"># 查看已安装内核和perf包版本</span>
+yum --showduplicates list perf <span class="hljs-comment"># 查询源中perf候选版本，核对与运行内核的匹配情况</span>
+<span class="hljs-comment"># sudo yum install perf     # 仅在候选版本与运行环境匹配时安装</span>
+<span class="hljs-built_in">uname</span> -r                   <span class="hljs-comment"># 记录当前运行内核，不能只看已安装内核包</span>
+</code></pre>
+<p>示例：CentOS 7常见3.10内核，但包含发行版回移补丁，能力以实际配置和事件为准。仓库失效处理见<a href="linux-server-operations-commands.html">服务器常用命令</a>。</p>
 <pre><code class="hljs language-bash"><span class="hljs-comment"># 确认这些命令是否已安装及其可执行文件路径</span>
 <span class="hljs-built_in">command</span> -v sar iostat numactl ethtool perf
 <span class="hljs-comment"># 查看perf工具版本</span>
@@ -239,6 +247,10 @@ grep -E <span class="hljs-string">&#x27;VmRSS|VmSize|RssAnon|RssFile|RssShmem|Vm
 pmap -x 24680
 </code></pre>
 <p>示例：匿名常驻页持续增长时继续查堆/匿名映射；文件映射增长时查映射文件及生命周期。smaps_rollup中的PSS按共享比例分摊，更适合辅助判断归属；文件存在与读取权限以系统为准。</p>
+<p>CentOS 7等旧内核没有 <code>smaps_rollup</code> 时，读取同一进程的 <code>smaps</code> 汇总；先替换PID，并使用有读取权限的身份：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> awk <span class="hljs-string">&#x27;/^Rss:/ {rss+=$2} /^Pss:/ {pss+=$2} END {printf &quot;RSS=%d kB PSS=%d kB\n&quot;,rss,pss}&#x27;</span> /proc/24680/smaps <span class="hljs-comment"># 汇总映射的RSS与PSS</span>
+</code></pre>
+<p>示例：RSS可能重复计算共享页；这些是读取期间的近似快照，不能把两次不同时间的值当作同一个瞬间。</p>
 <p><strong>处理</strong>：先按应用语言使用堆分析、分配采样或运行时诊断，区分泄漏、缓存、分配器保留和负载增长；为异常服务限制流量并保留现场。生产上不直接启动全量Valgrind或无上限采样。</p>
 <p><strong>复查</strong>：在稳定负载和相近运行时长下，检查内存是否趋稳、GC后是否回落，以及错误率和延迟有没有恶化。</p>
 <h2 id="6-rss不高shmem很大查tmpfs与共享内存">6. RSS不高、Shmem很大：查tmpfs与共享内存</h2>
@@ -292,6 +304,15 @@ systemctl show demo-api -p ControlGroup -p MemoryMax
 <span class="hljs-built_in">cat</span> /sys/fs/cgroup/system.slice/demo-api.service/memory.events
 </code></pre>
 <p>示例：关注 <code>oom/oom_kill</code>计数是否在事故期间增加，区分达到限额与实际杀进程；这些是累计事件，需结合分组生命周期。cgroup v1用其对应控制器文件，不能硬套v2路径。</p>
+<p>CentOS 7常见cgroup v1。先执行 <code>cat /proc/24680/cgroup</code>、<code>findmnt -t cgroup</code>，找到memory控制器路径及挂载点。以下假设确认为 <code>/sys/fs/cgroup/memory/system.slice/demo-api.service</code>；容器、用户slice和非默认挂载必须改成实际目录：</p>
+<pre><code class="hljs language-bash">systemctl show demo-api -p ControlGroup -p MemoryLimit <span class="hljs-comment"># systemd 219读取旧版限制属性</span>
+<span class="hljs-built_in">cat</span> /sys/fs/cgroup/memory/system.slice/demo-api.service/memory.usage_in_bytes <span class="hljs-comment"># 当前分组用量</span>
+<span class="hljs-built_in">cat</span> /sys/fs/cgroup/memory/system.slice/demo-api.service/memory.limit_in_bytes <span class="hljs-comment"># 分组内存硬上限</span>
+<span class="hljs-built_in">cat</span> /sys/fs/cgroup/memory/system.slice/demo-api.service/memory.failcnt <span class="hljs-comment"># 累计触及限额的次数</span>
+<span class="hljs-built_in">cat</span> /sys/fs/cgroup/memory/system.slice/demo-api.service/memory.oom_control <span class="hljs-comment"># 当前OOM相关状态，可用字段随内核变化</span>
+<span class="hljs-built_in">sudo</span> journalctl -k --since <span class="hljs-string">&#x27;30 minutes ago&#x27;</span> --no-pager <span class="hljs-comment"># 结合内核日志确认实际OOM及被杀进程</span>
+</code></pre>
+<p>示例：<code>memory.failcnt</code>增长表示触及限额，不等于杀进程次数；<code>under_oom=0</code>也不能证明过去没发生过OOM。比较事故前后增量并查日志，还需检查父分组限制；v1没有v2的 <code>memory.events</code>。</p>
 <p><strong>处理</strong>：先减负载、处理泄漏或在容量允许时调整限额；JVM堆外、线程栈、页缓存等也需预留空间。避免给所有业务设置不可被OOM杀死的保护，导致压力转嫁给整机。</p>
 <p><strong>复查</strong>：观察同类负载下的memory.current、事件增量和业务状态。<a href="https://docs.kernel.org/admin-guide/cgroup-v2.html">cgroup v2说明</a></p>
 <h2 id="9-有空闲内存还卡顿查numa和透明大页">9. 有空闲内存还卡顿：查NUMA和透明大页</h2>
@@ -372,6 +393,12 @@ grep -E <span class="hljs-string">&#x27;NET_RX|NET_TX&#x27;</span> /proc/softirq
 <span class="hljs-built_in">sudo</span> perf report -i /tmp/demo-kernel-perf.data --stdio
 </code></pre>
 <p>示例：PSI反映资源争用造成的停顿趋势，不是资源使用率；系统级CPU的full不能照搬内存/I/O的解读。perf只在获得授权、可承受开销时对目标进程短时采样，<code>-- sleep 15</code>限定采样时段。<a href="https://docs.kernel.org/accounting/psi.html">PSI接口</a></p>
+<p>CentOS 7等旧内核可能没有 <code>/proc/pressure/</code>，这表示该接口不可用，不表示压力为零。此时把上面的三条PSI读取改成以下采样，perf是否可用另行核对：</p>
+<pre><code class="hljs language-bash">vmstat 1 5              <span class="hljs-comment"># 看运行/阻塞队列、换页与CPU等待，首行常为开机以来平均</span>
+pidstat -r -u -d 1 5    <span class="hljs-comment"># 看各进程CPU、缺页和I/O，按本机sysstat表头阅读</span>
+iostat -xz 1 5         <span class="hljs-comment"># 看设备延迟与队列，首份报告常为开机以来累计平均</span>
+</code></pre>
+<p>示例：这些采样用于关联事故时段，不能换算成PSI百分比；短时毛刺可能被一秒采样平滑，需要结合业务时间线和短时perf采样。</p>
 <p><strong>处理</strong>：先把毛刺时间与回收、规整、软中断、业务指标对齐，再由热点栈决定是否深入tracepoint/eBPF。不要一开始就全机长期开高频追踪。</p>
 <p><strong>复查</strong>：在同等请求量下，确认停顿与业务尾延迟一起改善；保留内核版本、旧配置、变更项及回退方法。</p>
 <h2 id="14-close_waittime_wait或fin_wait_2很多">14. CLOSE_WAIT、TIME_WAIT或FIN_WAIT_2很多</h2>
@@ -496,6 +523,8 @@ grep -E <span class="hljs-string">&#x27;compact_|allocstall|pgscan|pgsteal&#x27;
 <span class="hljs-built_in">sudo</span> apt-get install trace-cmd
 <span class="hljs-comment"># RHEL系：选择此命令安装，不必把两种包管理器命令都执行</span>
 <span class="hljs-built_in">sudo</span> dnf install trace-cmd
+<span class="hljs-comment"># CentOS 7：改选已有批准仓库中的包，不执行上面的dnf命令</span>
+<span class="hljs-comment"># sudo yum install trace-cmd</span>
 <span class="hljs-comment"># 查看工具支持的选项，确认有-B实例和-P线程过滤</span>
 trace-cmd record -h
 </code></pre>
