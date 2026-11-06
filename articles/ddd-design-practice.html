@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-CN" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>DDD 建模与落地实践 · 知行笔记</title>
+    <meta name="description" content="从业务规则反复变更、服务边界不清、事务难划分等问题出发，把领域驱动设计落实到业务语言、模型、代码和数据一致性。贯穿示例是采购单的提交与主管审批；Java 示例使用 JDK 17+，分布式流程在后续章节单独展开。 1. 什么时候值得引入 DD">
+    <meta name="generator" content="VitePress v1.6.4">
+    <link rel="preload stylesheet" href="/assets/style.BoCVs_6I.css" as="style">
+    <link rel="preload stylesheet" href="/vp-icons.css" as="style">
+    <script type="module" src="/assets/chunks/metadata.f4a3e0f8.js"></script>
+    <script type="module" src="/assets/app.BKKfuMSr.js"></script>
+    <link rel="modulepreload" href="/assets/chunks/theme.Dl1ztlBw.js">
+    <link rel="modulepreload" href="/assets/chunks/framework.D4oetGi0.js">
+    <link rel="modulepreload" href="/assets/articles_ddd-design-practice.md.yAqyE8Zs.lean.js">
+    <meta name="color-scheme" content="light dark">
+    <script>try{document.documentElement.dataset.theme=localStorage.getItem("kb-theme")||"light"}catch{}</script>
+    <script id="check-mac-os">document.documentElement.classList.toggle("mac",/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
+  </head>
+  <body data-base="../">
+    <div id="app"><!--[--><a class="skip-link" href="#main">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span class="home-icon" aria-hidden="true"><!--[-->⌂<!--]--></span>知识库首页</a><a class="home-link" href="../support.html"><span class="support-icon" aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><!--[--><details class="nav-group" open><summary><span><span class="folder-icon" data-icon="architecture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="5" rx="1"/><rect x="2" y="17" width="8" height="5" rx="1"/><rect x="14" y="17" width="8" height="5" rx="1"/><path d="M12 7v5M6 17v-5h12v5"/></svg></span></span>架构设计<span class="group-count">1</span></summary><!--[--><a class="active nav-link" href="../articles/ddd-design-practice.html" aria-current="page"><span class="doc-icon">≡</span><span>DDD 建模与落地实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="container-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 10 9-5M3 8l9 5v8M7.5 5.5l9 5"/></svg></span></span>容器运维<span class="group-count">4</span></summary><!--[--><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon">≡</span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon">≡</span><span>Kubernetes 应用部署与配置实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="mq-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="8" width="5" height="8" rx="1"/><rect x="17" y="8" width="5" height="8" rx="1"/><path d="M7 12h10m-3-3 3 3-3 3M4.5 5v-2h15v2M4.5 19v2h15v-2"/></svg></span></span>消息队列<span class="group-count">3</span></summary><!--[--><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon">≡</span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon">≡</span><span>Kafka 核心机制与源码排查</span></a><a class="nav-link" href="../articles/kafka-reliability.html"><span class="doc-icon">≡</span><span>Kafka 消息生产、消费与可靠性实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="linux-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg></span></span>Linux 运维<span class="group-count">7</span></summary><!--[--><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-kernel-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a><!--]--></details><!--]--></nav><div class="sidebar-footer"><span class="status-dot"></span>15 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button><div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>架构设计</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>个人知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header><div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">架构设计</div><h1>DDD 建模与落地实践</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 37 分钟阅读</span></div><div class="tag-row"><span class="tag">ddd</span><span class="tag">domain-model</span><span class="tag">architecture</span><span class="tag">java</span><span class="tag">microservices</span><span class="tag">aggregate</span><span class="tag">outbox</span><span class="tag">cqrs</span></div></div><article class="markdown-body"><p>从业务规则反复变更、服务边界不清、事务难划分等问题出发，把领域驱动设计落实到业务语言、模型、代码和数据一致性。贯穿示例是采购单的提交与主管审批；Java 示例使用 JDK 17+，分布式流程在后续章节单独展开。</p>
+<h2 id="1-什么时候值得引入-ddd">1. 什么时候值得引入 DDD</h2>
+<p>先判断复杂度来自哪里，再决定投入多少建模成本。</p>
+<table>
+<thead>
+<tr>
+<th>遇到的问题</th>
+<th>优先处理的事情</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同一条规则散落在接口、定时任务和多个 Service 中</td>
+<td>找到规则的业务归属，集中到模型或领域策略中</td>
+</tr>
+<tr>
+<td>“订单”“客户”“完成”等词，不同团队理解不同</td>
+<td>明确术语的适用上下文及状态含义</td>
+</tr>
+<tr>
+<td>改一个功能要协调多个服务同时发布</td>
+<td>检查业务边界、共享数据库和共享模型的耦合</td>
+</tr>
+<tr>
+<td>一批相关数据经常修改一半成功、一半失败</td>
+<td>找出必须同时成立的业务条件，重新检查事务和聚合边界</td>
+</tr>
+<tr>
+<td>主要是录入、列表和简单字段校验</td>
+<td>简洁的应用服务、事务脚本和 SQL 通常足够</td>
+</tr>
+<tr>
+<td>主要瓶颈是慢 SQL、网络、CPU 或容量</td>
+<td>先测量并解决相应技术瓶颈，建模不能代替性能排查</td>
+</tr>
+</tbody>
+</table>
+<p>复杂规则多、生命周期长、需要持续演化的核心业务，适合优先采用 DDD。简单模块可以沿用常规 CRUD，同时保持业务职责和数据所有权清晰。</p>
+<p>DDD 可以先落在模块化单体里。清晰的模块与模型边界有独立价值；是否拆成微服务，还要看发布频率、扩缩容、故障隔离和团队的运维能力。</p>
+<h2 id="2-一条从需求到代码的实施路线">2. 一条从需求到代码的实施路线</h2>
+<pre><code class="hljs language-text">确定要解决的业务问题和成功标准
+  → 和业务人员整理场景、术语、规则与例外
+  → 划分子域，识别需要独立解释的模型边界
+  → 用事件风暴梳理命令、事实、参与者和外部系统
+  → 根据不变量确定聚合、实体和值对象
+  → 明确上下文之间的数据所有权和协作契约
+  → 实现一个完整用例：接口 → 应用服务 → 模型 → 持久化
+  → 验证正常流程、拒绝条件、并发、重试和故障恢复
+  → 根据真实变化调整模型，再评估独立部署
+</code></pre>
+<p>这些步骤可以反复迭代。先用一个有代表性的业务场景验证边界，再逐步补充，通常比一次画出整个企业的大模型更容易发现问题。</p>
+<p>每轮设计至少留下以下产物：</p>
+<table>
+<thead>
+<tr>
+<th>产物</th>
+<th>必须回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>术语与状态表</td>
+<td>这个词在这里是什么意思，怎样才算完成？</td>
+</tr>
+<tr>
+<td>场景与规则清单</td>
+<td>谁能做什么，前置条件是什么，失败怎么办？</td>
+</tr>
+<tr>
+<td>上下文关系图</td>
+<td>谁拥有数据，双方通过什么契约协作？</td>
+</tr>
+<tr>
+<td>聚合与不变量清单</td>
+<td>哪些条件必须在一次成功提交后同时成立？</td>
+</tr>
+<tr>
+<td>用例到代码的映射</td>
+<td>规则、入口、事务和事件分别位于哪里？</td>
+</tr>
+<tr>
+<td>验收例子</td>
+<td>怎样证明设计在正常、冲突和故障情况下仍然正确？</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-先分清子域限界上下文聚合和微服务">3. 先分清子域、限界上下文、聚合和微服务</h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>用来解决什么问题</th>
+<th>采购示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>领域 Domain</td>
+<td>确定正在研究的业务范围</td>
+<td>企业采购管理</td>
+</tr>
+<tr>
+<td>子域 Subdomain</td>
+<td>将业务问题拆成较小部分</td>
+<td>采购申请、预算控制、供应商管理</td>
+</tr>
+<tr>
+<td>限界上下文 Bounded Context</td>
+<td>限定一套模型和语言的有效范围</td>
+<td>采购上下文中的“审批通过”，只表示采购主管批准</td>
+</tr>
+<tr>
+<td>聚合 Aggregate</td>
+<td>保护一组必须保持一致的业务状态</td>
+<td>采购单及其提交时冻结的明细</td>
+</tr>
+<tr>
+<td>微服务</td>
+<td>提供独立部署和运行的能力</td>
+<td>采购服务、预算服务，是否分开部署另行决定</td>
+</tr>
+</tbody>
+</table>
+<p>子域偏向业务问题空间，限界上下文偏向模型与软件解决方案。二者可能接近，也可能因历史系统、团队和集成方式形成不同的对应关系。不能只根据功能名称判断它们是一回事。</p>
+<p>一个上下文可以包含多个聚合，也可以先与其他上下文部署在同一个进程中。上下文是微服务边界的重要候选依据，聚合通常应完整保留在一个一致性和写入边界内。</p>
+<h3 id="核心域支撑域和通用域怎样决定投入">核心域、支撑域和通用域怎样决定投入</h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>判断依据</th>
+<th>投入方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>核心域</td>
+<td>是否形成当前业务的差异化竞争力</td>
+<td>优先投入业务专家、设计和验证资源</td>
+</tr>
+<tr>
+<td>支撑域</td>
+<td>为自身业务所必需，有定制特点，但不是主要竞争力</td>
+<td>用满足实际需求的复杂度实现</td>
+</tr>
+<tr>
+<td>通用域</td>
+<td>市场上已有成熟、可替换的解决方案</td>
+<td>评估采购或复用，做好集成和隔离</td>
+</tr>
+</tbody>
+</table>
+<p>分类取决于企业战略。普通企业的审批可能是支撑能力，而专做审批产品的企业可能把审批引擎作为核心能力。登录、支付等能力也不能脱离具体商业模式，永远固定为某一类。</p>
+<h2 id="4-怎样判断限界上下文应该划在哪里">4. 怎样判断限界上下文应该划在哪里</h2>
+<p>先收集边界信号：</p>
+<ol>
+<li><strong>语义变化</strong>：同一个词在两个地方含义、属性或状态不同。</li>
+<li><strong>规则变化</strong>：两部分规则会因不同原因、按不同节奏变化。</li>
+<li><strong>生命周期变化</strong>：创建、变更、终结由不同职责负责。</li>
+<li><strong>一致性变化</strong>：一部分需要立即确认，另一部分可以稍后处理。</li>
+<li><strong>所有权变化</strong>：存在明确的数据写入者、业务负责人或团队。</li>
+</ol>
+<p>采购中的“商品”可以有三种模型：</p>
+<table>
+<thead>
+<tr>
+<th>上下文</th>
+<th>关注内容</th>
+<th>保存什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>商品目录</td>
+<td>当前可采购的商品与报价</td>
+<td>当前名称、规格、报价和可采购状态</td>
+</tr>
+<tr>
+<td>采购</td>
+<td>本次采购达成的约定</td>
+<td>商品 ID、提交时的名称、单价、数量与金额快照</td>
+</tr>
+<tr>
+<td>收货</td>
+<td>实际交付情况</td>
+<td>采购单引用、实收数量、批次与验收结果</td>
+</tr>
+</tbody>
+</table>
+<p>它们可以引用相同商品 ID，却不需要共享同一个包含全部字段和行为的 <code>Product</code> 类。采购历史金额也不应随商品目录的最新报价变化。</p>
+<p>注意区分两类数据：合同内容、价格和当时确认的收货信息可以需要历史快照；当前操作权限、供应商是否仍允许交易等实时规则，则应在执行相应动作时按业务要求重新确认。</p>
+<h3 id="用上下文映射明确合作方式">用上下文映射明确合作方式</h3>
+<pre><code class="hljs language-text">商品目录 ──当前报价/商品有效性──→ 采购
+采购 ──主管审批通过的集成事件──→ 采购流程协调
+采购流程协调 ──预算占用命令──→ 预算
+预算 ──占用成功或拒绝的事件──→ 采购流程协调
+采购流程协调 ──允许执行采购──→ 采购执行
+</code></pre>
+<p>箭头表示本例的信息或命令流向；接口设计时还要记录调用方、提供方、协议和失败处理。不要只画一张没有契约的连线图。</p>
+<table>
+<thead>
+<tr>
+<th>关系方式</th>
+<th>适用情况</th>
+<th>需要明确的代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客户—供应商</td>
+<td>下游能向上游提出需求，双方共同演进接口</td>
+<td>需求优先级、兼容期限和发布协作</td>
+</tr>
+<tr>
+<td>开放主机服务、公开语言</td>
+<td>提供稳定 API 或事件协议，供多个下游使用</td>
+<td>契约版本、错误语义和服务水平</td>
+</tr>
+<tr>
+<td>防腐层 ACL</td>
+<td>外部模型与本地语义不同，需要翻译和隔离</td>
+<td>字段、状态、单位、错误的转换规则</td>
+</tr>
+<tr>
+<td>共享内核</td>
+<td>少量模型确实具有相同含义，团队愿意共同维护</td>
+<td>共同发布和共同变更的耦合</td>
+</tr>
+<tr>
+<td>独立实现</td>
+<td>集成收益小于协调成本</td>
+<td>允许有意识地保留少量重复实现</td>
+</tr>
+</tbody>
+</table>
+<p>模型边界的解释可进一步参考 <a href="https://martinfowler.com/bliki/BoundedContext.html">Bounded Context</a>。</p>
+<h2 id="5-事件风暴怎么开怎样收敛成模型">5. 事件风暴怎么开，怎样收敛成模型</h2>
+<p>参与者至少包括了解实际业务规则的人、开发和测试。业务专家也可以由熟悉现行业务的产品、需求或资深开发担任；尚无定论的规则应标为待确认，不应由开发猜测。</p>
+<h3 id="第一步限定场景和业务结果">第一步：限定场景和业务结果</h3>
+<p>本轮只讨论“员工提交采购单，由主管审批”。先明确提交成功、审批通过、审批拒绝分别意味着什么，暂时不展开整个采购生命周期。</p>
+<h3 id="第二步先列已经发生的业务事实">第二步：先列已经发生的业务事实</h3>
+<p>例如：采购单已创建、采购单已提交、主管审批已通过、主管审批已拒绝。</p>
+<p>“提交采购单”是命令，可能失败；“采购单已提交”是事实，代表某次提交已经成功。不要用“修改状态”代替业务意图，也不要把每一条数据库 UPDATE 都当作需要对外发布的领域事件。</p>
+<h3 id="第三步补齐角色命令规则和例外">第三步：补齐角色、命令、规则和例外</h3>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>命令</th>
+<th>必须满足的规则</th>
+<th>成功事实</th>
+<th>失败或例外</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>申请人</td>
+<td>修改采购明细</td>
+<td>单据仍处于草稿</td>
+<td>草稿已修改</td>
+<td>已提交后不能直接改价或改数量</td>
+</tr>
+<tr>
+<td>申请人</td>
+<td>提交采购单</td>
+<td>有明细，数量和金额合法</td>
+<td>采购单已提交</td>
+<td>空单、零数量、金额精度不合法</td>
+</tr>
+<tr>
+<td>主管</td>
+<td>批准采购单</td>
+<td>已提交，审批人非申请人，金额不超授权额度</td>
+<td>主管审批已通过</td>
+<td>越权、自批、重复审批</td>
+</tr>
+<tr>
+<td>主管</td>
+<td>拒绝采购单</td>
+<td>单据可审批，拒绝原因符合业务要求</td>
+<td>主管审批已拒绝</td>
+<td>单据已经结束或版本冲突</td>
+</tr>
+</tbody>
+</table>
+<p>继续追问：两人同时审批怎么办？提交请求超时能否重试？审批额度来源是什么？提交后规则改了按哪个版本执行？拒绝后是回到草稿、创建新版本，还是结束本次申请？</p>
+<h3 id="第四步从规则找对象和边界">第四步：从规则找对象和边界</h3>
+<p>采购单负责自己的状态迁移和明细规则。主管当前的角色与授权信息由可信的身份、权限或授权能力提供；采购单不负责管理整个组织架构。</p>
+<p>把命令分配给对象后，再检查这些对象之间是否必须同时写入，哪些只需要通过 ID 或快照关联。由此得到聚合，再检查上下文边界是否合理。</p>
+<h3 id="第五步用场景走查模型">第五步：用场景走查模型</h3>
+<p>让业务人员按真实例子走一遍：创建两行明细 → 提交 → 修改明细被拒绝 → 自己审批被拒绝 → 有权限的主管通过。再走并发审批、消息重复和预算不足等例外。</p>
+<p>工作坊的成果应能转成规则表、状态机和验收测试。彩色贴纸和图形只是辅助工具。</p>
+<h2 id="6-实体和值对象怎么选">6. 实体和值对象怎么选</h2>
+<table>
+<thead>
+<tr>
+<th>判断问题</th>
+<th>实体 Entity</th>
+<th>值对象 Value Object</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>什么决定它还是不是“同一个”对象？</td>
+<td>连续的身份标识</td>
+<td>属性值是否相等</td>
+</tr>
+<tr>
+<td>属性变了以后怎样理解？</td>
+<td>仍可能是同一实体的新状态</td>
+<td>用新的值替换旧值</td>
+</tr>
+<tr>
+<td>例子</td>
+<td>采购单、预算账户</td>
+<td>金额、数量、已确认的地址快照</td>
+</tr>
+<tr>
+<td>主要设计要求</td>
+<td>身份稳定，行为维护合法状态</td>
+<td>概念完整、值相等、通常不可变</td>
+</tr>
+</tbody>
+</table>
+<p>值对象可以有业务行为。例如金额相加要检查币种，日期区间要检查起止顺序，数量要检查单位。这些行为不会修改原值对象，而是返回新值或给出判断。</p>
+<p>“有一张表”“包含一个 ID 字段”“查询时需要它”都不是充分判断依据。地址簿中的地址可能有独立身份和修改历史，是实体；采购单里的收货地址快照可以是值对象，即使底层也用单独的表存储。</p>
+<p>采购单行也要按业务决定：需要单独跟踪行号、审批和交付的行，可以建为子实体；只在草稿中整体替换、提交后冻结的明细，可以建为值对象。后面的 Java 示例采用后一种规则。</p>
+<h3 id="vo-缩写要说清楚">VO 缩写要说清楚</h3>
+<p>DDD 的 Value Object 与页面展示用的 View Object 不是同一种职责。代码中可直接使用 <code>Money</code>、<code>AddressSnapshot</code>、<code>PurchaseOrderView</code> 等具体名称，避免团队只说“VO”却各自理解不同。</p>
+<h2 id="7-聚合怎样划怎样避免大聚合">7. 聚合怎样划，怎样避免“大聚合”</h2>
+<p>聚合首先保护业务不变量，也就是一次操作成功后必须成立的条件。关联关系和共同生命周期是线索，但不能仅凭“主表带子表”或“删主记录时删子记录”决定边界。</p>
+<p>采购单的不变量示例：</p>
+<ul>
+<li>明细不能为空，数量为正，金额符合本业务的币种和精度要求。</li>
+<li>总金额由明细计算，不能任由调用者单独修改。</li>
+<li>提交后明细冻结，审批依据的金额保持不变。</li>
+<li>只有可审批状态才能审批，申请人不能批准自己的申请。</li>
+</ul>
+<p>这些条件由采购单聚合根通过 <code>replaceLines()</code>、<code>submit()</code>、<code>approve()</code> 等行为维护。外部不能绕过它直接 <code>setStatus(APPROVED)</code>，也不能拿到可变集合后任意改明细。</p>
+<h3 id="不要把所有关联对象都装进聚合">不要把所有关联对象都装进聚合</h3>
+<p>采购单通常引用申请人 ID、供应商 ID，保存必要快照。它不应因为关联了申请人，就同时加载其全部组织、角色、历史采购和预算账户。</p>
+<p>检查聚合是否过大的信号：</p>
+<ol>
+<li>每个命令都要读取大量无关对象。</li>
+<li>大量不相干的操作竞争同一个版本号或数据库锁。</li>
+<li>集合会随着业务无限增长，例如一个供应商的所有历史订单。</li>
+<li>修改一小部分数据，也要保存整个庞大对象图。</li>
+</ol>
+<p>缩小边界前要重新列出不变量：哪些真的需要即时原子保证，哪些可以通过预留、确认、事件和补偿完成。只有独立查询的历史集合，不必成为写入聚合中的常驻集合。</p>
+<h3 id="一个事务只能更新一个聚合吗">一个事务只能更新一个聚合吗</h3>
+<p>“优先让一个本地事务修改一个聚合”是有用的设计原则，可以减少耦合和冲突。它不等于数据库或 DDD 的物理禁令。</p>
+<p>如果同一数据库中的业务确实要求几个对象原子变化，要比较三种方案：重新划聚合、明确使用本地事务协调、调整业务流程以允许最终一致。记录选择和代价即可，不必为了遵守口号强行引入 MQ。</p>
+<p>跨服务则要重新设计一致性协议，不能把本地的事务注解当成跨进程事务保证。</p>
+<h2 id="8-规则放实体领域服务还是应用服务">8. 规则放实体、领域服务还是应用服务</h2>
+<table>
+<thead>
+<tr>
+<th>代码职责</th>
+<th>合适位置</th>
+<th>采购示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>请求格式、协议、响应码和 DTO 转换</td>
+<td>接口适配层</td>
+<td>解析提交命令，返回冲突或校验错误</td>
+</tr>
+<tr>
+<td>认证上下文、用例授权、事务、加载和保存、流程协调</td>
+<td>应用层</td>
+<td>加载采购单，取得可信审批额度，调用批准并保存</td>
+</tr>
+<tr>
+<td>对象自身的合法状态和行为</td>
+<td>聚合根、实体、值对象</td>
+<td>提交后不能改明细，不能重复审批</td>
+</tr>
+<tr>
+<td>难以自然归属单个对象的业务计算或判断</td>
+<td>领域服务、领域策略</td>
+<td>根据采购类别、金额与组织规则计算审批路径</td>
+</tr>
+<tr>
+<td>SQL、ORM、MQ、HTTP 客户端和第三方适配</td>
+<td>基础设施层</td>
+<td>仓储实现、Outbox 发布器、预算接口适配器</td>
+</tr>
+</tbody>
+</table>
+<p>应用服务可以直接调用聚合行为。只有出现了独立的领域职责，才需要增加领域服务；不必给每个实体方法再套一个只转发的 <code>DomainService</code>。</p>
+<p>领域服务也不等于“所有 Service 的集中地”。把计算、状态迁移和所有校验都放进一个巨大 Service，而实体只剩 getter/setter，会使规则更容易被绕过。</p>
+<h3 id="分清编译依赖与运行调用">分清编译依赖与运行调用</h3>
+<pre><code class="hljs language-text">接口适配层 → 应用层 → 领域模型
+基础设施实现 → 领域/应用定义的端口接口
+启动装配代码负责把端口与实现连接起来
+</code></pre>
+<p>运行时应用服务会经由仓储接口访问数据库；编译时领域模型不必依赖数据库驱动、HTTP 客户端或 ORM 实现。这就是依赖倒置的作用。</p>
+<p>分层、六边形与整洁架构都能帮助隔离业务规则和外部机制，但它们是相关的架构方法，不是同一个名称，也不要求固定数量的文件夹或转发层。端口与适配器的原始说明见 <a href="https://alistair.cockburn.us/hexagonal-architecture">Hexagonal Architecture</a>。</p>
+<h2 id="9-项目目录怎么组织">9. 项目目录怎么组织</h2>
+<p>可以先按上下文分模块，再在模块内部按职责分层：</p>
+<pre><code class="hljs language-text">procurement/
+├─ interfaces/
+│  ├─ PurchaseOrderController.java
+│  └─ SubmitPurchaseOrderRequest.java
+├─ application/
+│  ├─ SubmitPurchaseOrder.java
+│  ├─ ApprovePurchaseOrder.java
+│  └─ PurchaseOrderQuery.java
+├─ domain/
+│  └─ purchaseorder/
+│     ├─ PurchaseOrder.java
+│     ├─ PurchaseLine.java
+│     ├─ Money.java
+│     ├─ PurchaseOrderSubmitted.java
+│     └─ PurchaseOrderRepository.java
+└─ infrastructure/
+   ├─ persistence/
+   │  └─ JdbcPurchaseOrderRepository.java
+   ├─ messaging/
+   │  └─ OutboxRelay.java
+   └─ integration/
+      └─ BudgetAdapter.java
+budget/
+└─ ……自己的模型、用例和适配器
+</code></pre>
+<p>这是组织方式，不是框架要求。简单项目可以用一个构建模块；需要编译期隔离时，再按边界拆 Maven/Gradle 模块。</p>
+<p>目录边界还应落实到访问限制、模块 API、依赖检查和测试。仅将一批类移动到 <code>domain</code> 目录，并不能自动保证模型正确。</p>
+<h2 id="10-一个可运行的采购单领域示例">10. 一个可运行的采购单领域示例</h2>
+<p>示例业务约定：只处理 CNY、金额精确到分；草稿有 1～100 行明细；提交后冻结明细；主管不能批准自己的申请，审批金额不能超过授权额度。<code>APPROVED</code> 仅表示主管审批通过，预算占用和采购执行是后续流程。</p>
+<p>保存为 <code>PurchaseOrderExample.java</code>。为便于单文件运行，这里使用嵌套类型；实际项目可按前面的职责拆分文件。</p>
+<pre><code class="hljs language-java"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+<span class="hljs-keyword">import</span> java.math.RoundingMode;
+<span class="hljs-keyword">import</span> java.time.Clock;
+<span class="hljs-keyword">import</span> java.time.Instant;
+<span class="hljs-keyword">import</span> java.time.ZoneOffset;
+<span class="hljs-keyword">import</span> java.util.ArrayList;
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.UUID;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PurchaseOrderExample</span> {
+    <span class="hljs-comment">// 本例的金额值对象：币种固定为 CNY，精度固定为分。</span>
+    <span class="hljs-keyword">record</span> <span class="hljs-title class_">Money</span><span class="hljs-params">(BigDecimal amount, String currency)</span> {
+        Money {
+            <span class="hljs-keyword">if</span> (amount == <span class="hljs-literal">null</span> || !<span class="hljs-string">&quot;CNY&quot;</span>.equals(currency)) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;本例只接受 CNY 金额&quot;</span>);
+            }
+            amount = amount.setScale(<span class="hljs-number">2</span>, RoundingMode.UNNECESSARY);
+            <span class="hljs-keyword">if</span> (amount.signum() &lt; <span class="hljs-number">0</span>) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;采购金额不能为负&quot;</span>);
+            }
+        }
+        <span class="hljs-keyword">static</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">cny</span><span class="hljs-params">(String value)</span> {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Money</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(value), <span class="hljs-string">&quot;CNY&quot;</span>);
+        }
+        <span class="hljs-type">Money</span> <span class="hljs-title function_">plus</span><span class="hljs-params">(Money other)</span> {
+            <span class="hljs-keyword">if</span> (!currency.equals(other.currency)) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;币种不一致&quot;</span>);
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Money</span>(amount.add(other.amount), currency);
+        }
+        <span class="hljs-type">Money</span> <span class="hljs-title function_">times</span><span class="hljs-params">(<span class="hljs-type">int</span> quantity)</span> {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Money</span>(amount.multiply(BigDecimal.valueOf(quantity)), currency);
+        }
+    }
+
+    <span class="hljs-comment">// 本例明细整体替换，无独立身份，因此设计为不可变值对象。</span>
+    <span class="hljs-keyword">record</span> <span class="hljs-title class_">Line</span><span class="hljs-params">(String sku, <span class="hljs-type">int</span> quantity, Money unitPrice)</span> {
+        Line {
+            <span class="hljs-keyword">if</span> (sku == <span class="hljs-literal">null</span> || sku.isBlank() || quantity &lt;= <span class="hljs-number">0</span> || unitPrice == <span class="hljs-literal">null</span>) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;商品、数量或单价不合法&quot;</span>);
+            }
+        }
+        <span class="hljs-type">Money</span> <span class="hljs-title function_">subtotal</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> unitPrice.times(quantity); }
+    }
+
+    <span class="hljs-keyword">enum</span> <span class="hljs-title class_">State</span> { DRAFT, SUBMITTED, APPROVED }
+    <span class="hljs-keyword">record</span> <span class="hljs-title class_">Event</span><span class="hljs-params">(UUID eventId, String type, String orderId, Money amount, Instant occurredAt)</span> {}
+
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PurchaseOrder</span> {
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String id;
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String applicantId;
+        <span class="hljs-keyword">private</span> <span class="hljs-type">State</span> <span class="hljs-variable">state</span> <span class="hljs-operator">=</span> State.DRAFT;
+        <span class="hljs-keyword">private</span> List&lt;Line&gt; lines;
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;Event&gt; <span class="hljs-variable">events</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+
+        PurchaseOrder(String id, String applicantId, List&lt;Line&gt; lines) {
+            <span class="hljs-keyword">if</span> (id == <span class="hljs-literal">null</span> || id.isBlank() || applicantId == <span class="hljs-literal">null</span> || applicantId.isBlank()) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;单号和申请人不能为空&quot;</span>);
+            }
+            <span class="hljs-built_in">this</span>.id = id;
+            <span class="hljs-built_in">this</span>.applicantId = applicantId;
+            replaceLines(lines);
+        }
+        <span class="hljs-type">void</span> <span class="hljs-title function_">replaceLines</span><span class="hljs-params">(List&lt;Line&gt; newLines)</span> {
+            require(State.DRAFT);
+            <span class="hljs-keyword">if</span> (newLines == <span class="hljs-literal">null</span> || newLines.isEmpty() || newLines.size() &gt; <span class="hljs-number">100</span>) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;明细必须为 1～100 行&quot;</span>);
+            }
+            lines = List.copyOf(newLines); <span class="hljs-comment">// 防御性复制，调用者改原集合不会改坏采购单。</span>
+        }
+        <span class="hljs-type">Money</span> <span class="hljs-title function_">total</span><span class="hljs-params">()</span> {
+            <span class="hljs-type">Money</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> Money.cny(<span class="hljs-string">&quot;0&quot;</span>);
+            <span class="hljs-keyword">for</span> (Line line : lines) result = result.plus(line.subtotal());
+            <span class="hljs-keyword">return</span> result;
+        }
+        <span class="hljs-type">void</span> <span class="hljs-title function_">submit</span><span class="hljs-params">(Clock clock)</span> {
+            require(State.DRAFT);
+            state = State.SUBMITTED;
+            raise(<span class="hljs-string">&quot;PurchaseOrderSubmitted&quot;</span>, clock);
+        }
+        <span class="hljs-type">void</span> <span class="hljs-title function_">approve</span><span class="hljs-params">(String reviewerId, Money approvalLimit, Clock clock)</span> {
+            require(State.SUBMITTED);
+            <span class="hljs-keyword">if</span> (reviewerId == <span class="hljs-literal">null</span> || reviewerId.isBlank() || reviewerId.equals(applicantId)) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;审批人无效或属于自批&quot;</span>);
+            }
+            <span class="hljs-keyword">if</span> (approvalLimit == <span class="hljs-literal">null</span> || !total().currency().equals(approvalLimit.currency())
+                    || total().amount().compareTo(approvalLimit.amount()) &gt; <span class="hljs-number">0</span>) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;超出审批额度&quot;</span>);
+            }
+            state = State.APPROVED;
+            raise(<span class="hljs-string">&quot;PurchaseOrderApproved&quot;</span>, clock);
+        }
+        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">require</span><span class="hljs-params">(State expected)</span> {
+            <span class="hljs-keyword">if</span> (state != expected) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;当前状态不允许此操作：&quot;</span> + state);
+        }
+        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">raise</span><span class="hljs-params">(String type, Clock clock)</span> {
+            events.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Event</span>(UUID.randomUUID(), type, id, total(), clock.instant()));
+        }
+        <span class="hljs-type">State</span> <span class="hljs-title function_">state</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> state; }
+        <span class="hljs-type">List</span>&lt;Event&gt; <span class="hljs-title function_">events</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> List.copyOf(events); }
+    }
+
+    <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">check</span><span class="hljs-params">(<span class="hljs-type">boolean</span> condition, String message)</span> {
+        <span class="hljs-keyword">if</span> (!condition) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AssertionError</span>(message);
+    }
+    <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">mustReject</span><span class="hljs-params">(Runnable action)</span> {
+        <span class="hljs-keyword">try</span> { action.run(); }
+        <span class="hljs-keyword">catch</span> (IllegalArgumentException | IllegalStateException | ArithmeticException expected) { <span class="hljs-keyword">return</span>; }
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AssertionError</span>(<span class="hljs-string">&quot;应当拒绝该操作&quot;</span>);
+    }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {
+        <span class="hljs-type">Clock</span> <span class="hljs-variable">clock</span> <span class="hljs-operator">=</span> Clock.fixed(Instant.parse(<span class="hljs-string">&quot;2026-01-01T00:00:00Z&quot;</span>), ZoneOffset.UTC);
+        <span class="hljs-type">var</span> <span class="hljs-variable">input</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(List.of(
+                <span class="hljs-keyword">new</span> <span class="hljs-title class_">Line</span>(<span class="hljs-string">&quot;SKU-A&quot;</span>, <span class="hljs-number">2</span>, Money.cny(<span class="hljs-string">&quot;12.50&quot;</span>)),
+                <span class="hljs-keyword">new</span> <span class="hljs-title class_">Line</span>(<span class="hljs-string">&quot;SKU-B&quot;</span>, <span class="hljs-number">1</span>, Money.cny(<span class="hljs-string">&quot;5.00&quot;</span>))));
+        <span class="hljs-type">var</span> <span class="hljs-variable">order</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PurchaseOrder</span>(<span class="hljs-string">&quot;PO-DEMO&quot;</span>, <span class="hljs-string">&quot;employee-1&quot;</span>, input);
+        input.clear(); <span class="hljs-comment">// 证明外部集合变化不会影响聚合内部明细。</span>
+        check(order.total().equals(Money.cny(<span class="hljs-string">&quot;30.00&quot;</span>)), <span class="hljs-string">&quot;总额必须从明细计算&quot;</span>);
+        mustReject(() -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">Line</span>(<span class="hljs-string">&quot;SKU-A&quot;</span>, <span class="hljs-number">0</span>, Money.cny(<span class="hljs-string">&quot;1&quot;</span>)));
+        mustReject(() -&gt; Money.cny(<span class="hljs-string">&quot;1.001&quot;</span>));
+        order.submit(clock);
+        mustReject(() -&gt; order.replaceLines(List.of(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Line</span>(<span class="hljs-string">&quot;SKU-C&quot;</span>, <span class="hljs-number">1</span>, Money.cny(<span class="hljs-string">&quot;1&quot;</span>)))));
+        mustReject(() -&gt; order.approve(<span class="hljs-string">&quot;employee-1&quot;</span>, Money.cny(<span class="hljs-string">&quot;100&quot;</span>), clock));
+        mustReject(() -&gt; order.approve(<span class="hljs-string">&quot;manager-1&quot;</span>, Money.cny(<span class="hljs-string">&quot;20&quot;</span>), clock));
+        order.approve(<span class="hljs-string">&quot;manager-1&quot;</span>, Money.cny(<span class="hljs-string">&quot;100&quot;</span>), clock);
+        mustReject(() -&gt; order.approve(<span class="hljs-string">&quot;manager-1&quot;</span>, Money.cny(<span class="hljs-string">&quot;100&quot;</span>), clock));
+        check(order.events().size() == <span class="hljs-number">2</span>, <span class="hljs-string">&quot;失败操作不能多发事件&quot;</span>);
+        System.out.println(order.state() + <span class="hljs-string">&quot; total=&quot;</span> + order.total().currency()
+                + <span class="hljs-string">&quot; &quot;</span> + order.total().amount() + <span class="hljs-string">&quot; events=&quot;</span> + order.events().size());
+    }
+}
+</code></pre>
+<pre><code class="hljs language-bash">java -version                                  <span class="hljs-comment"># 确认 Java 运行环境为 17 或更新版本</span>
+javac -version                                 <span class="hljs-comment"># 确认安装了 JDK 编译器，而不只是 JRE</span>
+javac -encoding UTF-8 --release 17 PurchaseOrderExample.java <span class="hljs-comment"># 按 Java 17 语言级别编译</span>
+java PurchaseOrderExample                      <span class="hljs-comment"># 运行领域规则示例和内置检查</span>
+</code></pre>
+<p>预期输出：</p>
+<pre><code class="hljs language-text">APPROVED total=CNY 30.00 events=2
+</code></pre>
+<p>缺少 JDK 时可参考 <a href="kafka-operations.html">Java 工具准备说明</a> 中的安装与验证步骤。其他币种、金额舍入、多级审批和单独行项目跟踪，需要先明确业务规则，再扩展示例。</p>
+<p>HTTP 入口仍须验证当前用户、操作权限和可访问的单据。<code>reviewerId</code> 与授权额度必须来自可信的身份和授权能力，不能直接相信请求体里的“我是主管”和“可审批额度”。本例明细单价也应由服务端的报价或业务定价规则确认。</p>
+<h2 id="11-应用服务仓储和工厂怎样配合">11. 应用服务、仓储和工厂怎样配合</h2>
+<h3 id="应用服务协调一个用例">应用服务协调一个用例</h3>
+<p>以批准采购单为例，事务编排可以写成以下流程。它说明职责分工，具体事务、仓储和 Outbox 接口由项目实现：</p>
+<pre><code class="hljs language-text">1. 从认证上下文取得当前审批人，校验单据访问权和审批资格。
+2. 开启本地数据库事务，加载采购单及其持久化版本。
+3. 取得本次审批应使用的可信额度、规则版本和必要业务依据。
+4. 调用 order.approve(...)，由模型维护审批状态和业务约束。
+5. 按 expectedVersion 保存聚合；版本冲突则抛错，回滚本次事务。
+6. 将本次待发布事件写入同一数据库的 Outbox。
+7. 提交事务，返回本次命令的结果；由后台发布器继续发送事件。
+</code></pre>
+<p>耗时远程调用应尽量放在短事务之外。若外部额度或预算必须在执行瞬间仍然有效，仅做一次远程查询并不能防并发变化，应由其所有者提供原子占用、授权凭据或其他明确的一致性协议。</p>
+<h3 id="仓储面向聚合dao-面向存取细节">仓储面向聚合，DAO 面向存取细节</h3>
+<p><code>PurchaseOrderRepository</code> 可以提供 <code>findById()</code>、<code>save(order, expectedVersion)</code> 等有业务含义的接口。实现可以使用 MyBatis、JPA 或 JDBC，内部可能读取和写入多张表。</p>
+<p>保存采购单时，明细和根状态要满足同一提交的约束；供应商、申请人和预算账户由各自所有者管理，不应随采购单级联保存。</p>
+<p>仓储可以有缓存，但缓存不是仓储的定义，也不是实现 DDD 的前提。对需要修改的聚合，要处理版本校验、失效与对象隔离；不能把缓存中的共享可变对象直接当成每个请求的可靠写入状态。</p>
+<h3 id="工厂用于封装有意义的构造">工厂用于封装有意义的构造</h3>
+<p>简单对象用构造函数或静态创建方法即可。构造涉及多个组成部分和复杂校验时，再提取工厂。</p>
+<p>“创建新业务对象”和“从持久化数据恢复已有对象”应区分：恢复历史采购单不等于重新提交，不应重发创建、审批等事件，也不应不加区分地按今天的新定价重新计算历史交易。</p>
+<h2 id="12-数据库版本号和并发怎样设计">12. 数据库、版本号和并发怎样设计</h2>
+<p>领域模型决定业务约束，存储设计还要结合访问方式、索引、事务和数据规模。一个实体可以映射多张表，值对象也可以拆列或独立存表；它们不要求与数据库表一一对应。</p>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>一种可行的持久化方式</th>
+<th>要保护的条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>采购单</td>
+<td>根表，含状态、申请人、金额和版本</td>
+<td>状态迁移和版本不被覆盖</td>
+</tr>
+<tr>
+<td>明细值对象</td>
+<td>带采购单 ID 的明细表</td>
+<td>与根的修改原子提交，提交后冻结</td>
+</tr>
+<tr>
+<td>金额</td>
+<td>精确小数字段及币种字段</td>
+<td>精度、范围、币种规则一致</td>
+</tr>
+<tr>
+<td>历史快照</td>
+<td>快照字段或独立记录</td>
+<td>明确是历史约定还是当前资料</td>
+</tr>
+<tr>
+<td>待发布事件</td>
+<td>本地 Outbox 表</td>
+<td>与业务写入处于同一事务</td>
+</tr>
+</tbody>
+</table>
+<h3 id="乐观锁防止覆盖别人的修改">乐观锁防止覆盖别人的修改</h3>
+<p>下面是持久化层 SQL 示意，<code>:参数名</code> 表示绑定参数，需要由数据访问组件绑定：</p>
+<pre><code class="hljs language-sql"><span class="hljs-comment">-- 只有仍处于草稿、且版本与本次读取一致的记录，才能成功提交。</span>
+<span class="hljs-keyword">UPDATE</span> purchase_order
+<span class="hljs-keyword">SET</span> status <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;SUBMITTED&#x27;</span>, total_amount <span class="hljs-operator">=</span> :totalAmount, version <span class="hljs-operator">=</span> version <span class="hljs-operator">+</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> :orderId <span class="hljs-keyword">AND</span> version <span class="hljs-operator">=</span> :expectedVersion <span class="hljs-keyword">AND</span> status <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;DRAFT&#x27;</span>;
+</code></pre>
+<p>检查影响行数：1 行表示成功；0 行表示记录不存在、状态已变或版本冲突，不能继续当作成功写入 Outbox。</p>
+<p>两名审批人同时读到版本 7，只能有一个用版本 7 成功提交并推进到版本 8。另一个请求应重新读取并反馈冲突；如果需要重试，必须重新判断当前状态、权限和业务依据，不能直接重放旧结果覆盖新状态。</p>
+<p>还要验证：明细新增、删除或调整时，也会推进根版本。只有修改根表的少数路径才校验版本，无法保护整个聚合。</p>
+<h3 id="幂等请求与并发锁是两件事">幂等请求与并发锁是两件事</h3>
+<p>版本号解决“谁基于哪个状态修改”；请求幂等键解决“同一业务请求是否已经执行过”。外部命令可使用幂等键或业务唯一号，保存请求指纹和执行结果。同一键携带不同内容应拒绝，而不是错误复用第一次的结果。</p>
+<p>唯一约束、条件更新和本地事务仍然很重要。对象内检查只对当前加载的状态负责，不能独自解决多个进程的并发。</p>
+<h2 id="13-领域事件怎样可靠发布和消费">13. 领域事件怎样可靠发布和消费</h2>
+<p>领域事件记录已经发生的业务事实，命名可以用 <code>PurchaseOrderApproved</code>。领域内部事件与对外集成事件可以不同：对外事件需要稳定契约、最少必要字段和明确版本，不能直接把整个聚合对象序列化公开。</p>
+<p>下面是集成事件示意；应用层在成功持久化时补入聚合版本等信息：</p>
+<pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;eventId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;e8035c3e-42e6-4f74-9143-7c5bb2c6b9c1&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;eventType&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;PurchaseOrderApproved&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;schemaVersion&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;aggregateId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;PO-DEMO&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;aggregateVersion&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">8</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;occurredAt&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-01-01T00:00:00Z&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;amount&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;30.00&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;currency&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;CNY&quot;</span> <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p><code>eventId</code> 标识这一次具体事件；<code>eventType</code> 标识事件种类。把类型名称当成所有消息共用的事件 ID，会破坏去重。</p>
+<h3 id="解决业务落库与消息发送的双写问题">解决业务落库与消息发送的双写问题</h3>
+<p>先提交业务再直接发消息，可能在提交后崩溃而漏发；先发消息再提交业务，则可能让下游处理已经回滚的事实。</p>
+<p>可以采用 <a href="https://microservices.io/patterns/data/transactional-outbox.html">Transactional Outbox</a>：</p>
+<pre><code class="hljs language-text">本地事务：更新采购单 + 插入 Outbox → 一起提交
+                         ↓
+后台发布器或 CDC：读取已提交事件 → 发送到 MQ → 记录发送进度
+                         ↓
+消费者本地事务：去重认领 + 更新本地业务 → 提交 → 确认消息
+</code></pre>
+<p>Outbox 应记录唯一事件 ID、聚合及版本、事件类型、有效载荷、创建时间、发布状态或可追踪的进度。发布器还需要失败重试、告警、并发认领和积压监控。</p>
+<h3 id="重复乱序和失败要分别处理">重复、乱序和失败要分别处理</h3>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>处理方法</th>
+<th>容易漏掉的细节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发布成功后，记录发送状态前崩溃</td>
+<td>允许再次发布，消费者幂等</td>
+<td>“已发到 MQ”不等于下游业务已完成</td>
+</tr>
+<tr>
+<td>同一消息重复投递</td>
+<td>用消费者名称与事件 ID 等唯一键去重</td>
+<td>去重记录和业务更新必须同事务提交</td>
+</tr>
+<tr>
+<td>消费失败</td>
+<td>回滚业务与认领记录，按策略重试</td>
+<td>不能先标记“已处理”再做可能失败的业务</td>
+</tr>
+<tr>
+<td>同一聚合事件乱序</td>
+<td>保证发送顺序，检查版本与缺口</td>
+<td>增量事件缺失时不能一律跳过旧版本就算完成</td>
+</tr>
+<tr>
+<td>消息格式不兼容或毒消息</td>
+<td>隔离、告警、修复后重放</td>
+<td>不能无提示地丢掉或无限阻塞整个队列</td>
+</tr>
+<tr>
+<td>外部邮件、支付或供应商调用</td>
+<td>本地任务表、外部幂等键和结果查询</td>
+<td>本地事务无法原子提交远程系统的副作用</td>
+</tr>
+</tbody>
+</table>
+<p>以聚合 ID 作为消息 key 有助于聚集同一聚合的消息，但它不能自动修正多个发布器已经颠倒的发送顺序。同一聚合的事件应按版本发送；是否允许并行、如何处理缺口，要在发布和消费协议中设计。</p>
+<p>进程内事件可同步或异步分派，不一定需要 MQ。同步处理是否加入同一事务、异步任务失败后是否可恢复，都要明确。仅使用“事务提交后回调”也不能消除进程崩溃造成的漏发窗口。</p>
+<p>更多消息提交与重复处理问题见 <a href="kafka-reliability.html">Kafka 消息生产、消费与可靠性实践</a>。</p>
+<h2 id="14-跨上下文流程怎样处理最终一致性">14. 跨上下文流程怎样处理最终一致性</h2>
+<p>继续采购示例：主管审批通过后，预算上下文要占用预算，成功后才能创建采购执行任务。这里的“审批通过”与“预算已占用”是不同事实。</p>
+<pre><code class="hljs language-text">主管审批通过
+  → 采购流程发送预算占用命令
+  → 预算原子判断可用额度并占用
+      ├─ 拒绝：流程进入预算不足状态，通知申请人处理
+      └─ 成功：流程创建采购执行任务
+                  ├─ 成功：流程继续
+                  ├─ 明确失败：按规则撤销任务并释放预算
+                  └─ 结果未知：先查询或对账，避免重复创建与错误释放
+</code></pre>
+<p>本例可以由独立的流程协调器维护流程状态。Java 示例中的采购单只处理主管审批，并没有实现这套分布式流程。</p>
+<h3 id="使用-saga-时要定义到每一步">使用 Saga 时要定义到每一步</h3>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>正向动作</th>
+<th>幂等依据</th>
+<th>失败后的业务处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>预算占用</td>
+<td>按申请号占用额度</td>
+<td>占用请求号唯一</td>
+<td>明确拒绝则结束本轮执行，保留审批记录</td>
+</tr>
+<tr>
+<td>创建采购执行任务</td>
+<td>引用本次预算占用与采购单版本</td>
+<td>采购执行请求号唯一</td>
+<td>确认未创建后，才按策略释放占用</td>
+</tr>
+<tr>
+<td>释放预算</td>
+<td>释放相应占用</td>
+<td>释放请求号及占用状态</td>
+<td>重试、对账或转人工处理</td>
+</tr>
+</tbody>
+</table>
+<p>补偿是新的业务动作，不是数据库的时间倒流。它可能失败，也可能需要人工介入。流程应保存当前步骤、重试次数、超时、补偿状态和关联 ID，确保发布后仍能恢复。</p>
+<p>“最终一致”要有可执行的闭环：允许不一致多长时间、谁重试、谁对账、什么时候告警、失败后谁处理。超时只意味着结果尚未确定，不能直接推断远程操作没有发生。</p>
+<p>如果一项业务要求某个条件在同一瞬间严格成立，优先检查能否在同一所有者内用本地事务或原子预留实现，再评估其他一致性方案。</p>
+<h2 id="15-查询cqrs-和跨服务关联怎么选">15. 查询、CQRS 和跨服务关联怎么选</h2>
+<p>写模型负责合法状态迁移，读模型负责高效地给出需要的信息。列表、搜索、报表不必逐个加载完整聚合再计算。</p>
+<table>
+<thead>
+<tr>
+<th>查询需求</th>
+<th>合适的起点</th>
+<th>后续要关注什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同一上下文内的普通列表</td>
+<td>SQL 或专用查询对象，直接返回 DTO</td>
+<td>索引、分页、数据权限和字段最小化</td>
+</tr>
+<tr>
+<td>列表补充少量当前外部资料</td>
+<td>当前页取 ID，批量调用外部查询接口</td>
+<td>避免逐行远程调用，处理部分失败</td>
+</tr>
+<tr>
+<td>按跨上下文字段过滤、排序或统计</td>
+<td>建立本地查询投影或专用读模型</td>
+<td>数据来源、延迟、更新与重建机制</td>
+</tr>
+<tr>
+<td>高负载或复杂检索</td>
+<td>测量后考虑独立读存储、搜索引擎等</td>
+<td>成本、同步可靠性、可接受的新鲜度</td>
+</tr>
+</tbody>
+</table>
+<p>同一数据库内合理的 JOIN 并不违反 DDD。先 JOIN 还是先分页补充，需要结合查询语义和执行计划；若先分页再按外部字段过滤，往往会造成页数和结果错误。</p>
+<p><a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs">CQRS</a> 的关键是读写职责及模型的区分。可以先使用同一数据库、不同的读写接口；独立数据库、异步投影和事件溯源都不是采用 CQRS 的必要前提。</p>
+<p>异步读模型存在延迟时，命令响应可返回刚刚提交的版本和结果，界面显示处理中并等待投影追上。需要强校验的业务动作仍应由写入所有者判断，不能只根据可能滞后的列表状态批准采购。</p>
+<h3 id="历史快照与查询投影不要混用">历史快照与查询投影不要混用</h3>
+<p>采购单的历史单价是当时约定，通常不随目录变化；供应商当前联系电话可能需要更新。两者都可能表现为“冗余字段”，但更新规则完全不同。</p>
+<p>每一份副本都应说明：权威来源、是快照还是当前视图、更新方式、允许延迟和修复方法。宽表、缓存和 JSON 存储不能自动保证高性能，仍需核对索引、容量、写放大和数据一致性。</p>
+<h2 id="16-外部接口防腐层与前端怎样配合">16. 外部接口、防腐层与前端怎样配合</h2>
+<p>防腐层承担模型翻译，而不仅仅是包一层 Feign 或 HTTP 客户端。</p>
+<p>例如外部供应商用 <code>A</code> 表示“资料审核通过”，并不一定表示“允许下采购单”。本地适配器应结合有效期、停用状态和本地政策，形成明确的 <code>SupplierEligibility</code>，避免让外部编码渗入采购模型。</p>
+<table>
+<thead>
+<tr>
+<th>边界</th>
+<th>应隔离的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP 请求与应用命令</td>
+<td>协议格式、可写字段、身份来源和幂等键</td>
+</tr>
+<tr>
+<td>应用与领域模型</td>
+<td>用例编排与模型自身规则</td>
+</tr>
+<tr>
+<td>领域模型与持久化对象</td>
+<td>表结构、ORM 注解、字段展开和重建方式</td>
+</tr>
+<tr>
+<td>本地与外部系统</td>
+<td>状态语义、单位、异常、超时和外部 DTO</td>
+</tr>
+</tbody>
+</table>
+<p>DTO、领域对象和持久化对象是否需要分开，取决于各自的变化和约束。跨公共接口时，尤其要避免为了少写转换，就把聚合可变状态和内部字段完整暴露给客户端。</p>
+<h3 id="契约变更怎样保持独立发布">契约变更怎样保持独立发布</h3>
+<ul>
+<li>新增可选字段时确认旧消费者能忽略未知字段。</li>
+<li>删除字段、改变类型或重定义状态含义，需要明确迁移与兼容方案。</li>
+<li>事件保留较久、需要重放时，要支持旧版本事件的读取和转换。</li>
+<li>用契约测试验证双方约定，不要只相信“使用 JSON 就自然兼容”。</li>
+</ul>
+<h3 id="bff微前端和核心业务的分工">BFF、微前端和核心业务的分工</h3>
+<p>BFF 可以面向 Web、移动端等渠道组合查询和响应格式。跨服务且需要持久状态、重试和补偿的核心流程，应有明确的流程所有者，不能只散落在页面或临时 BFF 逻辑中。</p>
+<p>多团队、独立交付需求明显时可以考虑微前端；单个业务团队并不因后端采用 DDD，就必须把前端也拆分。页面按钮的可用性只是交互提示，最终授权和状态校验仍在服务端。</p>
+<h2 id="17-领域事件事件驱动与事件溯源的区别">17. 领域事件、事件驱动与事件溯源的区别</h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>核心含义</th>
+<th>是否要求靠事件重建业务状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>领域事件</td>
+<td>表达某个业务事实已经发生</td>
+<td>不要求</td>
+</tr>
+<tr>
+<td>事件驱动协作</td>
+<td>各组件根据收到的事件继续处理</td>
+<td>不要求</td>
+</tr>
+<tr>
+<td>事件溯源 Event Sourcing</td>
+<td>以事件序列作为权威记录，通过重放得到状态</td>
+<td>要求</td>
+</tr>
+</tbody>
+</table>
+<p>把事件发到 Kafka、保存事件日志或使用 Outbox，都不足以说明采用了事件溯源。判断方法是：采购单状态的权威来源是当前状态表，还是可完整恢复它的事件流？</p>
+<p>事件溯源中的采购单可能按 <code>Created → LinesReplaced → Submitted → Approved</code> 重放得到当前状态。要实现它，还必须解决：</p>
+<ol>
+<li>同一聚合的事件序号和期望版本检查。</li>
+<li>旧事件格式的兼容、转换与重放。</li>
+<li>快照的版本，以及从快照之后继续重放。</li>
+<li>重放过程不再次发邮件、占用预算或创建采购任务。</li>
+<li>读模型重建、失败恢复，以及事件中敏感数据的管理。</li>
+</ol>
+<p>需要历史重建和审计等能力，且收益能覆盖复杂度时，再评估 <a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/event-sourcing">Event Sourcing</a>。普通状态表加审计日志和可靠事件，已经能满足许多业务。</p>
+<h2 id="18-老系统怎样渐进改造">18. 老系统怎样渐进改造</h2>
+<p>先选一个规则复杂、问题明确、能形成验收闭环的用例，例如“采购单提交”。</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>具体动作</th>
+<th>完成标准</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>记录现状</td>
+<td>梳理入口、规则、表、外部调用和真实例外</td>
+<td>能说明旧系统当前实际怎么运行</td>
+</tr>
+<tr>
+<td>建立保护</td>
+<td>用正常及拒绝场景锁定既有行为</td>
+<td>改结构时能发现行为回归</td>
+</tr>
+<tr>
+<td>明确业务语言</td>
+<td>统一提交、审批通过、预算成功等含义</td>
+<td>状态和规则能映射到具体方法</td>
+</tr>
+<tr>
+<td>提取模型</td>
+<td>将不变量移到采购单和策略</td>
+<td>新旧入口都经过同一规则入口</td>
+</tr>
+<tr>
+<td>收紧数据所有权</td>
+<td>用受控仓储封装写入，清理绕过路径</td>
+<td>批处理、导入和补偿不会直接写坏状态</td>
+</tr>
+<tr>
+<td>隔离旧接口</td>
+<td>适配旧字段、状态和调用方式</td>
+<td>新模型不被旧系统语义污染</td>
+</tr>
+<tr>
+<td>小范围切换</td>
+<td>灰度路由、结果核对、监控和回退</td>
+<td>问题能定位，旧入口可恢复</td>
+</tr>
+<tr>
+<td>再评估拆分</td>
+<td>根据发布、容量和所有权决定部署</td>
+<td>独立部署的收益覆盖分布式成本</td>
+</tr>
+</tbody>
+</table>
+<p>拆服务时要明确何时迁移写入权威、怎样追平历史数据、如何避免双主写入，以及回退后的数据如何处理。回滚代码并不自动回滚已经发生的业务事实。</p>
+<p>共享平台可以逐步沉淀鉴权接入、消息可靠投递、监控和持久化等重复机制。业务特有规则留在各自模型中，并不要求先造一套通用 DDD 平台。</p>
+<p>面向客户端的接口应公开受控的用例和可写字段。把任意 Spring Bean、方法名和整份领域对象交给前端反射调用，不能代替明确的授权、契约和聚合入口。</p>
+<h2 id="19-怎样验证真的落地了">19. 怎样验证真的落地了</h2>
+<h3 id="领域规则测试">领域规则测试</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>应验证的结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>空采购单、数量为零、金额精度错误</td>
+<td>创建或修改被拒绝</td>
+</tr>
+<tr>
+<td>提交后修改明细</td>
+<td>被模型拒绝，金额保持原值</td>
+</tr>
+<tr>
+<td>申请人自批或超额度审批</td>
+<td>拒绝，状态和事件均不增加</td>
+</tr>
+<tr>
+<td>同一单据重复审批</td>
+<td>明确拒绝，或按已设计的命令幂等协议返回原结果</td>
+</tr>
+<tr>
+<td>外部集合被修改</td>
+<td>不影响聚合内部状态</td>
+</tr>
+<tr>
+<td>历史聚合恢复</td>
+<td>保留历史状态，不产生新的业务事件</td>
+</tr>
+</tbody>
+</table>
+<h3 id="持久化和消息测试">持久化和消息测试</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>应验证的结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>两个请求使用相同版本修改</td>
+<td>只有一个成功，不丢失已提交更新</td>
+</tr>
+<tr>
+<td>明细或 Outbox 写入失败</td>
+<td>采购单、明细和 Outbox 一起回滚</td>
+</tr>
+<tr>
+<td>MQ 发送后发布器崩溃</td>
+<td>允许重发，消费者业务不重复执行</td>
+</tr>
+<tr>
+<td>消费者更新业务时失败</td>
+<td>去重认领与业务一起回滚，可再次处理</td>
+</tr>
+<tr>
+<td>事件乱序、缺失或格式过旧</td>
+<td>按协议等待、补偿、转换或告警</td>
+</tr>
+<tr>
+<td>外部调用超时但实际成功</td>
+<td>能按业务请求号查询和恢复，避免重复副作用</td>
+</tr>
+<tr>
+<td>查询投影落后</td>
+<td>界面和业务命令不会把旧视图误当权威状态</td>
+</tr>
+</tbody>
+</table>
+<h3 id="架构与业务验收">架构与业务验收</h3>
+<p>尝试只替换仓储实现、增加一种审批规则、调整一个外部字段：核心业务应只在合理范围变化。确认领域代码能够在不启动 Web、数据库和 MQ 的情况下执行规则测试。</p>
+<p>再让业务人员用自己的语言描述几条真实规则，由团队直接定位到实现和测试。模型图、术语表和代码长期不一致时，应修正其中的理解和实现，而不是继续增加名为 DDD 的目录。</p>
+<h2 id="20-常见设计偏差与处理方向">20. 常见设计偏差与处理方向</h2>
+<table>
+<thead>
+<tr>
+<th>表现</th>
+<th>应检查什么</th>
+<th>调整方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每张表都建实体、仓储和服务</td>
+<td>是否只是照搬表结构</td>
+<td>从用例和不变量重新识别模型</td>
+</tr>
+<tr>
+<td>有大量接口、基类，却找不到业务规则</td>
+<td>抽象是否只增加转发和配置</td>
+<td>将规则放回有业务含义的对象</td>
+</tr>
+<tr>
+<td>一个聚合包含所有关联对象</td>
+<td>是否真的需要同事务一致</td>
+<td>改用 ID、快照、读模型或流程协调</td>
+</tr>
+<tr>
+<td>所有操作都发布 MQ 消息</td>
+<td>是否有明确订阅者、恢复要求和契约</td>
+<td>按业务价值选择进程内或跨进程机制</td>
+</tr>
+<tr>
+<td>保存成功就认定事件一定送达</td>
+<td>是否存在提交后崩溃窗口</td>
+<td>采用本地 Outbox 和可恢复发布</td>
+</tr>
+<tr>
+<td>使用消费组就认定业务只执行一次</td>
+<td>是否处理了重投和提交窗口</td>
+<td>本地事务、业务唯一约束和幂等处理</td>
+</tr>
+<tr>
+<td>一换数据库就必须重写领域规则</td>
+<td>基础设施类型是否渗入模型</td>
+<td>用有业务含义的端口隔离存取机制</td>
+</tr>
+<tr>
+<td>服务很多，却仍需一起发布</td>
+<td>是否共享表、共享庞大领域包、接口不兼容</td>
+<td>修正所有权、契约和模型边界</td>
+</tr>
+<tr>
+<td>读列表也加载全部聚合</td>
+<td>是否把展示查询套进写模型</td>
+<td>使用专用查询与必要的读投影</td>
+</tr>
+<tr>
+<td>以“最终一致”为由忽略失败</td>
+<td>是否有期限、重试、对账和责任人</td>
+<td>把恢复机制纳入业务流程</td>
+</tr>
+</tbody>
+</table>
+<p>判断设计是否有效，看规则能否集中维护、非法状态能否被阻止、并发与失败能否恢复、业务变化能否在合理范围内完成。</p>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><!--[--><a class="level-2 toc-link" href="#1-什么时候值得引入-ddd">1. 什么时候值得引入 DDD</a><a class="level-2 toc-link" href="#2-一条从需求到代码的实施路线">2. 一条从需求到代码的实施路线</a><a class="level-2 toc-link" href="#3-先分清子域限界上下文聚合和微服务">3. 先分清子域、限界上下文、聚合和微服务</a><a class="level-3 toc-link" href="#核心域支撑域和通用域怎样决定投入">核心域、支撑域和通用域怎样决定投入</a><a class="level-2 toc-link" href="#4-怎样判断限界上下文应该划在哪里">4. 怎样判断限界上下文应该划在哪里</a><a class="level-3 toc-link" href="#用上下文映射明确合作方式">用上下文映射明确合作方式</a><a class="level-2 toc-link" href="#5-事件风暴怎么开怎样收敛成模型">5. 事件风暴怎么开，怎样收敛成模型</a><a class="level-3 toc-link" href="#第一步限定场景和业务结果">第一步：限定场景和业务结果</a><a class="level-3 toc-link" href="#第二步先列已经发生的业务事实">第二步：先列已经发生的业务事实</a><a class="level-3 toc-link" href="#第三步补齐角色命令规则和例外">第三步：补齐角色、命令、规则和例外</a><a class="level-3 toc-link" href="#第四步从规则找对象和边界">第四步：从规则找对象和边界</a><a class="level-3 toc-link" href="#第五步用场景走查模型">第五步：用场景走查模型</a><a class="level-2 toc-link" href="#6-实体和值对象怎么选">6. 实体和值对象怎么选</a><a class="level-3 toc-link" href="#vo-缩写要说清楚">VO 缩写要说清楚</a><a class="level-2 toc-link" href="#7-聚合怎样划怎样避免大聚合">7. 聚合怎样划，怎样避免“大聚合”</a><a class="level-3 toc-link" href="#不要把所有关联对象都装进聚合">不要把所有关联对象都装进聚合</a><a class="level-3 toc-link" href="#一个事务只能更新一个聚合吗">一个事务只能更新一个聚合吗</a><a class="level-2 toc-link" href="#8-规则放实体领域服务还是应用服务">8. 规则放实体、领域服务还是应用服务</a><a class="level-3 toc-link" href="#分清编译依赖与运行调用">分清编译依赖与运行调用</a><a class="level-2 toc-link" href="#9-项目目录怎么组织">9. 项目目录怎么组织</a><a class="level-2 toc-link" href="#10-一个可运行的采购单领域示例">10. 一个可运行的采购单领域示例</a><a class="level-2 toc-link" href="#11-应用服务仓储和工厂怎样配合">11. 应用服务、仓储和工厂怎样配合</a><a class="level-3 toc-link" href="#应用服务协调一个用例">应用服务协调一个用例</a><a class="level-3 toc-link" href="#仓储面向聚合dao-面向存取细节">仓储面向聚合，DAO 面向存取细节</a><a class="level-3 toc-link" href="#工厂用于封装有意义的构造">工厂用于封装有意义的构造</a><a class="level-2 toc-link" href="#12-数据库版本号和并发怎样设计">12. 数据库、版本号和并发怎样设计</a><a class="level-3 toc-link" href="#乐观锁防止覆盖别人的修改">乐观锁防止覆盖别人的修改</a><a class="level-3 toc-link" href="#幂等请求与并发锁是两件事">幂等请求与并发锁是两件事</a><a class="level-2 toc-link" href="#13-领域事件怎样可靠发布和消费">13. 领域事件怎样可靠发布和消费</a><a class="level-3 toc-link" href="#解决业务落库与消息发送的双写问题">解决业务落库与消息发送的双写问题</a><a class="level-3 toc-link" href="#重复乱序和失败要分别处理">重复、乱序和失败要分别处理</a><a class="level-2 toc-link" href="#14-跨上下文流程怎样处理最终一致性">14. 跨上下文流程怎样处理最终一致性</a><a class="level-3 toc-link" href="#使用-saga-时要定义到每一步">使用 Saga 时要定义到每一步</a><a class="level-2 toc-link" href="#15-查询cqrs-和跨服务关联怎么选">15. 查询、CQRS 和跨服务关联怎么选</a><a class="level-3 toc-link" href="#历史快照与查询投影不要混用">历史快照与查询投影不要混用</a><a class="level-2 toc-link" href="#16-外部接口防腐层与前端怎样配合">16. 外部接口、防腐层与前端怎样配合</a><a class="level-3 toc-link" href="#契约变更怎样保持独立发布">契约变更怎样保持独立发布</a><a class="level-3 toc-link" href="#bff微前端和核心业务的分工">BFF、微前端和核心业务的分工</a><a class="level-2 toc-link" href="#17-领域事件事件驱动与事件溯源的区别">17. 领域事件、事件驱动与事件溯源的区别</a><a class="level-2 toc-link" href="#18-老系统怎样渐进改造">18. 老系统怎样渐进改造</a><a class="level-2 toc-link" href="#19-怎样验证真的落地了">19. 怎样验证真的落地了</a><a class="level-3 toc-link" href="#领域规则测试">领域规则测试</a><a class="level-3 toc-link" href="#持久化和消息测试">持久化和消息测试</a><a class="level-3 toc-link" href="#架构与业务验收">架构与业务验收</a><a class="level-2 toc-link" href="#20-常见设计偏差与处理方向">20. 常见设计偏差与处理方向</a><!--]--><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践<!--[--> · <a href="../support.html">支持本站</a><!--]--></span></footer></div><dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" value="" type="search" maxlength="240" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p><!----></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div><!--]--></div>
+    
+    
+  </body>
+</html>
