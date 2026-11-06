@@ -46,3 +46,8 @@
 
 .sidebar nav{scrollbar-width:none}
 .toc::-webkit-scrollbar,.sidebar nav::-webkit-scrollbar{display:none}
+
+.home-page{--home-footer-height:calc(64px + env(safe-area-inset-bottom,0px))}
+.home-page .workspace{padding-bottom:var(--home-footer-height)}
+.home-page .page-footer{position:fixed;left:var(--sidebar);right:0;bottom:0;z-index:20;height:var(--home-footer-height);margin:0;padding:16px 48px calc(16px + env(safe-area-inset-bottom,0px));align-items:center;gap:12px;background:var(--bg)}
+@media(max-width:800px){.home-page .page-footer{left:0;padding-inline:20px}}
