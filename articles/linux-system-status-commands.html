@@ -6,13 +6,13 @@
     <title>Linux 常用系统状态查看命令 · 知行笔记</title>
     <meta name="description" content="查看系统、CPU、内存、磁盘、进程、网络、服务和日志的常用命令。部分命令需要 sudo 权限或额外安装工具。 执行前，将示例中的 IP 192.0.2.10 、PID、服务名和目录替换为实际值。 安装可选查看工具：iostat、lsof、n">
     <meta name="generator" content="VitePress v1.6.4">
-    <link rel="preload stylesheet" href="/assets/style.8bPc0RER.css" as="style">
+    <link rel="preload stylesheet" href="/assets/style.BoCVs_6I.css" as="style">
     <link rel="preload stylesheet" href="/vp-icons.css" as="style">
-    <script type="module" src="/assets/chunks/metadata.e958b0d8.js"></script>
-    <script type="module" src="/assets/app.BUGmX9Q_.js"></script>
-    <link rel="modulepreload" href="/assets/chunks/theme.Dd2kvGsN.js">
-    <link rel="modulepreload" href="/assets/chunks/framework.BnuTGVYS.js">
-    <link rel="modulepreload" href="/assets/articles_linux-system-status-commands.md.tT-82dz6.lean.js">
+    <script type="module" src="/assets/chunks/metadata.f023daca.js"></script>
+    <script type="module" src="/assets/app.BxNYVLl1.js"></script>
+    <link rel="modulepreload" href="/assets/chunks/theme.BIS-SsHg.js">
+    <link rel="modulepreload" href="/assets/chunks/framework.D4oetGi0.js">
+    <link rel="modulepreload" href="/assets/articles_linux-system-status-commands.md.CslCimuK.lean.js">
     <meta name="color-scheme" content="light dark">
     <script>try{document.documentElement.dataset.theme=localStorage.getItem("kb-theme")||"light"}catch{}</script>
     <script id="check-mac-os">document.documentElement.classList.toggle("mac",/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
@@ -168,7 +168,7 @@ journalctl -n 100       <span class="hljs-comment"># 最近100条系统日志</s
 <ul>
 <li><a href="linux-service-check-start-troubleshooting.html">Linux 服务检查、启动与排障</a>：进一步排查服务不可访问、绑定地址、防火墙和启动问题。</li>
 </ul>
-</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><!--[--><a class="level-2 toc-link" href="#1-系统信息与运行时间">1. 系统信息与运行时间</a><a class="level-2 toc-link" href="#2-cpu与实时监控">2. CPU与实时监控</a><a class="level-3 toc-link" href="#top怎么退出">top怎么退出</a><a class="level-2 toc-link" href="#3-内存swap与系统采样">3. 内存、Swap与系统采样</a><a class="level-2 toc-link" href="#4-查找进程与资源占用">4. 查找进程与资源占用</a><a class="level-2 toc-link" href="#5-磁盘分区与目录占用">5. 磁盘、分区与目录占用</a><a class="level-2 toc-link" href="#6-ip路由端口和连接">6. IP、路由、端口和连接</a><a class="level-2 toc-link" href="#7-网络连通性与http响应">7. 网络连通性与HTTP响应</a><a class="level-2 toc-link" href="#8-系统服务与日志">8. 系统服务与日志</a><a class="level-2 toc-link" href="#9-登录重启与oom记录">9. 登录、重启与OOM记录</a><a class="level-2 toc-link" href="#10-日常先记住这8条">10. 日常先记住这8条</a><a class="level-2 toc-link" href="#相关文档">相关文档</a><!--]--><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践<!--[--> · <a href="../support.html">支持本站</a><!--]--></span></footer></div><dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" value="" type="search" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div><!--]--></div>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><!--[--><a class="level-2 toc-link" href="#1-系统信息与运行时间">1. 系统信息与运行时间</a><a class="level-2 toc-link" href="#2-cpu与实时监控">2. CPU与实时监控</a><a class="level-3 toc-link" href="#top怎么退出">top怎么退出</a><a class="level-2 toc-link" href="#3-内存swap与系统采样">3. 内存、Swap与系统采样</a><a class="level-2 toc-link" href="#4-查找进程与资源占用">4. 查找进程与资源占用</a><a class="level-2 toc-link" href="#5-磁盘分区与目录占用">5. 磁盘、分区与目录占用</a><a class="level-2 toc-link" href="#6-ip路由端口和连接">6. IP、路由、端口和连接</a><a class="level-2 toc-link" href="#7-网络连通性与http响应">7. 网络连通性与HTTP响应</a><a class="level-2 toc-link" href="#8-系统服务与日志">8. 系统服务与日志</a><a class="level-2 toc-link" href="#9-登录重启与oom记录">9. 登录、重启与OOM记录</a><a class="level-2 toc-link" href="#10-日常先记住这8条">10. 日常先记住这8条</a><a class="level-2 toc-link" href="#相关文档">相关文档</a><!--]--><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践<!--[--> · <a href="../support.html">支持本站</a><!--]--></span></footer></div><dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" value="" type="search" maxlength="240" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p><!----></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div><!--]--></div>
     
     
   </body>
