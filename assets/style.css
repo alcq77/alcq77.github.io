@@ -53,5 +53,7 @@
 .home-page .workspace{padding-bottom:var(--home-footer-height)}
 .home-page .page-footer{position:fixed;left:var(--sidebar);right:0;bottom:0;z-index:20;height:var(--home-footer-height);margin:0;padding:16px 48px calc(16px + env(safe-area-inset-bottom,0px));align-items:center;gap:12px;background:var(--bg)}
 @media(max-width:800px){.home-page .page-footer{left:0;padding-inline:20px}}
-.folder-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;vertical-align:-3px}
-.folder-icon svg{display:block;width:100%;height:100%}
+.folder-icon,.home-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;vertical-align:-3px}
+.folder-icon svg,.home-icon svg{display:block;width:100%;height:100%}
+.home-link.active .home-icon svg{fill:currentColor}
+.home-link.active .support-icon{color:#e5484d}
