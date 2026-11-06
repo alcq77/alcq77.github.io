@@ -55,5 +55,4 @@
 @media(max-width:800px){.home-page .page-footer{left:0;padding-inline:20px}}
 .folder-icon,.home-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;vertical-align:-3px}
 .folder-icon svg,.home-icon svg{display:block;width:100%;height:100%}
-.home-link.active .home-icon svg{fill:currentColor}
 .home-link.active .support-icon{color:#e5484d}
