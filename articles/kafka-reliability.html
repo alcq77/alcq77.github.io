@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Kafka 消息生产、消费与可靠性实践 · 知行笔记</title>
+    <meta name="description" content="围绕发送失败、重复处理、顺序错乱、消费积压和事务可见性，配置客户端并验证消息的完整处理过程。Java 示例固定使用 kafka-clients 4.0.2 ，JDK 17+；命令在 Linux Bash 中执行。集群初始化和管理变量见 Ka">
+    <meta name="generator" content="VitePress v1.6.4">
+    <link rel="preload stylesheet" href="/assets/style.BoCVs_6I.css" as="style">
+    <link rel="preload stylesheet" href="/vp-icons.css" as="style">
+    <script type="module" src="/assets/chunks/metadata.f4a3e0f8.js"></script>
+    <script type="module" src="/assets/app.BKKfuMSr.js"></script>
+    <link rel="modulepreload" href="/assets/chunks/theme.Dl1ztlBw.js">
+    <link rel="modulepreload" href="/assets/chunks/framework.D4oetGi0.js">
+    <link rel="modulepreload" href="/assets/articles_kafka-reliability.md.l4ShL687.lean.js">
+    <meta name="color-scheme" content="light dark">
+    <script>try{document.documentElement.dataset.theme=localStorage.getItem("kb-theme")||"light"}catch{}</script>
+    <script id="check-mac-os">document.documentElement.classList.toggle("mac",/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
+  </head>
+  <body data-base="../">
+    <div id="app"><!--[--><a class="skip-link" href="#main">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span class="home-icon" aria-hidden="true"><!--[-->⌂<!--]--></span>知识库首页</a><a class="home-link" href="../support.html"><span class="support-icon" aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><!--[--><details class="nav-group"><summary><span><span class="folder-icon" data-icon="architecture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="5" rx="1"/><rect x="2" y="17" width="8" height="5" rx="1"/><rect x="14" y="17" width="8" height="5" rx="1"/><path d="M12 7v5M6 17v-5h12v5"/></svg></span></span>架构设计<span class="group-count">1</span></summary><!--[--><a class="nav-link" href="../articles/ddd-design-practice.html"><span class="doc-icon">≡</span><span>DDD 建模与落地实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="container-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 10 9-5M3 8l9 5v8M7.5 5.5l9 5"/></svg></span></span>容器运维<span class="group-count">4</span></summary><!--[--><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon">≡</span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon">≡</span><span>Kubernetes 应用部署与配置实践</span></a><!--]--></details><details class="nav-group" open><summary><span><span class="folder-icon" data-icon="mq-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="8" width="5" height="8" rx="1"/><rect x="17" y="8" width="5" height="8" rx="1"/><path d="M7 12h10m-3-3 3 3-3 3M4.5 5v-2h15v2M4.5 19v2h15v-2"/></svg></span></span>消息队列<span class="group-count">3</span></summary><!--[--><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon">≡</span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon">≡</span><span>Kafka 核心机制与源码排查</span></a><a class="active nav-link" href="../articles/kafka-reliability.html" aria-current="page"><span class="doc-icon">≡</span><span>Kafka 消息生产、消费与可靠性实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="linux-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg></span></span>Linux 运维<span class="group-count">7</span></summary><!--[--><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-kernel-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a><!--]--></details><!--]--></nav><div class="sidebar-footer"><span class="status-dot"></span>15 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button><div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>消息队列</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>个人知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header><div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">消息队列</div><h1>Kafka 消息生产、消费与可靠性实践</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 35 分钟阅读</span></div><div class="tag-row"><span class="tag">kafka</span><span class="tag">mq</span><span class="tag">producer</span><span class="tag">consumer</span><span class="tag">transaction</span><span class="tag">reliability</span></div></div><article class="markdown-body"><p>围绕发送失败、重复处理、顺序错乱、消费积压和事务可见性，配置客户端并验证消息的完整处理过程。Java 示例固定使用 <code>kafka-clients 4.0.2</code>，JDK 17+；命令在 Linux Bash 中执行。集群初始化和管理变量见 <a href="kafka-operations.html">Kafka 部署、运维与故障排查</a>。</p>
+<h2 id="1-先确定业务要保证到哪一步">1. 先确定业务要保证到哪一步</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>成功的含义</th>
+<th>仍需解决的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用调用 send</td>
+<td>消息可能只进了客户端缓冲区</td>
+<td>最终发送异常、进程退出、队列满</td>
+</tr>
+<tr>
+<td>收到 Broker 确认</td>
+<td>满足所配置 acks 的写入要求</td>
+<td>副本策略、灾难故障、应用重复发送</td>
+</tr>
+<tr>
+<td>consumer poll 返回</td>
+<td>消息到达客户端</td>
+<td>业务还没成功、异步任务仍在执行</td>
+</tr>
+<tr>
+<td>数据库事务提交</td>
+<td>业务副作用已落地</td>
+<td>Kafka 位移提交前宕机会重新投递</td>
+</tr>
+<tr>
+<td>位移提交成功</td>
+<td>下一次从提交位置继续</td>
+<td>提交之前的业务是否真的完成</td>
+</tr>
+</tbody>
+</table>
+<p>示例：先提交位移，再执行扣库存，扣库存失败时就可能跳过消息；先扣库存再提交位移，提交失败后会重投。因此，“至少一次消费 + 业务幂等”是很常见的落地方式。</p>
+<p>业务幂等使用稳定事件 ID，例如 <code>event_id=order-1001-created-v1</code>。在同一个数据库事务中插入带唯一约束的处理记录，再修改订单；重复事件命中唯一约束时确认其已经处理。去重记录与业务更新必须原子化，不能先写 Redis 标记再执行可能失败的数据库操作。</p>
+<p>如果还需要“改数据库并发消息”，优先考虑事务 Outbox：业务更新与待发送事件写在同一数据库事务里，后台投递到 Kafka，消费者仍按事件 ID 去重。Kafka 事务不会自动把任意数据库、邮件或 HTTP 调用纳入一个原子事务。</p>
+<h2 id="2-生产者参数如何配">2. 生产者参数如何配</h2>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>用途与起点</th>
+<th>验证内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>acks=all</td>
+<td>等待当前 ISR 所需的确认</td>
+<td>与副本数、min ISR、错误率一起看</td>
+</tr>
+<tr>
+<td>enable.idempotence=true</td>
+<td>避免生产者内部重试造成重复写入</td>
+<td>不与 acks、retries、in-flight 配置冲突</td>
+</tr>
+<tr>
+<td><a href="http://delivery.timeout.ms">delivery.timeout.ms</a></td>
+<td>限定一条消息发送的总交付时间</td>
+<td>失败能被应用接收并处理</td>
+</tr>
+<tr>
+<td><a href="http://request.timeout.ms">request.timeout.ms</a></td>
+<td>单次请求等待时间</td>
+<td>与总交付时间、linger 配合</td>
+</tr>
+<tr>
+<td><a href="http://max.block.ms">max.block.ms</a></td>
+<td>等元数据和缓冲区的阻塞上限</td>
+<td>不把排队超时误认为消息一定未写入</td>
+</tr>
+<tr>
+<td><a href="http://linger.ms">linger.ms</a> / batch.size</td>
+<td>按分区积累批次</td>
+<td>吞吐提升与尾延迟的取舍</td>
+</tr>
+<tr>
+<td>compression.type</td>
+<td>降低网络和存储开销</td>
+<td>CPU、压缩比与实际消息大小</td>
+</tr>
+</tbody>
+</table>
+<p><code>acks=all</code> 不是等待所有配置副本，也不是等待业务消费者成功。三副本、min ISR=2 是一种常见配置组合；在允许的故障范围内维持写入可靠性，不能承诺任意断电或多副本损坏都不丢数据。</p>
+<p>4.0.2 的 <code>linger.ms</code> 默认 5ms；幂等在无冲突配置时默认启用。示例仍显式设置幂等，避免被其他配置悄悄关闭。开启幂等时 <code>acks=all</code>、<code>retries&gt;0</code>、<code>max.in.flight.requests.per.connection&lt;=5</code> 需要兼容，详见 <a href="https://kafka.apache.org/40/configuration/producer-configs/">生产者参数</a>。</p>
+<p>幂等机制主要处理这个生产者会话内部的重试。应用重启后重新遍历数据库、用户重复点击、上游再次投递相同事件，都需要业务去重。</p>
+<h2 id="3-一个能确认最终发送结果的-java-示例">3. 一个能确认最终发送结果的 Java 示例</h2>
+<details class="install-guide">
+<summary>展开：准备依赖、编译与运行环境</summary>
+<p>新建工作目录，保存以下最小 <code>pom.xml</code>。已有项目在其依赖管理中引入相同客户端版本即可，不另建一套构建系统。</p>
+<pre><code class="hljs language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">project</span> <span class="hljs-attr">xmlns</span>=<span class="hljs-string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">modelVersion</span>&gt;</span>4.0.0<span class="hljs-tag">&lt;/<span class="hljs-name">modelVersion</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>example<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>kafka-demo<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.0.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">dependencies</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.kafka<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>kafka-clients<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>4.0.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">dependencies</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">project</span>&gt;</span>
+</code></pre>
+<pre><code class="hljs language-bash">mvn dependency:copy-dependencies -DoutputDirectory=lib <span class="hljs-comment"># 下载本项目运行依赖到lib目录</span>
+java -version                                    <span class="hljs-comment"># 确认JDK版本</span>
+javac -version                                   <span class="hljs-comment"># 确认包含编译器，不只是JRE</span>
+</code></pre>
+<p>示例：Maven 和 JDK 尚未安装时，Ubuntu/Debian 可用 <code>sudo apt-get install maven default-jdk</code>；使用 dnf 的系统可用 <code>sudo dnf install maven java-17-openjdk-devel</code>，以现有仓库可提供的软件包为准。依赖下载失败先检查网络、仓库和错误日志，不关闭 TLS 校验。</p>
+<p>CentOS 7基础仓库的Java/Maven可能过旧，不能将上面的命令直接替换成 <code>yum install maven java-17-openjdk-devel</code>。先按<a href="kafka-operations.html">运维笔记的JDK准备步骤</a>选择兼容构建；这些Java示例以JDK 17编译，建议在受维护的开发或构建机运行。Maven使用项目要求的受维护版本，下载与校验见<a href="https://maven.apache.org/install.html">Maven安装说明</a>。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v java javac mvn                         <span class="hljs-comment"># 确认可执行文件来自预期安装目录</span>
+java -version                                    <span class="hljs-comment"># 确认运行JDK版本</span>
+javac -version                                   <span class="hljs-comment"># 确认编译JDK版本</span>
+mvn -version                                     <span class="hljs-comment"># 确认Maven版本、实际Java版本和Java home</span>
+</code></pre>
+<p>示例：<code>java -version</code>是17，而 <code>mvn -version</code>显示Java 8时，先修正当前终端的 <code>JAVA_HOME</code>与PATH，再下载依赖和编译；不要为此替换整机Java。Linux发行版不改变Kafka生产/消费语义，但JDK、客户端、认证及本地库仍需兼容。</p>
+</details>
+<p>先在工作目录创建 <code>client.properties</code>。本机实验内容如下；生产环境用管理员提供的 TLS/SASL 配置，其他示例也复用这个文件。</p>
+<pre><code class="hljs language-properties"><span class="hljs-comment"># 替换成客户端确实能访问的Broker地址</span>
+<span class="hljs-attr">bootstrap.servers</span>=<span class="hljs-string">127.0.0.1:9092</span>
+<span class="hljs-comment"># 使用相同client.id前缀，方便在日志和监控中找到应用</span>
+<span class="hljs-attr">client.id</span>=<span class="hljs-string">orders-demo</span>
+</code></pre>
+<p>保存为 <code>OrderProducer.java</code>：</p>
+<pre><code class="hljs language-java"><span class="hljs-keyword">import</span> java.io.InputStream;
+<span class="hljs-keyword">import</span> java.nio.file.Files;
+<span class="hljs-keyword">import</span> java.nio.file.Path;
+<span class="hljs-keyword">import</span> java.time.Duration;
+<span class="hljs-keyword">import</span> java.util.Properties;
+<span class="hljs-keyword">import</span> java.util.concurrent.TimeUnit;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.producer.KafkaProducer;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.producer.ProducerRecord;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.producer.RecordMetadata;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderProducer</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">if</span> (args.length != <span class="hljs-number">4</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;用法: 配置文件 topic key value&quot;</span>);
+        }
+        <span class="hljs-type">Properties</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Properties</span>();
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">InputStream</span> <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> Files.newInputStream(Path.of(args[<span class="hljs-number">0</span>]))) {
+            p.load(in); <span class="hljs-comment">// 保留连接、TLS和SASL配置</span>
+        }
+        p.setProperty(<span class="hljs-string">&quot;key.serializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringSerializer&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;value.serializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringSerializer&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;acks&quot;</span>, <span class="hljs-string">&quot;all&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;enable.idempotence&quot;</span>, <span class="hljs-string">&quot;true&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;delivery.timeout.ms&quot;</span>, <span class="hljs-string">&quot;45000&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;request.timeout.ms&quot;</span>, <span class="hljs-string">&quot;30000&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;max.block.ms&quot;</span>, <span class="hljs-string">&quot;10000&quot;</span>);
+        <span class="hljs-type">KafkaProducer</span>&lt;String, String&gt; <span class="hljs-variable">producer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">KafkaProducer</span>&lt;&gt;(p);
+        <span class="hljs-keyword">try</span> {
+            <span class="hljs-comment">// 示例逐条等待确认，失败直接返回非零退出码，不打印“发送成功”</span>
+            <span class="hljs-type">RecordMetadata</span> <span class="hljs-variable">m</span> <span class="hljs-operator">=</span> producer.send(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ProducerRecord</span>&lt;&gt;(args[<span class="hljs-number">1</span>], args[<span class="hljs-number">2</span>], args[<span class="hljs-number">3</span>]))
+                    .get(<span class="hljs-number">60</span>, TimeUnit.SECONDS);
+            System.out.printf(<span class="hljs-string">&quot;已确认 topic=%s partition=%d offset=%d%n&quot;</span>,
+                    m.topic(), m.partition(), m.offset());
+        } <span class="hljs-keyword">finally</span> {
+            producer.close(Duration.ofSeconds(<span class="hljs-number">10</span>)); <span class="hljs-comment">// 有界关闭并释放连接</span>
+        }
+    }
+}
+</code></pre>
+<pre><code class="hljs language-bash">javac -<span class="hljs-built_in">cp</span> <span class="hljs-string">&#x27;lib/*&#x27;</span> OrderProducer.java               <span class="hljs-comment"># 编译完整生产者示例</span>
+java -<span class="hljs-built_in">cp</span> <span class="hljs-string">&#x27;.:lib/*&#x27;</span> OrderProducer client.properties orders order-1001 created <span class="hljs-comment"># 发送并等待Broker确认</span>
+</code></pre>
+<p>示例：成功会打印分区与 offset；失败会抛出异常。<code>get()</code> 检查结果是有效方式；高吞吐应用更常用回调批量异步发送，并把回调异常交给可靠的失败处理流程。不要在 Sender 回调里做慢 SQL、阻塞式 Redis 调用或等待同一个生产者的其他 Future。</p>
+<p>超时意味着<strong>结果可能不确定</strong>：服务端可能写入成功，但响应没回来。不能直接判定“肯定没写”，再无条件重复业务。失败事件要保留稳定 ID，进入有界重试、补偿或待核查流程。共享一个线程安全的 Producer 通常比每条消息新建实例更合理。</p>
+<h2 id="4-消费者业务成功后再提交">4. 消费者：业务成功后再提交</h2>
+<p>下面示例把打印视为处理动作，便于验证提交时点；接数据库时用前面的幂等事务替换 <code>handle</code>。按分区顺序处理、每条成功后提交，逻辑简单但吞吐有限。<code>maxMessages</code> 用于实验结束，设置为 0 持续消费。</p>
+<p>保存为 <code>OrderConsumer.java</code>：</p>
+<pre><code class="hljs language-java"><span class="hljs-keyword">import</span> java.io.InputStream;
+<span class="hljs-keyword">import</span> java.nio.file.Files;
+<span class="hljs-keyword">import</span> java.nio.file.Path;
+<span class="hljs-keyword">import</span> java.time.Duration;
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Properties;
+<span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicBoolean;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecord;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecords;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.KafkaConsumer;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.OffsetAndMetadata;
+<span class="hljs-keyword">import</span> org.apache.kafka.common.TopicPartition;
+<span class="hljs-keyword">import</span> org.apache.kafka.common.errors.WakeupException;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderConsumer</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(ConsumerRecord&lt;String, String&gt; r)</span> {
+        <span class="hljs-comment">// 演示动作；业务异常必须抛出，不能吞掉异常后继续提交</span>
+        System.out.printf(<span class="hljs-string">&quot;处理 topic=%s partition=%d offset=%d key=%s value=%s%n&quot;</span>,
+                r.topic(), r.partition(), r.offset(), r.key(), r.value());
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">if</span> (args.length != <span class="hljs-number">4</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;用法: 配置文件 topic group maxMessages(0为持续)&quot;</span>);
+        }
+        <span class="hljs-type">int</span> <span class="hljs-variable">maxMessages</span> <span class="hljs-operator">=</span> Integer.parseInt(args[<span class="hljs-number">3</span>]);
+        <span class="hljs-keyword">if</span> (maxMessages &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;maxMessages不能为负数&quot;</span>);
+        <span class="hljs-type">Properties</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Properties</span>();
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">InputStream</span> <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> Files.newInputStream(Path.of(args[<span class="hljs-number">0</span>]))) { p.load(in); }
+        p.setProperty(<span class="hljs-string">&quot;group.id&quot;</span>, args[<span class="hljs-number">2</span>]);
+        p.setProperty(<span class="hljs-string">&quot;enable.auto.commit&quot;</span>, <span class="hljs-string">&quot;false&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;auto.offset.reset&quot;</span>, <span class="hljs-string">&quot;earliest&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;isolation.level&quot;</span>, <span class="hljs-string">&quot;read_committed&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;max.poll.records&quot;</span>, <span class="hljs-string">&quot;100&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;key.deserializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span>);
+        p.setProperty(<span class="hljs-string">&quot;value.deserializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span>);
+        <span class="hljs-type">AtomicBoolean</span> <span class="hljs-variable">stopping</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicBoolean</span>(<span class="hljs-literal">false</span>);
+        <span class="hljs-type">KafkaConsumer</span>&lt;String, String&gt; <span class="hljs-variable">consumer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">KafkaConsumer</span>&lt;&gt;(p);
+        <span class="hljs-type">Thread</span> <span class="hljs-variable">hook</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {
+            stopping.set(<span class="hljs-literal">true</span>);
+            consumer.wakeup(); <span class="hljs-comment">// 唤醒poll；不在这个线程调用commit/poll/subscribe</span>
+        });
+        Runtime.getRuntime().addShutdownHook(hook);
+        <span class="hljs-keyword">try</span> (consumer) {
+            consumer.subscribe(List.of(args[<span class="hljs-number">1</span>]));
+            <span class="hljs-type">int</span> <span class="hljs-variable">handled</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+            <span class="hljs-keyword">while</span> (!stopping.get() &amp;&amp; (maxMessages == <span class="hljs-number">0</span> || handled &lt; maxMessages)) {
+                <span class="hljs-type">ConsumerRecords</span>&lt;String, String&gt; <span class="hljs-variable">records</span> <span class="hljs-operator">=</span> consumer.poll(Duration.ofSeconds(<span class="hljs-number">1</span>));
+                <span class="hljs-keyword">for</span> (ConsumerRecord&lt;String, String&gt; r : records) {
+                    <span class="hljs-keyword">if</span> (stopping.get()) <span class="hljs-keyword">break</span>;
+                    handle(r); <span class="hljs-comment">// 成功返回后，才提交这一条的下一位置</span>
+                    consumer.commitSync(Map.of(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TopicPartition</span>(r.topic(), r.partition()),
+                            <span class="hljs-keyword">new</span> <span class="hljs-title class_">OffsetAndMetadata</span>(r.offset() + <span class="hljs-number">1</span>)), Duration.ofSeconds(<span class="hljs-number">10</span>));
+                    handled++;
+                    <span class="hljs-keyword">if</span> (maxMessages &gt; <span class="hljs-number">0</span> &amp;&amp; handled &gt;= maxMessages) <span class="hljs-keyword">break</span>;
+                }
+            }
+        } <span class="hljs-keyword">catch</span> (WakeupException e) {
+            <span class="hljs-keyword">if</span> (!stopping.get()) <span class="hljs-keyword">throw</span> e; <span class="hljs-comment">// 仅把主动关闭引发的wakeup视为正常退出</span>
+        } <span class="hljs-keyword">finally</span> {
+            <span class="hljs-keyword">try</span> { Runtime.getRuntime().removeShutdownHook(hook); }
+            <span class="hljs-keyword">catch</span> (IllegalStateException ignored) { <span class="hljs-comment">/* JVM已在关闭 */</span> }
+        }
+    }
+}
+</code></pre>
+<pre><code class="hljs language-bash">javac -<span class="hljs-built_in">cp</span> <span class="hljs-string">&#x27;lib/*&#x27;</span> OrderConsumer.java               <span class="hljs-comment"># 编译完整消费者示例</span>
+java -<span class="hljs-built_in">cp</span> <span class="hljs-string">&#x27;.:lib/*&#x27;</span> OrderConsumer client.properties orders orders-demo-check 1 <span class="hljs-comment"># 新实验组读取并处理一条</span>
+<span class="hljs-comment"># 再次运行同一个组时从已提交位置继续；换一个新组可独立回放已有数据</span>
+</code></pre>
+<p>示例：处理 offset=42 后提交 43，表示下次从 43 开始。若处理成功但提交前崩溃，42 可能重投；若 <code>handle</code> 抛异常，则不会提交这条或之后的记录。关闭 Consumer 不等于业务已成功，不能在 <code>finally</code> 中无条件提交整个 poll 的位置。</p>
+<p>消费者 API 的线程安全边界、手动提交和位移含义可查 <a href="https://kafka.apache.org/40/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html">KafkaConsumer 4.0 API</a>。</p>
+<h2 id="5-批量异步与重平衡时怎么提交">5. 批量、异步与重平衡时怎么提交</h2>
+<p>逐条提交开销大，可以按分区处理一批后提交该分区“连续成功”的下一位置。若 offset 100、102 已完成而 101 失败，不能提交 103；101 会被跳过。异步任务完成顺序与拉取顺序可能不同。</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>建议做法</th>
+<th>容易踩的坑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>多消费者扩容</td>
+<td>每个进程/线程独占一个 Consumer</td>
+<td>多线程同时 poll 同一个实例</td>
+</tr>
+<tr>
+<td>单分区要保序</td>
+<td>对该分区串行处理</td>
+<td>放进普通线程池后顺序完成不了</td>
+</tr>
+<tr>
+<td>单次处理太慢</td>
+<td>减少 max.poll.records、批量访问下游、缩短调用超时</td>
+<td>只增大 <a href="http://session.timeout.ms">session.timeout.ms</a></td>
+</tr>
+<tr>
+<td>worker并发</td>
+<td>主消费线程维护分区成功水位、pause/resume与背压</td>
+<td>worker直接提交最新poll位置</td>
+</tr>
+<tr>
+<td>分区被撤回</td>
+<td>停止对应任务、处理可提交的连续水位、清理所有权</td>
+<td>撤回后任务继续写入并提交</td>
+</tr>
+<tr>
+<td>分区丢失</td>
+<td>按已失去所有权处理，不假装还能成功提交</td>
+<td>把 lost 与正常 revoke 同样处理</td>
+</tr>
+<tr>
+<td>commitAsync失败</td>
+<td>保留结果、避免过时提交覆盖新进度</td>
+<td>盲目重试旧回调中的位移</td>
+</tr>
+</tbody>
+</table>
+<p>异步提交回调失败后重试旧位移，可能把已提交的新进度写回旧值，从而增加重投。需要可证明的单调策略；不熟悉这种边界时，优先使用清晰的同步提交和分区级批处理。</p>
+<p><code>pause</code> 只是暂停取某些分区的数据，仍需及时 poll 维护组。限流时还应限制在途业务任务数量，不能把 Kafka 拉取速度当成下游可承受速度。</p>
+<h2 id="6-顺序性与分区选择">6. 顺序性与分区选择</h2>
+<p>Kafka 的顺序范围是分区，不是整个主题。相同业务 key 一般映射到同一分区，但要满足生产端分区策略一致、分区数稳定、消费者按序处理等条件。</p>
+<p>例如订单创建、支付、取消要按 <code>order_id</code> 分区，而不是每条消息随机 key。不同订单可并行，同一订单串行。一个超级热点 key 不会因为增加消费者实例自动加速。</p>
+<p>扩分区会改变后续 key 的映射，历史消息仍留在原分区。需要在业务层定义迁移屏障或顺序版本，不能扩完分区就继续承诺跨新旧分区严格顺序。</p>
+<p>无 key 消息的默认分区策略随客户端版本演进，不把它固定描述成 round-robin。自定义分区器要处理空 key、分区不可用、负哈希与扩分区；仅为“平均一点”就重写分区器，往往会增加问题。</p>
+<h2 id="7-消息太大超时与重试怎么排查">7. 消息太大、超时与重试怎么排查</h2>
+<table>
+<thead>
+<tr>
+<th>现象/错误</th>
+<th>先检查</th>
+<th>处理与验证</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RecordTooLargeException</td>
+<td>序列化后大小、producer max.request.size、topic max.message.bytes、Broker message.max.bytes</td>
+<td>优先对象存储+引用或拆包，再统一调整限额</td>
+</tr>
+<tr>
+<td>Failed to allocate memory</td>
+<td>buffer等待、生产速率、Broker响应、Sender是否阻塞</td>
+<td>先定位出口瓶颈，再评估缓冲区</td>
+</tr>
+<tr>
+<td>TimeoutException</td>
+<td>元数据、地址可达性、请求与交付上限、重试</td>
+<td>保留事件ID，确认可能成功的模糊结果</td>
+</tr>
+<tr>
+<td>NotEnoughReplicas</td>
+<td>ISR与min ISR</td>
+<td>恢复副本健康，不先降低可靠性</td>
+</tr>
+<tr>
+<td>CommitFailedException</td>
+<td>poll超时、rebalance、分区所有权</td>
+<td>停止错误提交，处理重投与幂等</td>
+</tr>
+<tr>
+<td>SerializationException</td>
+<td>数据格式、schema、反序列化器与坏消息所在分区位移</td>
+<td>留下证据，走明确的隔离流程</td>
+</tr>
+</tbody>
+</table>
+<p>大消息还要考虑副本抓取和消费抓取预算，包括 <code>replica.fetch.max.bytes</code>、<code>replica.fetch.response.max.bytes</code>、<code>max.partition.fetch.bytes</code>、<code>fetch.max.bytes</code>。部分抓取限制允许首个大批次返回以保持进度，不能简单理解成超过就永远读不到。放大限额会增加内存、GC和网络压力，需压测与容量验证。</p>
+<p>重试要有上限、退避与分类。认证失败、配置错误、确定的业务非法数据不能无限重试；瞬时超时与协调器切换通常需要客户端按协议重试。重试主题会打破原队列的直接顺序，须为同一实体定义处理策略。</p>
+<p>坏消息隔离至少记录来源 topic/partition/offset、事件ID、错误原因与重试次数。只有确认隔离数据已可靠保存，才可按约定推进原位移；隔离投递失败就提交位移，会造成另一种丢失。</p>
+<h2 id="8-从指定位置重新消费">8. 从指定位置重新消费</h2>
+<p>先确认是临时读取，还是修改正式消费者组的进度。临时检查某分区的记录可以不加入业务组：</p>
+<pre><code class="hljs language-bash">bin/kafka-console-consumer.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> --topic <span class="hljs-string">&quot;<span class="hljs-variable">$TOPIC</span>&quot;</span> --partition 0 --offset 42 --max-messages 5 --timeout-ms 10000 --property print.partition=<span class="hljs-literal">true</span> --property print.offset=<span class="hljs-literal">true</span> <span class="hljs-comment"># 从分区0位移42起限量检查</span>
+</code></pre>
+<p>示例：安全集群补 <code>--consumer.config &quot;$CLIENT_CONFIG&quot;</code>。若 42 已因留存被删除，检查结果受工具的重置策略影响，先查可用起止位移；该命令不应被用于证明业务组已回退。</p>
+<p>修改正式组位移时，<strong>先停止该组全部消费者</strong>，记录业务补偿计划，确认幂等和所需消息还在。下面沿用运维篇的 <code>BS/TOPIC/GROUP/ADMIN</code>：</p>
+<pre><code class="hljs language-bash">bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --describe --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --state <span class="hljs-comment"># 必须确认组已无活跃成员</span>
+bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --describe --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> &gt; offsets-describe-before.txt <span class="hljs-comment"># 记录已提交位置及原本为-的分区</span>
+bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --topic <span class="hljs-string">&quot;<span class="hljs-variable">$TOPIC</span>&quot;</span> --reset-offsets --to-current --<span class="hljs-built_in">export</span> --dry-run &gt; offsets-before.csv <span class="hljs-comment"># 保存当前位置方案，不执行修改</span>
+bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --topic <span class="hljs-string">&quot;<span class="hljs-variable">$TOPIC</span>&quot;</span> --reset-offsets --to-earliest --dry-run <span class="hljs-comment"># 只预览本次回放位置</span>
+bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --topic <span class="hljs-string">&quot;<span class="hljs-variable">$TOPIC</span>&quot;</span> --reset-offsets --to-earliest --execute <span class="hljs-comment"># 示例：明确要重放全部可用历史时才执行</span>
+bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --describe --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> <span class="hljs-comment"># 核对各分区新进度，再启动消费者</span>
+</code></pre>
+<p>示例：只重放一个分区可将 topic 参数改成 <code>orders:0</code>；按时间可使用工具对应的 <code>--to-datetime</code>，需要先确认时区和目标 offset。<code>auto.offset.reset=earliest</code> 仅在没有可用提交位置或位置越界时生效，不会把已有组每次都强制拉回最早。</p>
+<p>需要恢复原位移时，保持消费者停止，先预览再执行：</p>
+<pre><code class="hljs language-bash">bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --reset-offsets --from-file offsets-before.csv --dry-run <span class="hljs-comment"># 预览原位置</span>
+bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --reset-offsets --from-file offsets-before.csv --execute <span class="hljs-comment"># 执行位移回退，业务副作用不会一起回退</span>
+</code></pre>
+<p>示例：CSV 只保存消费位置，不能恢复数据库或已经过期的 Kafka 消息。<code>--to-current</code> 对原先没有提交位移的分区会按工具规则生成位置，因此导出前还要保存原始 <code>--describe</code> 输出，记录 CURRENT-OFFSET 为 <code>-</code> 的分区；不能把 CSV 当成完整状态备份。若原先 <code>orders:2</code> 没有提交位置，而本次重置创建了它，恢复 CSV 后还要在组停止时清除这个分区的提交：</p>
+<pre><code class="hljs language-bash">bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --delete-offsets --topic orders:2 <span class="hljs-comment"># 仅恢复事先记录的“原本无提交位置”分区，不对其他分区执行</span>
+</code></pre>
+<p>再次 describe 核对恢复结果后才启动消费者。清除提交位置后，首次读取还受应用 <code>auto.offset.reset</code> 策略影响。</p>
+<h2 id="9-kafka-到-kafka-的事务示例">9. Kafka 到 Kafka 的事务示例</h2>
+<p>适用于“从源 Topic 读 → 处理 → 写目标 Topic → 提交源位移”需要一起提交的情况。输入、输出与位移必须在同一 Kafka 集群，消费者使用 <code>read_committed</code>。目标主题先创建，不从源写回源。</p>
+<p>下面的完整程序只处理<strong>一次非空 poll</strong>后退出，便于观察事务。生产环境应围绕相同事务边界管理循环、停机和错误恢复。</p>
+<p>保存为 <code>KafkaTxCopy.java</code>：</p>
+<pre><code class="hljs language-java"><span class="hljs-keyword">import</span> java.io.InputStream;
+<span class="hljs-keyword">import</span> java.nio.file.Files;
+<span class="hljs-keyword">import</span> java.nio.file.Path;
+<span class="hljs-keyword">import</span> java.time.Duration;
+<span class="hljs-keyword">import</span> java.util.HashMap;
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Properties;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecord;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecords;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.KafkaConsumer;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.consumer.OffsetAndMetadata;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.producer.KafkaProducer;
+<span class="hljs-keyword">import</span> org.apache.kafka.clients.producer.ProducerRecord;
+<span class="hljs-keyword">import</span> org.apache.kafka.common.TopicPartition;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">KafkaTxCopy</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">if</span> (args.length != <span class="hljs-number">5</span> || args[<span class="hljs-number">1</span>].equals(args[<span class="hljs-number">2</span>])) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;用法: 配置文件 sourceTopic targetTopic group transactionalId；源和目标不能相同&quot;</span>);
+        }
+        <span class="hljs-type">Properties</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Properties</span>();
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">InputStream</span> <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> Files.newInputStream(Path.of(args[<span class="hljs-number">0</span>]))) { base.load(in); }
+        <span class="hljs-type">Properties</span> <span class="hljs-variable">cp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Properties</span>();
+        cp.putAll(base);
+        cp.setProperty(<span class="hljs-string">&quot;group.id&quot;</span>, args[<span class="hljs-number">3</span>]);
+        cp.setProperty(<span class="hljs-string">&quot;enable.auto.commit&quot;</span>, <span class="hljs-string">&quot;false&quot;</span>);
+        cp.setProperty(<span class="hljs-string">&quot;auto.offset.reset&quot;</span>, <span class="hljs-string">&quot;earliest&quot;</span>);
+        cp.setProperty(<span class="hljs-string">&quot;isolation.level&quot;</span>, <span class="hljs-string">&quot;read_committed&quot;</span>);
+        cp.setProperty(<span class="hljs-string">&quot;max.poll.records&quot;</span>, <span class="hljs-string">&quot;100&quot;</span>);
+        cp.setProperty(<span class="hljs-string">&quot;key.deserializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span>);
+        cp.setProperty(<span class="hljs-string">&quot;value.deserializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span>);
+        <span class="hljs-type">Properties</span> <span class="hljs-variable">pp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Properties</span>();
+        pp.putAll(base);
+        pp.setProperty(<span class="hljs-string">&quot;transactional.id&quot;</span>, args[<span class="hljs-number">4</span>]); <span class="hljs-comment">// 同一逻辑实例重启稳定，不同并发实例必须不同</span>
+        pp.setProperty(<span class="hljs-string">&quot;acks&quot;</span>, <span class="hljs-string">&quot;all&quot;</span>);
+        pp.setProperty(<span class="hljs-string">&quot;enable.idempotence&quot;</span>, <span class="hljs-string">&quot;true&quot;</span>);
+        pp.setProperty(<span class="hljs-string">&quot;key.serializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringSerializer&quot;</span>);
+        pp.setProperty(<span class="hljs-string">&quot;value.serializer&quot;</span>, <span class="hljs-string">&quot;org.apache.kafka.common.serialization.StringSerializer&quot;</span>);
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">KafkaConsumer</span>&lt;String, String&gt; <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">KafkaConsumer</span>&lt;&gt;(cp);
+             <span class="hljs-type">KafkaProducer</span>&lt;String, String&gt; <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">KafkaProducer</span>&lt;&gt;(pp)) {
+            p.initTransactions(); <span class="hljs-comment">// 恢复相同transactional.id的旧会话状态</span>
+            c.subscribe(List.of(args[<span class="hljs-number">1</span>]));
+            <span class="hljs-type">long</span> <span class="hljs-variable">deadline</span> <span class="hljs-operator">=</span> System.nanoTime() + Duration.ofSeconds(<span class="hljs-number">30</span>).toNanos();
+            <span class="hljs-keyword">while</span> (System.nanoTime() &lt; deadline) {
+                <span class="hljs-type">ConsumerRecords</span>&lt;String, String&gt; <span class="hljs-variable">batch</span> <span class="hljs-operator">=</span> c.poll(Duration.ofSeconds(<span class="hljs-number">1</span>));
+                <span class="hljs-keyword">if</span> (batch.isEmpty()) <span class="hljs-keyword">continue</span>;
+                p.beginTransaction();
+                <span class="hljs-type">Map</span>&lt;TopicPartition, OffsetAndMetadata&gt; <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();
+                <span class="hljs-keyword">for</span> (ConsumerRecord&lt;String, String&gt; r : batch) {
+                    p.send(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ProducerRecord</span>&lt;&gt;(args[<span class="hljs-number">2</span>], r.key(), r.value())); <span class="hljs-comment">// 同一事务写目标</span>
+                    next.put(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TopicPartition</span>(r.topic(), r.partition()),
+                            <span class="hljs-keyword">new</span> <span class="hljs-title class_">OffsetAndMetadata</span>(r.offset() + <span class="hljs-number">1</span>));
+                }
+                p.sendOffsetsToTransaction(next, c.groupMetadata()); <span class="hljs-comment">// 提交源位移，不能再用commitSync</span>
+                p.commitTransaction(); <span class="hljs-comment">// 等待发送结果，并原子提交目标消息和源位移</span>
+                System.out.printf(<span class="hljs-string">&quot;事务已提交，处理%d条%n&quot;</span>, batch.count());
+                <span class="hljs-keyword">return</span>;
+            }
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;30秒内没有读到可处理消息&quot;</span>);
+        }
+        <span class="hljs-comment">// 任意异常直接退出并关闭，不在不了解错误类别时继续复用会话</span>
+    }
+}
+</code></pre>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 先在实验集群创建orders-copy；生产主题按实际副本规划创建</span>
+bin/kafka-topics.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">${ADMIN[@]}</span>&quot;</span> --create --topic orders-copy --partitions 3 --replication-factor 1
+javac -<span class="hljs-built_in">cp</span> <span class="hljs-string">&#x27;lib/*&#x27;</span> KafkaTxCopy.java                 <span class="hljs-comment"># 工作目录中编译事务示例</span>
+java -<span class="hljs-built_in">cp</span> <span class="hljs-string">&#x27;.:lib/*&#x27;</span> KafkaTxCopy client.properties orders orders-copy orders-tx-demo orders-copy-instance-0 <span class="hljs-comment"># 一个逻辑实例的稳定事务ID</span>
+bin/kafka-console-consumer.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> --topic orders-copy --from-beginning --isolation-level read_committed --max-messages 1 --timeout-ms 10000 <span class="hljs-comment"># 只查看已提交事务的输出</span>
+</code></pre>
+<p>示例：源主题至少有一条消息，且新组尚未消费，才能完成这次验证。生产者、消费者与命令各补相应安全配置。</p>
+<p>这个示例故意遇错退出。持续运行的服务需要区分可中止错误、致命 fencing/授权错误，以及提交结果不确定的超时：不能捕获所有异常后一律 <code>abortTransaction()</code> 并继续。特别是 commit 超时后，应按本版本 API 规定重试同一次提交或执行受控恢复，不在同一未决会话直接开始新事务。</p>
+<p>异常关闭后未决事务可能暂时阻挡 <code>read_committed</code>；以稳定事务 ID 重新初始化会话可参与恢复，但并不替代错误分类与监控。事务 API 的约束见 <a href="https://kafka.apache.org/40/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html">KafkaProducer 4.0 API</a>。</p>
+<h2 id="10-read_committed-读不到lag-却不大">10. read_committed 读不到、Lag 却不大</h2>
+<p><code>read_committed</code> 不返回未提交和已中止事务中的数据；遇到尚未结束的事务时，后面的消息即使已经写到日志，也可能暂时不可见。</p>
+<p>排查顺序：确认目标主题确实有数据 → 确认消费者隔离级别 → 查生产者是否执行 commit/abort → 查事务超时、fencing 和协调器日志 → 再核对分区 HW 与 LSO。</p>
+<p>不能因为普通控制台消费者看到了消息，就证明事务已提交；也不能看到 Lag=0 就认为业务已执行成功。用 <code>read_committed</code> 消费、检查目标业务结果和源组提交位置，共同验证事务链路。</p>
+<h2 id="11-新消费者协议与频繁-rebalance">11. 新消费者协议与频繁 Rebalance</h2>
+<p>4.0.2 默认仍是 <code>group.protocol=classic</code>；设为 <code>consumer</code> 才使用新消费者协议。新协议由服务端承担分配，客户端的 <code>heartbeat.interval.ms</code>、<code>session.timeout.ms</code>、<code>partition.assignment.strategy</code> 不能按 classic 的方式继续使用。</p>
+<table>
+<thead>
+<tr>
+<th>classic组常见触发点</th>
+<th>先收集什么</th>
+<th>处理方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>超过 <a href="http://max.poll.interval.ms">max.poll.interval.ms</a></td>
+<td>单次poll到下次poll间隔、慢业务调用</td>
+<td>缩小批次、控制超时、处理背压</td>
+</tr>
+<tr>
+<td>心跳长时间无法完成</td>
+<td>GC停顿、CPU限流、网络、协调器错误</td>
+<td>修资源与连接问题，再评估超时</td>
+</tr>
+<tr>
+<td>滚动发布不断换成员</td>
+<td>发布节奏、<a href="http://group.instance.id">group.instance.id</a>、撤回记录</td>
+<td>规划静态成员唯一性与超时，评估协作式分配</td>
+</tr>
+<tr>
+<td>订阅/分区变化</td>
+<td>topic变更与分配日志</td>
+<td>减少不必要变化，验证策略一致性</td>
+</tr>
+<tr>
+<td>策略不兼容</td>
+<td>INCONSISTENT_GROUP_PROTOCOL、各实例参数</td>
+<td>按兼容路径统一分配策略与协议</td>
+</tr>
+</tbody>
+</table>
+<p>静态成员减少短暂重启造成的重分配，但会影响故障接管等待时间；不同并发实例不能复用相同 <code>group.instance.id</code>。协作式重平衡和新消费者协议也不是同一件事。</p>
+<p>协议升级前验证客户端、服务端、分配器和监控兼容性，按 <a href="https://kafka.apache.org/40/operations/consumer-rebalance-protocol/">消费者重平衡协议说明</a>选择迁移方式，不能一次复制几项参数就认为已经无中断升级。</p>
+<h2 id="12-connect-与-streams-什么时候用">12. Connect 与 Streams 什么时候用</h2>
+<p>连接数据库、文件、对象存储等外部系统时，Connect 负责连接器任务与位移管理；对 Kafka 事件做过滤、聚合和关联时，Streams 提供嵌入应用的处理库。它们都有自己的故障面，不是“Broker收发正常就一定正常”。</p>
+<p>Connect 出问题时先查任务状态，再看失败 trace 和连接器日志：</p>
+<pre><code class="hljs language-bash">curl -fsS --max-time 5 http://127.0.0.1:8083/connectors <span class="hljs-comment"># 在已有Connect管理环境列出连接器</span>
+curl -fsS --max-time 5 http://127.0.0.1:8083/connectors/orders-source/status <span class="hljs-comment"># 查看连接器及各任务状态</span>
+</code></pre>
+<p>示例：连接器 RUNNING 但某个 task FAILED，仍可能没有数据进入 Kafka。<code>orders-source</code> 换成真实名称；安全环境使用对应 HTTPS 和管理认证。先修复外部凭据、格式、权限或网络，再按维护流程重启失败任务，不仅循环重启整个 Connect。</p>
+<p>Streams 的 <code>application.id</code> 同时关联消费者组、内部主题及状态恢复。相同应用的多个实例使用同一个 ID，不同逻辑应用使用不同 ID。扩实例也受分区/任务并行度限制。</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>核对内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>聚合结果延迟出现</td>
+<td>缓存/提交、事件时间、窗口与 grace，不把窗口大小当固定输出定时器</td>
+</tr>
+<tr>
+<td>Join缺数据</td>
+<td>key、分区数、分区策略、表是否就绪，leftJoin右侧可能为null</td>
+</tr>
+<tr>
+<td>重启恢复很慢</td>
+<td>本地状态目录、changelog大小、restore吞吐与磁盘</td>
+</tr>
+<tr>
+<td>重复写外部系统</td>
+<td>Streams事务只覆盖其支持的Kafka处理边界，外部副作用仍需幂等</td>
+</tr>
+<tr>
+<td>重置应用</td>
+<td>停全部实例，先理解输入位移、内部主题与本地状态的处理范围，不能只删本地目录</td>
+</tr>
+</tbody>
+</table>
+<p>连接器源码和配置也要随目标版本核对。示例 FileStreamSourceConnector 适合演示，不直接承担多机器生产日志采集；尤其要检查插件路径、文件轮转和任务实际运行在哪个 Worker。</p>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><!--[--><a class="level-2 toc-link" href="#1-先确定业务要保证到哪一步">1. 先确定业务要保证到哪一步</a><a class="level-2 toc-link" href="#2-生产者参数如何配">2. 生产者参数如何配</a><a class="level-2 toc-link" href="#3-一个能确认最终发送结果的-java-示例">3. 一个能确认最终发送结果的 Java 示例</a><a class="level-2 toc-link" href="#4-消费者业务成功后再提交">4. 消费者：业务成功后再提交</a><a class="level-2 toc-link" href="#5-批量异步与重平衡时怎么提交">5. 批量、异步与重平衡时怎么提交</a><a class="level-2 toc-link" href="#6-顺序性与分区选择">6. 顺序性与分区选择</a><a class="level-2 toc-link" href="#7-消息太大超时与重试怎么排查">7. 消息太大、超时与重试怎么排查</a><a class="level-2 toc-link" href="#8-从指定位置重新消费">8. 从指定位置重新消费</a><a class="level-2 toc-link" href="#9-kafka-到-kafka-的事务示例">9. Kafka 到 Kafka 的事务示例</a><a class="level-2 toc-link" href="#10-read_committed-读不到lag-却不大">10. read_committed 读不到、Lag 却不大</a><a class="level-2 toc-link" href="#11-新消费者协议与频繁-rebalance">11. 新消费者协议与频繁 Rebalance</a><a class="level-2 toc-link" href="#12-connect-与-streams-什么时候用">12. Connect 与 Streams 什么时候用</a><!--]--><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践<!--[--> · <a href="../support.html">支持本站</a><!--]--></span></footer></div><dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" value="" type="search" maxlength="240" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p><!----></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div><!--]--></div>
+    
+    
+  </body>
+</html>

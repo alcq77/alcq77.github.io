@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Kubernetes 常用运维命令 · 知行笔记</title>
+    <meta name="description" content="使用 kubectl 检查集群和应用状态、查看日志、发布与回滚服务，以及排查配置、存储、网络和节点问题。 操作前确认集群和命名空间，将示例中的 demo 、 demo-api 、Pod、节点名、镜像及地址替换为实际值。读取 Secret、进">
+    <meta name="generator" content="VitePress v1.6.4">
+    <link rel="preload stylesheet" href="/assets/style.BoCVs_6I.css" as="style">
+    <link rel="preload stylesheet" href="/vp-icons.css" as="style">
+    <script type="module" src="/assets/chunks/metadata.f4a3e0f8.js"></script>
+    <script type="module" src="/assets/app.BKKfuMSr.js"></script>
+    <link rel="modulepreload" href="/assets/chunks/theme.Dl1ztlBw.js">
+    <link rel="modulepreload" href="/assets/chunks/framework.D4oetGi0.js">
+    <link rel="modulepreload" href="/assets/articles_kubernetes-operations-commands.md.B1Tci1Gd.lean.js">
+    <meta name="color-scheme" content="light dark">
+    <script>try{document.documentElement.dataset.theme=localStorage.getItem("kb-theme")||"light"}catch{}</script>
+    <script id="check-mac-os">document.documentElement.classList.toggle("mac",/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
+  </head>
+  <body data-base="../">
+    <div id="app"><!--[--><a class="skip-link" href="#main">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span class="home-icon" aria-hidden="true"><!--[-->⌂<!--]--></span>知识库首页</a><a class="home-link" href="../support.html"><span class="support-icon" aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><!--[--><details class="nav-group"><summary><span><span class="folder-icon" data-icon="architecture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="5" rx="1"/><rect x="2" y="17" width="8" height="5" rx="1"/><rect x="14" y="17" width="8" height="5" rx="1"/><path d="M12 7v5M6 17v-5h12v5"/></svg></span></span>架构设计<span class="group-count">1</span></summary><!--[--><a class="nav-link" href="../articles/ddd-design-practice.html"><span class="doc-icon">≡</span><span>DDD 建模与落地实践</span></a><!--]--></details><details class="nav-group" open><summary><span><span class="folder-icon" data-icon="container-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 10 9-5M3 8l9 5v8M7.5 5.5l9 5"/></svg></span></span>容器运维<span class="group-count">4</span></summary><!--[--><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon">≡</span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="active nav-link" href="../articles/kubernetes-operations-commands.html" aria-current="page"><span class="doc-icon">≡</span><span>Kubernetes 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon">≡</span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon">≡</span><span>Kubernetes 应用部署与配置实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="mq-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="8" width="5" height="8" rx="1"/><rect x="17" y="8" width="5" height="8" rx="1"/><path d="M7 12h10m-3-3 3 3-3 3M4.5 5v-2h15v2M4.5 19v2h15v-2"/></svg></span></span>消息队列<span class="group-count">3</span></summary><!--[--><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon">≡</span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon">≡</span><span>Kafka 核心机制与源码排查</span></a><a class="nav-link" href="../articles/kafka-reliability.html"><span class="doc-icon">≡</span><span>Kafka 消息生产、消费与可靠性实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="linux-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg></span></span>Linux 运维<span class="group-count">7</span></summary><!--[--><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon">≡</span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon">≡</span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon">≡</span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-kernel-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon">≡</span><span>Linux 性能瓶颈排查与优化</span></a><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon">≡</span><span>Nginx 配置、部署与日常运维</span></a><!--]--></details><!--]--></nav><div class="sidebar-footer"><span class="status-dot"></span>15 篇公开笔记<span>持续积累，随时查阅</span></div></aside><button class="mobile-backdrop" aria-label="关闭导航" hidden></button><div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="menu-toggle icon-button" aria-label="打开导航" aria-expanded="false">☰</button><a href="../index.html">知识库</a><span>/</span><span>容器运维</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>个人知识库</span><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题">◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header><div class="content-layout"><main id="main"><div class="article-head"><div class="eyebrow">容器运维</div><h1>Kubernetes 常用运维命令</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 26 分钟阅读</span></div><div class="tag-row"><span class="tag">kubernetes</span><span class="tag">kubectl</span><span class="tag">k8s</span><span class="tag">operations</span><span class="tag">troubleshooting</span></div></div><article class="markdown-body"><p>使用 kubectl 检查集群和应用状态、查看日志、发布与回滚服务，以及排查配置、存储、网络和节点问题。</p>
+<p>操作前确认集群和命名空间，将示例中的 <code>demo</code>、<code>demo-api</code>、Pod、节点名、镜像及地址替换为实际值。读取 Secret、进入容器、修改配置、重启和删除资源需要对应 RBAC 权限。</p>
+<h2 id="1-集群上下文和命名空间">1. 集群、上下文和命名空间</h2>
+<details class="install-guide">
+<summary>安装 kubectl：选择版本、下载、校验及普通用户安装</summary>
+<p>kubectl只是客户端，不会创建Kubernetes集群。先向管理员确认API Server版本，客户端版本一般应在服务端前后一个小版本内；不要在不知集群版本时直接下载最新版。</p>
+<p>CentOS 7可以在已有兼容客户端上维护集群，但客户端可执行不代表这台机器适合安装新版Kubernetes节点。旧客户端、内核和运行时分别核对；本机工具不兼容时在受维护的管理机上使用匹配集群版本的kubectl，不临时替换生产节点组件。详见<a href="https://kubernetes.io/releases/version-skew-policy/">版本偏差规则</a>。</p>
+<p>下面演示Linux amd64下载流程，<code>v1.35.0</code>仅为固定版本示例，应改为与集群匹配、经批准的补丁版本；<code>uname -m</code>若为aarch64，下载架构改为arm64。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">uname</span> -m
+<span class="hljs-built_in">mkdir</span> -p <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/downloads/kubectl&quot;</span>
+<span class="hljs-built_in">cd</span> <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/downloads/kubectl&quot;</span>
+kubectl_version=<span class="hljs-string">&#x27;v1.35.0&#x27;</span> <span class="hljs-comment"># 按集群版本调整</span>
+kubectl_arch=<span class="hljs-string">&#x27;amd64&#x27;</span>     <span class="hljs-comment"># 按实际架构调整</span>
+curl -fLO <span class="hljs-string">&quot;https://dl.k8s.io/release/<span class="hljs-variable">$kubectl_version</span>/bin/linux/<span class="hljs-variable">$kubectl_arch</span>/kubectl&quot;</span>
+curl -fLO <span class="hljs-string">&quot;https://dl.k8s.io/release/<span class="hljs-variable">$kubectl_version</span>/bin/linux/<span class="hljs-variable">$kubectl_arch</span>/kubectl.sha256&quot;</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s  kubectl\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-subst">$(cat kubectl.sha256)</span>&quot;</span> | <span class="hljs-built_in">sha256sum</span> --check
+</code></pre>
+<p>示例：最后应显示 <code>kubectl: OK</code>。任一步下载失败或校验不符就停止，不安装该文件。</p>
+<p>上面的 <code>|</code> 把 <code>printf</code> 生成的“校验值＋文件名”作为标准输入传给 <code>sha256sum --check</code>，不需要再创建一个校验清单文件。<code>$(cat kubectl.sha256)</code> 则是命令替换，先读取校验文件内容，再放到 <code>printf</code> 的参数中。</p>
+<p>校验成功后，有管理员授权可安装到系统路径：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
+</code></pre>
+<p>示例：没有sudo时可改为个人目录，不需要改变系统权限：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">mkdir</span> -p <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.local/bin&quot;</span>
+install -m 0755 kubectl <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.local/bin/kubectl&quot;</span>
+<span class="hljs-built_in">export</span> PATH=<span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.local/bin:<span class="hljs-variable">$PATH</span>&quot;</span>
+kubectl version --client
+</code></pre>
+<p>示例：<code>export</code>仅对当前shell及后代生效；长期使用将同样PATH配置放进自己所用shell的配置文件，避免重复追加。集群访问还需要管理员发放的个人kubeconfig，不能复制他人的cluster-admin凭据。</p>
+<pre><code class="hljs language-bash">KUBECONFIG=<span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.kube/demo-config&quot;</span> kubectl config current-context
+KUBECONFIG=<span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.kube/demo-config&quot;</span> kubectl -n demo auth can-i get pods
+</code></pre>
+<p>示例：这里假设管理员提供的配置已安全放在该路径。能输出客户端版本不代表已有集群访问权；本机sudo也不能解决Kubernetes RBAC的Forbidden。步骤见 <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/">kubectl官方安装说明</a>。</p>
+</details>
+<pre><code class="hljs language-bash">kubectl version --client                 <span class="hljs-comment"># 本机客户端版本</span>
+kubectl version                          <span class="hljs-comment"># 客户端与服务端版本</span>
+kubectl config get-contexts              <span class="hljs-comment"># 上下文列表</span>
+kubectl config current-context           <span class="hljs-comment"># 当前集群上下文</span>
+kubectl cluster-info                     <span class="hljs-comment"># 集群服务信息</span>
+kubectl get namespaces                   <span class="hljs-comment"># 命名空间</span>
+kubectl api-resources                    <span class="hljs-comment"># 实际可用资源类型</span>
+kubectl explain deployment.spec          <span class="hljs-comment"># 资源字段说明</span>
+</code></pre>
+<p>示例：<code>current-context</code> 返回测试集群名后，才在该集群排查。API资源以集群实际提供的为准，不假设每个集群都安装了 Ingress Controller、metrics-server 或自定义资源。</p>
+<pre><code class="hljs language-bash">kubectl config use-context demo-cluster                  <span class="hljs-comment"># 切换默认上下文</span>
+kubectl config set-context --current --namespace=demo    <span class="hljs-comment"># 更改当前上下文默认命名空间</span>
+kubectl --context demo-cluster -n demo get pods          <span class="hljs-comment"># 单次显式指定目标</span>
+</code></pre>
+<p>示例：脚本或多集群运维优先显式使用 <code>--context</code> 与 <code>-n</code>，避免默认目标变化后误操作。kubeconfig 可能含凭证，不要直接公开或上传。</p>
+<h2 id="2-全局巡检与资源列表">2. 全局巡检与资源列表</h2>
+<pre><code class="hljs language-bash">kubectl get nodes -o wide                   <span class="hljs-comment"># 节点、版本与地址</span>
+kubectl get pods -A -o wide                 <span class="hljs-comment"># 全集群 Pod</span>
+kubectl -n demo get deploy,sts,ds,job,cronjob <span class="hljs-comment"># 常见工作负载</span>
+kubectl -n demo get svc,ingress              <span class="hljs-comment"># 服务和入口</span>
+kubectl -n demo get pvc                      <span class="hljs-comment"># 存储申请</span>
+kubectl -n demo get events --sort-by=.metadata.creationTimestamp <span class="hljs-comment"># 最近事件顺序</span>
+kubectl -n demo get pods -w                  <span class="hljs-comment"># 持续观察变化</span>
+</code></pre>
+<p>示例：<code>READY 1/2</code> 表示两个容器中只有一个就绪；<code>Running</code> 不等于所有容器或业务都正常。<code>get all</code> 不包含全部资源，ConfigMap、Secret、PVC、Ingress 等需单独查询。<code>-w</code> 按 <code>Ctrl+C</code> 退出观察。</p>
+<h2 id="3-定位应用与查看详情">3. 定位应用与查看详情</h2>
+<pre><code class="hljs language-bash">kubectl -n demo get pods -l app=demo-api -o wide <span class="hljs-comment"># 按实际标签定位</span>
+kubectl -n demo describe deployment demo-api   <span class="hljs-comment"># 工作负载详情与事件</span>
+kubectl -n demo describe pod demo-api-abc-123   <span class="hljs-comment"># 调度、镜像、探针、退出原因</span>
+kubectl -n demo get pod demo-api-abc-123 -o yaml <span class="hljs-comment"># Pod最终配置</span>
+kubectl -n demo get pod demo-api-abc-123 -o jsonpath=<span class="hljs-string">&#x27;{.metadata.ownerReferences}&#x27;</span> <span class="hljs-comment"># 控制器归属</span>
+</code></pre>
+<p>示例：<code>describe pod</code> 底部 Events 中出现 <code>FailedMount</code>，先查卷和权限；出现 <code>FailedScheduling</code>，先查资源、污点、亲和性和PVC，而非直接删Pod。YAML可能含字面量环境变量等敏感配置，分享前脱敏。</p>
+<h2 id="4-日志当前上次多个容器">4. 日志：当前、上次、多个容器</h2>
+<pre><code class="hljs language-bash">kubectl -n demo logs demo-api-abc-123 -c app --<span class="hljs-built_in">tail</span>=100 --timestamps <span class="hljs-comment"># 指定容器</span>
+kubectl -n demo logs demo-api-abc-123 -c app --since=30m             <span class="hljs-comment"># 最近30分钟</span>
+kubectl -n demo logs demo-api-abc-123 -c app --previous             <span class="hljs-comment"># 上次退出实例</span>
+kubectl -n demo logs -f demo-api-abc-123 -c app --<span class="hljs-built_in">tail</span>=100           <span class="hljs-comment"># 实时追踪</span>
+kubectl -n demo logs -l app=demo-api --all-containers=<span class="hljs-literal">true</span> --prefix=<span class="hljs-literal">true</span> --<span class="hljs-built_in">tail</span>=100 <span class="hljs-comment"># 标签聚合</span>
+</code></pre>
+<p>示例：Pod出现 <code>CrashLoopBackOff</code>，优先看 <code>--previous</code>，当前实例可能尚未打印完整错误。init容器日志也用其名字指定 <code>-c</code>。上次日志是否还在取决于容器与节点保留情况，不是永久历史；长期检索需要集中日志。</p>
+<p>日志跟踪按 <code>Ctrl+C</code> 只结束查看。<code>logs</code> 读取标准输出与错误，不主动读取应用在PVC中的日志文件。</p>
+<h2 id="5-容器命令文件复制和临时调试">5. 容器命令、文件复制和临时调试</h2>
+<pre><code class="hljs language-bash">kubectl -n demo <span class="hljs-built_in">exec</span> -it demo-api-abc-123 -c app -- sh <span class="hljs-comment"># 进入容器</span>
+kubectl -n demo <span class="hljs-built_in">exec</span> demo-api-abc-123 -c app -- <span class="hljs-built_in">cat</span> /etc/resolv.conf <span class="hljs-comment"># DNS配置</span>
+kubectl -n demo <span class="hljs-built_in">cp</span> demo-api-abc-123:/tmp/report.txt ./report.txt -c app <span class="hljs-comment"># 拷出</span>
+kubectl -n demo <span class="hljs-built_in">cp</span> ./config-test.yaml demo-api-abc-123:/tmp/config-test.yaml -c app <span class="hljs-comment"># 拷入临时位置</span>
+</code></pre>
+<p>示例：<code>--</code> 后面是容器内命令；镜像没有shell时 <code>sh</code> 也不能用。<code>kubectl cp</code> 通常要求容器内有 <code>tar</code>，不适合当作完整备份方案；容器文件修改可能随重建丢失。</p>
+<pre><code class="hljs language-bash">kubectl -n demo debug pod/demo-api-abc-123 -it \
+  --image=busybox:1.37 --target=app -- sh
+</code></pre>
+<p>示例：给目标Pod添加临时调试容器，需要集群功能、运行时和权限支持；会修改Pod，可能被安全策略拒绝。使用受信任的调试镜像，结束shell不代表调试容器记录从Pod规格中消失。</p>
+<h2 id="6-cpu内存限制与-oom">6. CPU、内存、限制与 OOM</h2>
+<details class="install-guide">
+<summary>kubectl top 报错：检查指标服务，不是再装一个top命令</summary>
+<pre><code class="hljs language-bash">kubectl get apiservice v1beta1.metrics.k8s.io
+kubectl -n kube-system get deployment metrics-server
+kubectl -n kube-system logs deployment/metrics-server --<span class="hljs-built_in">tail</span>=100
+</code></pre>
+<p>示例：资源不存在或指标API不可用时，需要集群管理员检查或部署与集群兼容的 <a href="https://github.com/kubernetes-sigs/metrics-server">metrics-server</a>。部署名称/命名空间可能不同，按实际安装查找。不要直接把最新版清单套进旧集群，或为了绕过证书问题默认加跳过kubelet证书校验的参数。</p>
+</details>
+<pre><code class="hljs language-bash">kubectl top nodes                                  <span class="hljs-comment"># 节点资源</span>
+kubectl -n demo top pods --containers              <span class="hljs-comment"># 容器资源</span>
+kubectl -n demo describe pod demo-api-abc-123       <span class="hljs-comment"># requests/limits、last state</span>
+kubectl describe node worker-1                     <span class="hljs-comment"># 可分配资源、已分配请求、压力</span>
+kubectl -n demo get resourcequota,limitrange        <span class="hljs-comment"># 命名空间约束</span>
+kubectl -n demo get hpa                            <span class="hljs-comment"># 自动扩缩容状态</span>
+</code></pre>
+<p>示例：<code>top</code> 需要资源指标API（通常由metrics-server提供），不是历史监控。<code>OOMKilled</code> 结合内存limit、节点压力和应用峰值判断；CPU限制可能导致节流，不一定表现为进程退出。</p>
+<h2 id="7-清单校验比较与应用">7. 清单校验、比较与应用</h2>
+<pre><code class="hljs language-bash">kubectl apply --dry-run=client -f deployment.yaml -o yaml <span class="hljs-comment"># 客户端预览</span>
+kubectl apply --dry-run=server -f deployment.yaml         <span class="hljs-comment"># 服务端校验，不落库</span>
+kubectl diff -f deployment.yaml                          <span class="hljs-comment"># 对比现有配置</span>
+kubectl apply -f deployment.yaml                         <span class="hljs-comment"># 应用变更</span>
+kubectl -n demo rollout status deployment/demo-api --<span class="hljs-built_in">timeout</span>=180s <span class="hljs-comment"># 等待滚动结果</span>
+</code></pre>
+<p>示例：清单中明确 <code>metadata.namespace: demo</code>，先校验和diff，再apply。<code>diff</code> 有差异时退出码为1，不必把它当成命令故障；输出可能含配置内容，分享前检查敏感值。dry-run不验证实际业务或外部数据库。</p>
+<p>如果资源由 Helm、Operator 或 GitOps 管理，应更新其源配置，临时 <code>edit/apply</code> 可能被控制器覆盖。</p>
+<h2 id="8-更新重启回滚与扩缩容">8. 更新、重启、回滚与扩缩容</h2>
+<pre><code class="hljs language-bash">kubectl -n demo <span class="hljs-built_in">set</span> image deployment/demo-api app=registry.example.com/team/demo-api:1.1.0 <span class="hljs-comment"># 更新镜像</span>
+kubectl -n demo rollout status deployment/demo-api --<span class="hljs-built_in">timeout</span>=180s <span class="hljs-comment"># 查看发布结果</span>
+kubectl -n demo rollout <span class="hljs-built_in">history</span> deployment/demo-api              <span class="hljs-comment"># 修订历史</span>
+kubectl -n demo rollout <span class="hljs-built_in">history</span> deployment/demo-api --revision=2 <span class="hljs-comment"># 指定修订</span>
+kubectl -n demo rollout undo deployment/demo-api --to-revision=2 <span class="hljs-comment"># 回滚</span>
+</code></pre>
+<p>示例：<code>app</code> 是容器名，必须与清单一致；镜像地址为占位示例。回滚依赖保留的修订，只回滚Pod模板，不会恢复数据库、独立ConfigMap或PVC中的数据。</p>
+<pre><code class="hljs language-bash">kubectl -n demo rollout restart deployment/demo-api    <span class="hljs-comment"># 触发滚动重建</span>
+kubectl -n demo rollout pause deployment/demo-api      <span class="hljs-comment"># 暂停Deployment滚动</span>
+kubectl -n demo rollout resume deployment/demo-api     <span class="hljs-comment"># 恢复</span>
+kubectl -n demo scale deployment/demo-api --replicas=3 <span class="hljs-comment"># 改副本数</span>
+kubectl -n demo get hpa demo-api                       <span class="hljs-comment"># 核对HPA</span>
+</code></pre>
+<p>示例：这些操作可能影响流量与容量，按需单独执行。HPA可再次调整人工设置的副本数；暂停滚动不等于暂停现有业务。滚动可用性取决于副本、探针、更新策略和容量，不能默认零中断。</p>
+<p>删除受控制器管理的Pod通常会被重建，不是永久停服；缩容到0也要考虑HPA或其他控制器。</p>
+<h2 id="9-configmapsecret-和配置生效">9. ConfigMap、Secret 和配置生效</h2>
+<pre><code class="hljs language-bash">kubectl -n demo get configmap                      <span class="hljs-comment"># ConfigMap列表</span>
+kubectl -n demo describe configmap demo-config     <span class="hljs-comment"># 内容与键，分享前检查</span>
+kubectl -n demo get secret                         <span class="hljs-comment"># Secret名称与类型，不解码</span>
+kubectl -n demo get secret demo-secret -o jsonpath=<span class="hljs-string">&#x27;{.type}&#x27;</span> <span class="hljs-comment"># 仅查询类型</span>
+kubectl -n demo create configmap demo-config --from-file=application.yaml --dry-run=client -o yaml
+</code></pre>
+<p>示例：最后一条只生成清单，不创建资源；可通过项目审批流程应用。Secret的base64不是加密，不把解码结果、完整Secret YAML或带秘密的命令记录公开。</p>
+<table>
+<thead>
+<tr>
+<th>配置注入方式</th>
+<th>更新后的常见行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>环境变量</td>
+<td>已运行进程不会自动更新，需要重建Pod</td>
+</tr>
+<tr>
+<td>普通投射卷</td>
+<td>通常最终更新，有传播延迟；应用仍需重新读取</td>
+</tr>
+<tr>
+<td><code>subPath</code> 挂载</td>
+<td>不会自动接收对应ConfigMap/Secret更新</td>
+</tr>
+<tr>
+<td>immutable对象</td>
+<td>不能直接修改内容，需要采用新对象等方式</td>
+</tr>
+</tbody>
+</table>
+<p>示例：ConfigMap已更新而应用还是旧配置，先查注入方式及应用重载能力，再决定是否滚动重启，不直接假设更新失败。</p>
+<h2 id="10-servicednsendpointslice-与-ingress">10. Service、DNS、EndpointSlice 与 Ingress</h2>
+<pre><code class="hljs language-bash">kubectl -n demo get svc demo-api -o wide          <span class="hljs-comment"># Service类型与端口</span>
+kubectl -n demo describe svc demo-api            <span class="hljs-comment"># selector、端口、后端信息</span>
+kubectl -n demo get endpointslices -l kubernetes.io/service-name=demo-api -o wide
+kubectl -n demo get pods --show-labels           <span class="hljs-comment"># 核对 selector</span>
+kubectl -n demo get ingress                     <span class="hljs-comment"># 入口地址</span>
+kubectl -n demo describe ingress demo-web        <span class="hljs-comment"># 规则、控制器事件</span>
+kubectl -n demo get networkpolicy               <span class="hljs-comment"># 网络访问限制</span>
+</code></pre>
+<p>示例：Service没有可用后端时，检查selector是否匹配、Pod是否Ready、<code>targetPort</code> 是否正确。优先使用EndpointSlice，旧Endpoints接口已逐步弃用。<code>get networkpolicy</code> 无资源不代表外部防火墙或平台策略都放行。</p>
+<p>从已有且具备工具的业务Pod内部验证：</p>
+<pre><code class="hljs language-bash">kubectl -n demo <span class="hljs-built_in">exec</span> demo-api-abc-123 -c app -- nslookup cache.demo.svc.cluster.local
+</code></pre>
+<p>示例：此域名采用常见的 <code>cluster.local</code> 集群域，实际域可不同。镜像无nslookup时，使用已批准的调试容器。先查DNS，再查目标端口、协议、认证、网络策略；同Pod内容器可通过localhost通信，跨Pod不能这样理解。</p>
+<h2 id="11-临时端口转发">11. 临时端口转发</h2>
+<pre><code class="hljs language-bash">kubectl -n demo port-forward service/demo-api 18080:8080 --address=127.0.0.1
+</code></pre>
+<p>示例：8080必须是Service已有端口；保持命令运行，在本机另一个终端访问：</p>
+<pre><code class="hljs language-bash">curl -i --connect-timeout 3 --max-time 5 http://127.0.0.1:18080/health
+</code></pre>
+<p>示例：<code>/health</code> 为应用实际提供的只读检查路径。转发成功不代表Ingress、LoadBalancer或正常Service数据路径都正常；此功能用于临时排查，Pod替换可能使会话中断，按 <code>Ctrl+C</code> 停止转发。</p>
+<h2 id="12-pvcpv-与存储故障">12. PVC、PV 与存储故障</h2>
+<pre><code class="hljs language-bash">kubectl -n demo get pvc -o wide              <span class="hljs-comment"># 申请状态与容量</span>
+kubectl -n demo describe pvc demo-data       <span class="hljs-comment"># 绑定和挂载相关事件</span>
+kubectl get pv                              <span class="hljs-comment"># 集群级卷</span>
+kubectl describe pv demo-pv                 <span class="hljs-comment"># 回收策略、绑定、卷属性</span>
+kubectl get storageclass                    <span class="hljs-comment"># 存储类与绑定模式</span>
+</code></pre>
+<p>示例：PVC <code>Pending</code> 可能是供给失败、容量、存储类或 <code>WaitForFirstConsumer</code> 等待调度；<code>Bound</code> 也不代表节点挂载成功，要结合Pod事件。访问模式、挂载权限、文件系统和存储后端状态分别核对。</p>
+<p>PVC删除可能触发底层卷回收，受PV回收策略及存储实现影响。不要通过删PVC、改finalizer强行解决挂载问题。StatefulSet的扩缩容和卷保留行为也受其配置影响，操作前查清数据生命周期。</p>
+<h2 id="13-job-与-cronjob">13. Job 与 CronJob</h2>
+<pre><code class="hljs language-bash">kubectl -n demo get <span class="hljs-built_in">jobs</span>,cronjobs                 <span class="hljs-comment"># 批处理任务</span>
+kubectl -n demo describe job report-job           <span class="hljs-comment"># 完成、失败与重试</span>
+kubectl -n demo logs job/report-job --<span class="hljs-built_in">tail</span>=100    <span class="hljs-comment"># 某个任务Pod的日志</span>
+kubectl -n demo get pods -l job-name=report-job   <span class="hljs-comment"># 定位全部任务Pod</span>
+kubectl -n demo create job report-manual-001 --from=cronjob/report <span class="hljs-comment"># 手动触发新任务</span>
+</code></pre>
+<p>示例：手动触发会实际执行业务，须确认幂等和执行范围；名字需唯一，不能把只读巡检和执行任务混为一谈。多个Pod时分别查看日志。</p>
+<pre><code class="hljs language-bash">kubectl -n demo patch cronjob report -p <span class="hljs-string">&#x27;{&quot;spec&quot;:{&quot;suspend&quot;:true}}&#x27;</span>  <span class="hljs-comment"># 暂停后续调度</span>
+kubectl -n demo patch cronjob report -p <span class="hljs-string">&#x27;{&quot;spec&quot;:{&quot;suspend&quot;:false}}&#x27;</span> <span class="hljs-comment"># 恢复调度</span>
+</code></pre>
+<p>示例：暂停CronJob不会自动终止已经创建的Job；恢复时需考虑错过的调度、并发策略和业务重复执行。以上JSON引号按Linux shell写法，Windows shell需相应调整。</p>
+<h2 id="14-节点排障与计划维护">14. 节点排障与计划维护</h2>
+<pre><code class="hljs language-bash">kubectl describe node worker-1                         <span class="hljs-comment"># Conditions、污点、事件</span>
+kubectl get pods -A --field-selector spec.nodeName=worker-1 -o wide <span class="hljs-comment"># 节点上的Pod</span>
+kubectl -n kube-system get pods -o wide                <span class="hljs-comment"># 系统组件</span>
+kubectl get pdb -A                                    <span class="hljs-comment"># 驱逐预算</span>
+</code></pre>
+<p>示例：节点 <code>NotReady</code> 时查kubelet、运行时、网络和磁盘压力。节点上有状态服务、local PV或emptyDir时先确认迁移与数据影响。</p>
+<p>维护操作按步骤执行：</p>
+<pre><code class="hljs language-bash">kubectl cordon worker-1                      <span class="hljs-comment"># 禁止新调度，不迁移已有Pod</span>
+kubectl drain worker-1 --ignore-daemonsets --<span class="hljs-built_in">timeout</span>=10m <span class="hljs-comment"># 驱逐普通工作负载</span>
+kubectl uncordon worker-1                    <span class="hljs-comment"># 维护验收后恢复调度</span>
+</code></pre>
+<p>示例：先确认有其他节点容量且业务可迁移。drain受PDB等约束；默认遇到emptyDir或不受控制器管理的Pod可能中止。不要为通过命令直接加 <code>--force</code>、<code>--delete-emptydir-data</code> 或绕过驱逐的参数。</p>
+<details class="install-guide">
+<summary>节点缺少 crictl：安装 cri-tools 并配置运行时端点</summary>
+<p>仅在需要排查的Kubernetes节点操作，不在普通办公电脑上假设存在运行时socket。优先沿用集群维护的软件源与对应版本。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v crictl
+<span class="hljs-comment"># Ubuntu / Debian，前提是已配置与集群匹配的Kubernetes软件源</span>
+apt-cache policy cri-tools
+<span class="hljs-built_in">sudo</span> apt-get install cri-tools
+<span class="hljs-comment"># RHEL系使用其匹配源时，改选：</span>
+<span class="hljs-comment"># dnf info cri-tools</span>
+<span class="hljs-comment"># sudo dnf install cri-tools</span>
+<span class="hljs-comment"># CentOS 7已有节点：仅在现有批准的集群源中查询并选择匹配版本</span>
+<span class="hljs-comment"># yum --showduplicates list cri-tools</span>
+<span class="hljs-comment"># sudo yum install cri-tools-具体版本 # 替换成查询出的版本，不自动升级到最新版</span>
+</code></pre>
+<p>示例：未配置源时不要直接加入另一小版本仓库；由管理员按集群发行方式提供匹配包，或按照 <a href="https://github.com/kubernetes-sigs/cri-tools/blob/master/docs/crictl.md">cri-tools安装说明</a> 下载对应架构的正式发行文件并验证校验和。</p>
+<p>containerd节点的单次查询示例：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> crictl --runtime-endpoint unix:///run/containerd/containerd.sock info
+<span class="hljs-built_in">sudo</span> crictl --runtime-endpoint unix:///run/containerd/containerd.sock ps -a
+</code></pre>
+<p>示例：socket路径以实际containerd配置为准；CRI-O、K3s、RKE2等可能使用不同端点。确认后可由管理员配置 <code>/etc/crictl.yaml</code>，不要把私有socket开放成所有用户可写。</p>
+</details>
+<p>登录目标节点后的只读检查，需匹配实际运行时：</p>
+<pre><code class="hljs language-bash">systemctl status kubelet --no-pager -l         <span class="hljs-comment"># kubelet状态</span>
+<span class="hljs-built_in">sudo</span> journalctl -u kubelet -b -n 100 --no-pager <span class="hljs-comment"># 日志</span>
+systemctl status containerd --no-pager -l      <span class="hljs-comment"># 使用containerd时</span>
+<span class="hljs-built_in">sudo</span> crictl ps -a                             <span class="hljs-comment"># CRI容器，需已正确配置endpoint</span>
+<span class="hljs-built_in">sudo</span> crictl pods                              <span class="hljs-comment"># Pod沙箱</span>
+<span class="hljs-built_in">df</span> -h                                        <span class="hljs-comment"># 磁盘空间</span>
+<span class="hljs-built_in">df</span> -i                                        <span class="hljs-comment"># inode</span>
+</code></pre>
+<p>示例：现代Kubernetes不要求使用Docker，不能默认通过 <code>docker ps</code> 看见所有Pod容器。先确认节点运行时与crictl连接端点，不用运行时命令绕过Kubernetes直接删除业务容器。</p>
+<h2 id="15-rbacserviceaccount标签与污点">15. RBAC、ServiceAccount、标签与污点</h2>
+<pre><code class="hljs language-bash">kubectl auth can-i get pods -n demo             <span class="hljs-comment"># 当前身份能否查询</span>
+kubectl auth can-i create pods/exec -n demo     <span class="hljs-comment"># 能否进入容器</span>
+kubectl -n demo get serviceaccounts,roles,rolebindings <span class="hljs-comment"># 命名空间权限配置</span>
+kubectl get clusterroles,clusterrolebindings    <span class="hljs-comment"># 集群权限配置</span>
+kubectl -n demo get pods --show-labels          <span class="hljs-comment"># Pod标签</span>
+kubectl get nodes --show-labels                 <span class="hljs-comment"># 节点标签</span>
+</code></pre>
+<p>示例：<code>Forbidden</code> 先确认身份、context和RBAC，不能通过临时授予cluster-admin来替代定位。<code>can-i</code>只是当前权限判断，仍可能被准入策略约束。</p>
+<pre><code class="hljs language-bash">kubectl label node worker-1 workload=batch          <span class="hljs-comment"># 新增调度相关标签</span>
+kubectl label node worker-1 workload-               <span class="hljs-comment"># 移除标签</span>
+kubectl taint node worker-1 dedicated=batch:NoSchedule <span class="hljs-comment"># 增加污点</span>
+kubectl taint node worker-1 dedicated:NoSchedule-    <span class="hljs-comment"># 删除污点</span>
+</code></pre>
+<p>示例：标签和污点可能改变后续调度，不作为无害的查询命令。<code>NoSchedule</code> 一般阻止不容忍的新Pod；<code>NoExecute</code> 还可能驱逐已有Pod，不能随意替换。</p>
+<h2 id="16-删除操作与排障顺序">16. 删除操作与排障顺序</h2>
+<pre><code class="hljs language-bash">kubectl -n demo delete pod demo-api-abc-123 <span class="hljs-comment"># 优雅删除指定Pod，可能被重建</span>
+kubectl -n demo delete -f obsolete.yaml     <span class="hljs-comment"># 删除清单对应资源，逐项核对</span>
+</code></pre>
+<p>示例：删除前核对对象、控制器和数据归属；删除namespace会删除其中大量资源，不能当成重启。强制删除Pod不保证原节点上的进程已真正结束，有状态服务可能出现双写，避免常规使用。</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>排查顺序</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pending</td>
+<td>describe事件 → requests/容量 → 污点/亲和性 → PVC</td>
+</tr>
+<tr>
+<td>ImagePullBackOff</td>
+<td>镜像名/digest → 凭证 → 节点网络/DNS/证书 → 架构</td>
+</tr>
+<tr>
+<td>CrashLoopBackOff</td>
+<td>previous日志 → 退出原因 → 配置/权限 → 依赖 → 探针</td>
+</tr>
+<tr>
+<td>OOMKilled</td>
+<td>limit → 峰值与泄漏 → 节点压力 → 应用内存配置</td>
+</tr>
+<tr>
+<td>Running但不Ready</td>
+<td>readiness结果 → 应用监听 → 配置与依赖</td>
+</tr>
+<tr>
+<td>Service不可达</td>
+<td>Pod就绪 → selector → EndpointSlice → targetPort → 网络策略</td>
+</tr>
+<tr>
+<td>Ingress 502/504</td>
+<td>入口控制器 → Service → 后端端口与协议 → 应用超时</td>
+</tr>
+<tr>
+<td>Node NotReady</td>
+<td>kubelet → 运行时 → 网络插件 → 磁盘/内存/证书</td>
+</tr>
+<tr>
+<td>FailedMount</td>
+<td>PVC/PV → 节点事件 → 存储驱动 → 权限和后端</td>
+</tr>
+<tr>
+<td>Forbidden</td>
+<td>当前context与身份 → RBAC → 准入限制</td>
+</tr>
+</tbody>
+</table>
+<p>liveness失败可能重启容器，readiness失败影响流量就绪，startup探针保护启动阶段。不要把业务暂不可用直接等同于应该删Pod重启。</p>
+<h2 id="17-发布后的验收清单">17. 发布后的验收清单</h2>
+<pre><code class="hljs language-bash">kubectl -n demo rollout status deployment/demo-api --<span class="hljs-built_in">timeout</span>=180s
+kubectl -n demo get pods -l app=demo-api -o wide
+kubectl -n demo get events --sort-by=.metadata.creationTimestamp
+kubectl -n demo logs deployment/demo-api --<span class="hljs-built_in">tail</span>=100
+</code></pre>
+<p>示例：确认副本就绪、重启次数不持续增长、无新增关键告警，并从真实入口验证只读接口和关键业务。最后一条可能只选择一个Pod，多个副本需结合标签聚合或集中日志检查。</p>
+<p>命令和可用参数以客户端与集群版本为准，详见 <a href="https://kubernetes.io/docs/reference/kubectl/quick-reference/">kubectl 官方速查</a>。另见 <a href="docker-compose-operations-commands.html">Docker 与 Compose 运维</a>、<a href="linux-server-operations-commands.html">服务器常用命令</a>。</p>
+<h2 id="18-按场景查看完整步骤">18. 按场景查看完整步骤</h2>
+<ul>
+<li><a href="kubernetes-application-practice.html">Kubernetes 应用部署与配置实践</a>：完整清单、配置生效、探针、更新与回退。</li>
+<li><a href="kubernetes-cluster-troubleshooting.html">Kubernetes 集群搭建、维护与故障排查</a>：实验集群、运行时、节点、网络、存储和维护流程。</li>
+</ul>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div></main><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><!--[--><a class="level-2 toc-link" href="#1-集群上下文和命名空间">1. 集群、上下文和命名空间</a><a class="level-2 toc-link" href="#2-全局巡检与资源列表">2. 全局巡检与资源列表</a><a class="level-2 toc-link" href="#3-定位应用与查看详情">3. 定位应用与查看详情</a><a class="level-2 toc-link" href="#4-日志当前上次多个容器">4. 日志：当前、上次、多个容器</a><a class="level-2 toc-link" href="#5-容器命令文件复制和临时调试">5. 容器命令、文件复制和临时调试</a><a class="level-2 toc-link" href="#6-cpu内存限制与-oom">6. CPU、内存、限制与 OOM</a><a class="level-2 toc-link" href="#7-清单校验比较与应用">7. 清单校验、比较与应用</a><a class="level-2 toc-link" href="#8-更新重启回滚与扩缩容">8. 更新、重启、回滚与扩缩容</a><a class="level-2 toc-link" href="#9-configmapsecret-和配置生效">9. ConfigMap、Secret 和配置生效</a><a class="level-2 toc-link" href="#10-servicednsendpointslice-与-ingress">10. Service、DNS、EndpointSlice 与 Ingress</a><a class="level-2 toc-link" href="#11-临时端口转发">11. 临时端口转发</a><a class="level-2 toc-link" href="#12-pvcpv-与存储故障">12. PVC、PV 与存储故障</a><a class="level-2 toc-link" href="#13-job-与-cronjob">13. Job 与 CronJob</a><a class="level-2 toc-link" href="#14-节点排障与计划维护">14. 节点排障与计划维护</a><a class="level-2 toc-link" href="#15-rbacserviceaccount标签与污点">15. RBAC、ServiceAccount、标签与污点</a><a class="level-2 toc-link" href="#16-删除操作与排障顺序">16. 删除操作与排障顺序</a><a class="level-2 toc-link" href="#17-发布后的验收清单">17. 发布后的验收清单</a><a class="level-2 toc-link" href="#18-按场景查看完整步骤">18. 按场景查看完整步骤</a><!--]--><a class="back-top" href="#main">↑ 返回顶部</a></aside></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践<!--[--> · <a href="../support.html">支持本站</a><!--]--></span></footer></div><dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" value="" type="search" maxlength="240" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索">Esc</button></div><div id="search-results" aria-live="polite"><p class="search-empty">输入关键词，查找笔记中的知识。</p><!----></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div><!--]--></div>
+    
+    
+  </body>
+</html>
