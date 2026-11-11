@@ -1,0 +1,367 @@
+import{_ as u}from"./chunks/ArticlePage.BzJfrCud.js";import{o as a,c as n,m as e}from"./chunks/framework.CZZR5ESy.js";const r=JSON.parse('{"title":"Linux 服务开机自启与 systemd 管理","titleTemplate":":title · 知行笔记","description":"使用 systemd 管理 Java、Redis、IoTDB 等长期运行服务，实现开机启动、失败重试和统一启停。示例中的目录 /opt/demo 、服务名 demo-api 、运行用户、内存和端口按实际安装情况调整；需要管理员权限的命令使用","frontmatter":{"title":"Linux 服务开机自启与 systemd 管理","titleTemplate":":title · 知行笔记","description":"使用 systemd 管理 Java、Redis、IoTDB 等长期运行服务，实现开机启动、失败重试和统一启停。示例中的目录 /opt/demo 、服务名 demo-api 、运行用户、内存和端口按实际安装情况调整；需要管理员权限的命令使用","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"linux-systemd-autostart\\",\\"title\\":\\"Linux 服务开机自启与 systemd 管理\\",\\"category\\":\\"Linux 运维\\",\\"tags\\":[\\"linux\\",\\"systemd\\",\\"java\\",\\"redis\\",\\"iotdb\\",\\"nacos\\",\\"autostart\\"],\\"readingMinutes\\":20},\\"toc\\":[{\\"title\\":\\"1. 先分清自启、启动和自动重试\\",\\"level\\":2,\\"id\\":\\"1-先分清自启启动和自动重试\\"},{\\"title\\":\\"2. 创建配置前检查现有进程\\",\\"level\\":2,\\"id\\":\\"2-创建配置前检查现有进程\\"},{\\"title\\":\\"3. Java 单服务配置\\",\\"level\\":2,\\"id\\":\\"3-java-单服务配置\\"},{\\"title\\":\\"4. 多个 Java 服务使用模板\\",\\"level\\":2,\\"id\\":\\"4-多个-java-服务使用模板\\"},{\\"title\\":\\"5. 校验、加载、开启自启\\",\\"level\\":2,\\"id\\":\\"5-校验加载开启自启\\"},{\\"title\\":\\"6. 原手动进程如何切换\\",\\"level\\":2,\\"id\\":\\"6-原手动进程如何切换\\"},{\\"title\\":\\"7. Redis 的自启重点\\",\\"level\\":2,\\"id\\":\\"7-redis-的自启重点\\"},{\\"title\\":\\"8. IoTDB、Nacos 与已有 MySQL 服务\\",\\"level\\":2,\\"id\\":\\"8-iotdbnacos-与已有-mysql-服务\\"},{\\"title\\":\\"9. 覆盖已有服务与 systemd 版本差异\\",\\"level\\":2,\\"id\\":\\"9-覆盖已有服务与-systemd-版本差异\\"},{\\"title\\":\\"10. 启动顺序与依赖就绪\\",\\"level\\":2,\\"id\\":\\"10-启动顺序与依赖就绪\\"},{\\"title\\":\\"11. 日常管理和开机检查\\",\\"level\\":2,\\"id\\":\\"11-日常管理和开机检查\\"},{\\"title\\":\\"12. 控制台日志、业务日志与容量\\",\\"level\\":2,\\"id\\":\\"12-控制台日志业务日志与容量\\"},{\\"title\\":\\"13. 由 systemd 管理后如何发版\\",\\"level\\":2,\\"id\\":\\"13-由-systemd-管理后如何发版\\"},{\\"title\\":\\"14. 常见问题\\",\\"level\\":2,\\"id\\":\\"14-常见问题\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/linux-systemd-autostart.md","filePath":"articles/linux-systemd-autostart.md"}'),t={name:"articles/linux-systemd-autostart.md"},i=Object.assign(t,{setup(l){const c=`<p>使用 systemd 管理 Java、Redis、IoTDB 等长期运行服务，实现开机启动、失败重试和统一启停。示例中的目录 <code>/opt/demo</code>、服务名 <code>demo-api</code>、运行用户、内存和端口按实际安装情况调整；需要管理员权限的命令使用 <code>sudo</code>。</p>
+<h2 id="1-先分清自启启动和自动重试">1. 先分清自启、启动和自动重试</h2>
+<table>
+<thead>
+<tr>
+<th>操作或配置</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enable</code></td>
+<td>建立开机启动关系，不立即启动进程</td>
+</tr>
+<tr>
+<td><code>start</code></td>
+<td>现在启动，不自动开启开机自启</td>
+</tr>
+<tr>
+<td><code>disable</code></td>
+<td>取消开机自启，不立即停止进程</td>
+</tr>
+<tr>
+<td><code>stop</code></td>
+<td>主动停止；不会因为 <code>Restart=on-failure</code> 自动拉起</td>
+</tr>
+<tr>
+<td><code>daemon-reload</code></td>
+<td>重新读取单元配置，不重启业务进程</td>
+</tr>
+<tr>
+<td><code>Restart=on-failure</code></td>
+<td>主进程失败退出后自动重试，正常退出不重试</td>
+</tr>
+<tr>
+<td><code>RestartSec=60</code></td>
+<td>失败后等待60秒重试，不是启动超时时间</td>
+</tr>
+</tbody>
+</table>
+<p><code>nohup ... &amp;</code> 只是在当前系统运行期间启动后台进程，不提供开机自启和持续故障恢复。</p>
+<h2 id="2-创建配置前检查现有进程">2. 创建配置前检查现有进程</h2>
+<pre><code class="hljs language-bash">systemctl --version                       <span class="hljs-comment"># 确认 systemd 版本</span>
+systemctl list-unit-files --<span class="hljs-built_in">type</span>=service   <span class="hljs-comment"># 查看已有服务，避免重复创建</span>
+ps -ww -eo pid,ppid,args                   <span class="hljs-comment"># 查看完整进程参数</span>
+<span class="hljs-built_in">sudo</span> ss -lntp                             <span class="hljs-comment"># 核对监听端口和归属</span>
+</code></pre>
+<p>示例：查找 Java 服务并确认 PID 为24680的进程使用的 Java 和工作目录。</p>
+<pre><code class="hljs language-bash">pgrep -af <span class="hljs-string">&#x27;demo-api.jar&#x27;</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">readlink</span> -f /proc/24680/exe
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">readlink</span> -f /proc/24680/cwd
+</code></pre>
+<p>如果输出分别为 <code>/opt/jdk17/bin/java</code> 和 <code>/opt/demo</code>，服务文件中就应沿用对应的 Java 与工作目录。PID 必须来自本次查询；进程重启后旧 PID 可能被其他程序复用。</p>
+<p>原脚本中的 JVM 参数、Spring 环境、外部配置、日志目录都要核对。Redis 的 <code>dir ./</code> 等相对目录还会影响数据文件位置。</p>
+<h2 id="3-java-单服务配置">3. Java 单服务配置</h2>
+<p>创建 <code>/etc/systemd/system/demo-api.service</code>：</p>
+<pre><code class="hljs language-ini"><span class="hljs-section">[Unit]</span>
+<span class="hljs-attr">Description</span>=Demo API
+<span class="hljs-attr">Wants</span>=network-<span class="hljs-literal">on</span>line.target
+<span class="hljs-attr">After</span>=network-<span class="hljs-literal">on</span>line.target
+
+<span class="hljs-section">[Service]</span>
+<span class="hljs-attr">Type</span>=simple
+<span class="hljs-attr">User</span>=demo
+<span class="hljs-attr">WorkingDirectory</span>=/opt/demo
+<span class="hljs-attr">ExecStart</span>=/opt/jdk17/bin/java -Xms256m -Xmx512m -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-<span class="hljs-number">8</span> -jar /opt/demo/demo-api.jar --spring.profiles.active=prod
+<span class="hljs-attr">Restart</span>=<span class="hljs-literal">on</span>-failure
+<span class="hljs-attr">RestartSec</span>=<span class="hljs-number">60</span>
+<span class="hljs-attr">TimeoutStopSec</span>=<span class="hljs-number">120</span>
+<span class="hljs-attr">StandardOutput</span>=journal
+<span class="hljs-attr">StandardError</span>=journal
+
+<span class="hljs-section">[Install]</span>
+<span class="hljs-attr">WantedBy</span>=multi-user.target
+</code></pre>
+<p>示例：这会使用 <code>demo</code> 用户运行 <code>/opt/demo/demo-api.jar</code>，工作目录为 <code>/opt/demo</code>，控制台输出交给 journal。用户、JDK、JAR、目录必须已存在，用户须具备配置读取和日志写入权限。</p>
+<p><code>Type=simple</code> 应直接运行前台进程，不要在 <code>ExecStart</code> 里加 <code>nohup</code>、<code>&amp;</code> 或 <code>&gt;&gt;</code>。它默认不通过 shell 执行；需要重定向时优先使用 systemd 的输出配置。多行命令用行尾 <code>\\</code> 续行，最后一行不加。</p>
+<p>这里的堆大小只是示例。多个服务的堆、直接内存、线程和其他服务共同占用服务器资源，不能把每个服务都按整机内存配置。</p>
+<h2 id="4-多个-java-服务使用模板">4. 多个 Java 服务使用模板</h2>
+<p>创建 <code>/etc/systemd/system/demo@.service</code>，用 <code>%i</code> 代表实例名：</p>
+<pre><code class="hljs language-ini"><span class="hljs-section">[Unit]</span>
+<span class="hljs-attr">Description</span>=Demo service %i
+<span class="hljs-attr">Wants</span>=network-<span class="hljs-literal">on</span>line.target
+<span class="hljs-attr">After</span>=network-<span class="hljs-literal">on</span>line.target
+
+<span class="hljs-section">[Service]</span>
+<span class="hljs-attr">Type</span>=simple
+<span class="hljs-attr">User</span>=demo
+<span class="hljs-attr">WorkingDirectory</span>=/opt/demo
+<span class="hljs-attr">ExecStartPre</span>=/usr/bin/mkdir -p /opt/demo/logs/%i
+<span class="hljs-attr">ExecStart</span>=/opt/jdk17/bin/java \\
+  -Xms256m -Xmx512m \\
+  -XX:+HeapDumpOnOutOfMemoryError \\
+  -XX:<span class="hljs-attr">HeapDumpPath</span>=/opt/demo/logs/%i/heapdump.hprof \\
+  -XX:<span class="hljs-attr">ErrorFile</span>=/opt/demo/logs/%i/hs_err_pid%%p.log \\
+  -jar /opt/demo/%i.jar \\
+  <span class="hljs-attr">--spring.profiles.active</span>=prod
+<span class="hljs-attr">Restart</span>=<span class="hljs-literal">on</span>-failure
+<span class="hljs-attr">RestartSec</span>=<span class="hljs-number">60</span>
+<span class="hljs-attr">TimeoutStopSec</span>=<span class="hljs-number">120</span>
+
+<span class="hljs-section">[Install]</span>
+<span class="hljs-attr">WantedBy</span>=multi-user.target
+</code></pre>
+<p>示例：<code>demo@auth.service</code> 对应 <code>/opt/demo/auth.jar</code>；<code>demo@gateway.service</code> 对应 <code>/opt/demo/gateway.jar</code>。<code>%%p</code> 向 JVM 传入字面量 <code>%p</code>，避免被 systemd 当作自身占位符。示例目录须允许 <code>demo</code> 用户创建日志子目录。</p>
+<p>模板适用于启动参数相同的服务。不同服务的内存、配置或依赖不同时，使用实例覆盖配置或独立服务，不强行共用。</p>
+<h2 id="5-校验加载开启自启">5. 校验、加载、开启自启</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemd-analyze verify /etc/systemd/system/demo-api.service <span class="hljs-comment"># 校验文件</span>
+<span class="hljs-built_in">sudo</span> systemctl daemon-reload                                   <span class="hljs-comment"># 读取配置</span>
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> demo-api.service                         <span class="hljs-comment"># 仅开启自启</span>
+systemctl is-enabled demo-api.service                          <span class="hljs-comment"># 检查是否 enabled</span>
+systemctl <span class="hljs-built_in">cat</span> demo-api.service --no-pager                       <span class="hljs-comment"># 查看主文件与覆盖文件</span>
+</code></pre>
+<p>示例：模板可校验并启用两个明确的实例：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl daemon-reload
+<span class="hljs-built_in">sudo</span> systemd-analyze verify demo@auth.service demo@gateway.service
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> demo@auth.service demo@gateway.service
+systemctl is-enabled demo@auth.service demo@gateway.service
+</code></pre>
+<p>预期得到两行 <code>enabled</code>。这不代表服务已经运行；用 <code>is-active</code> 和后面的业务检查确认运行情况。</p>
+<h2 id="6-原手动进程如何切换">6. 原手动进程如何切换</h2>
+<p>先在维护时间按原管理方式停止旧进程，确认退出及端口释放，再启动 systemd 服务。仅创建文件、<code>enable</code> 或 <code>daemon-reload</code> 不会把现有手动进程自动接管。</p>
+<pre><code class="hljs language-bash">pgrep -af <span class="hljs-string">&#x27;demo-api.jar&#x27;</span>                          <span class="hljs-comment"># 核对旧进程</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :8080&#x27;</span>                    <span class="hljs-comment"># 核对端口</span>
+<span class="hljs-built_in">sudo</span> systemctl start demo-api.service            <span class="hljs-comment"># 旧实例停止后再启动</span>
+systemctl status demo-api.service --no-pager -l   <span class="hljs-comment"># 检查管理状态</span>
+</code></pre>
+<p>示例：旧进程已通过原脚本停止、8080端口也已释放时，执行 <code>start</code>。随后确认 <code>MainPID</code> 对应新的 Java 进程，再验证接口。不要直接为已有的手动进程再启动一份相同服务。</p>
+<p>切换后统一使用 <code>systemctl</code> 启停，原来的开机脚本、cron <code>@reboot</code> 等重复入口应取消。直接用旧脚本杀进程可能触发 systemd 自动重试。</p>
+<h2 id="7-redis-的自启重点">7. Redis 的自启重点</h2>
+<pre><code class="hljs language-ini"><span class="hljs-section">[Unit]</span>
+<span class="hljs-attr">Description</span>=Demo Redis
+<span class="hljs-attr">After</span>=network-<span class="hljs-literal">on</span>line.target
+<span class="hljs-attr">Wants</span>=network-<span class="hljs-literal">on</span>line.target
+
+<span class="hljs-section">[Service]</span>
+<span class="hljs-attr">Type</span>=simple
+<span class="hljs-attr">User</span>=redis
+<span class="hljs-attr">WorkingDirectory</span>=/opt/redis
+<span class="hljs-attr">ExecStart</span>=/opt/redis/bin/redis-server /opt/redis/redis.conf --daemonize <span class="hljs-literal">no</span> --supervised <span class="hljs-literal">no</span>
+<span class="hljs-attr">Restart</span>=<span class="hljs-literal">on</span>-failure
+<span class="hljs-attr">RestartSec</span>=<span class="hljs-number">10</span>
+<span class="hljs-attr">TimeoutStopSec</span>=<span class="hljs-number">300</span>
+
+<span class="hljs-section">[Install]</span>
+<span class="hljs-attr">WantedBy</span>=multi-user.target
+</code></pre>
+<p>示例：保存为 <code>redis-demo.service</code>。若原配置为 <code>dir ./</code>，且原工作目录是 <code>/opt/redis</code>，此处保留它；不要因更换启动方式而换到空数据目录。运行用户应具备原数据目录和文件权限。</p>
+<p>启用、切换方法与 Java 相同。验证时使用实际监听地址和认证方式：</p>
+<pre><code class="hljs language-bash">redis-cli -h 127.0.0.1 -p 6379 --askpass PING  <span class="hljs-comment"># 提示输入密码</span>
+</code></pre>
+<p>示例：返回 <code>PONG</code> 表示本次连接、认证和 PING 成功。若 Redis 不需要密码，则省略 <code>--askpass</code>；ACL 用户还需指定 <code>--user</code>。</p>
+<h2 id="8-iotdbnacos-与已有-mysql-服务">8. IoTDB、Nacos 与已有 MySQL 服务</h2>
+<table>
+<thead>
+<tr>
+<th>服务</th>
+<th>配置与检查重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MySQL</td>
+<td>已有系统服务时沿用，不另建第二套；保留原数据目录与配置</td>
+</tr>
+<tr>
+<td>IoTDB ConfigNode</td>
+<td>使用当前版本支持的前台启动方式，保留 Java、配置、安装目录</td>
+</tr>
+<tr>
+<td>IoTDB DataNode</td>
+<td>排在 ConfigNode 后启动；同时维护时先停 DataNode，再停 ConfigNode</td>
+</tr>
+<tr>
+<td>Nacos</td>
+<td>核对实际 Java、完整参数、插件目录、配置与日志参数，不能只复制启动命令前半段</td>
+</tr>
+</tbody>
+</table>
+<p>IoTDB 1.3.2 的示例前台命令如下，脚本行为必须与安装版本一致，不加后台运行参数 <code>-d</code>：</p>
+<pre><code class="hljs language-bash">/bin/bash /opt/iotdb/sbin/start-confignode.sh <span class="hljs-comment"># 前台配置节点</span>
+/bin/bash /opt/iotdb/sbin/start-datanode.sh   <span class="hljs-comment"># 前台数据节点，另一终端按需运行</span>
+</code></pre>
+<p>示例：分别放入两个单元的 <code>ExecStart</code>，<code>WorkingDirectory=/opt/iotdb</code>，并配置实际 <code>JAVA_HOME</code>。不要将这两条作为检查命令在已有实例旁边再执行一遍。</p>
+<p>IoTDB 单机部署也可能同时运行 ConfigNode 和 DataNode。在已登录的 IoTDB CLI 中检查：</p>
+<pre><code class="hljs language-sql"><span class="hljs-keyword">SHOW</span> CLUSTER;
+</code></pre>
+<p>示例：确认预期节点均为 <code>Running</code>；“cluster”是节点状态查询名称，不代表一定部署了多台服务器。</p>
+<h2 id="9-覆盖已有服务与-systemd-版本差异">9. 覆盖已有服务与 systemd 版本差异</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl edit nacos.service           <span class="hljs-comment"># 编辑 drop-in 覆盖配置</span>
+<span class="hljs-built_in">sudo</span> systemctl daemon-reload                <span class="hljs-comment"># 保存后重新加载</span>
+systemctl <span class="hljs-built_in">cat</span> nacos.service --no-pager       <span class="hljs-comment"># 查看合并前的配置来源</span>
+systemctl show nacos.service -p Type -p ExecStart -p ExecStop -p Restart -p RestartUSec
+</code></pre>
+<p>示例：将 Nacos 从后台脚本切换为直接运行 Java 时，应核对整个启动命令。覆盖 <code>ExecStart</code> 先用空的 <code>ExecStart=</code> 清除旧值，再设置完整的新命令；若不再使用原停止脚本，也用 <code>ExecStop=</code> 清除它。</p>
+<p>启动频率限制的写法取决于版本：</p>
+<p>CentOS 7通常为systemd 219，先执行 <code>systemctl --version</code> 确认。启用和启动分两步写，便于分别核对；<code>enable</code>本身不启动服务：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> demo-api.service <span class="hljs-comment"># 设置下次开机自启</span>
+<span class="hljs-built_in">sudo</span> systemctl start demo-api.service  <span class="hljs-comment"># 现在启动，已有运行实例时不会重复启动</span>
+systemctl is-enabled demo-api.service  <span class="hljs-comment"># enabled表示已配置自启</span>
+systemctl is-active demo-api.service   <span class="hljs-comment"># active表示当前运行，仍需验证业务接口</span>
+systemctl show demo-api.service -p ControlGroup -p MemoryLimit <span class="hljs-comment"># 219常用内存限制属性</span>
+</code></pre>
+<p>示例：219内存硬上限配置使用 <code>[Service]</code> 下的 <code>MemoryLimit=512M</code>，较新系统常用 <code>MemoryMax=512M</code>；按业务实测留足余量，不直接给已有服务加小限额。<code>MemoryMax</code>、<code>StateDirectory</code>、<code>LogsDirectory</code>等较新指令不能直接套到219；目录提前创建并赋给运行用户，未知指令应在校验和journal中处理。内存实际占用及OOM另查<a href="linux-kernel-troubleshooting.html">cgroup v1示例</a>。</p>
+<pre><code class="hljs language-ini"><span class="hljs-comment"># CentOS 7 / systemd 219：放在 [Service] 下</span>
+<span class="hljs-section">[Service]</span>
+<span class="hljs-attr">StartLimitInterval</span>=<span class="hljs-number">0</span>
+</code></pre>
+<p>示例：旧系统配置后，用 <code>systemctl show nacos -p StartLimitInterval</code> 确认实际值为 <code>0</code>，不能只看文件里有这一行。该设置关闭频率限制，持续故障时会一直按 <code>RestartSec</code> 重试。</p>
+<pre><code class="hljs language-ini"><span class="hljs-comment"># 较新 systemd：放在 [Unit] 下</span>
+<span class="hljs-section">[Unit]</span>
+<span class="hljs-attr">StartLimitIntervalSec</span>=<span class="hljs-number">0</span>
+</code></pre>
+<p>示例：新系统使用 <code>systemctl show nacos -p StartLimitIntervalUSec</code> 核对。是否关闭频率限制按维护策略决定，不需要持续重试时可保留默认限制。</p>
+<p>旧版配置见 <a href="https://github.com/systemd/systemd/blob/v219/man/systemd.service.xml">systemd 219 服务手册</a>，新版见 <a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html">systemd.unit</a>。</p>
+<h2 id="10-启动顺序与依赖就绪">10. 启动顺序与依赖就绪</h2>
+<pre><code class="hljs language-ini"><span class="hljs-section">[Unit]</span>
+<span class="hljs-attr">Wants</span>=network-<span class="hljs-literal">on</span>line.target redis-demo.service nacos.service
+<span class="hljs-attr">After</span>=network-<span class="hljs-literal">on</span>line.target redis-demo.service nacos.service
+</code></pre>
+<p>示例：放在 Java 单元中，会尝试拉起依赖并安排顺序。Redis 认证可用、Nacos 注册接口可用、远程数据库可连接，仍需应用重连或专门的就绪检查；<code>After=</code> 本身不执行这些检查。</p>
+<table>
+<thead>
+<tr>
+<th>应用表现</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>因依赖失败而非零退出</td>
+<td>systemd 按重试策略再次启动</td>
+</tr>
+<tr>
+<td>进程存活且能自行重连</td>
+<td>查看日志，等待依赖恢复并验证</td>
+</tr>
+<tr>
+<td>进程存活但业务不可用</td>
+<td>systemd 不会仅因业务异常而重启，需要业务监测与处理</td>
+</tr>
+</tbody>
+</table>
+<p><code>network-online.target</code> 的效果还依赖系统网络等待服务，不能保证远程数据库或互联网可访问。要求严格就绪时，可用 <code>ExecStartPre</code> 调用带超时的检查脚本，验证协议和认证，不只检测端口。</p>
+<h2 id="11-日常管理和开机检查">11. 日常管理和开机检查</h2>
+<p>以下为按需选择的操作，不要整段连续执行：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl start demo-api       <span class="hljs-comment"># 启动</span>
+<span class="hljs-built_in">sudo</span> systemctl stop demo-api        <span class="hljs-comment"># 停止</span>
+<span class="hljs-built_in">sudo</span> systemctl restart demo-api     <span class="hljs-comment"># 重启，会中断服务</span>
+systemctl status demo-api --no-pager -l <span class="hljs-comment"># 查看状态</span>
+systemctl is-active demo-api        <span class="hljs-comment"># 查询当前是否活动</span>
+systemctl is-enabled demo-api       <span class="hljs-comment"># 查询是否自启</span>
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">disable</span> demo-api     <span class="hljs-comment"># 仅取消开机自启</span>
+</code></pre>
+<p>示例：只想查看状态时执行 <code>status</code>，只想取消下次开机启动时执行 <code>disable</code>。<code>active</code> 是单元活动状态，<code>enabled</code> 是开机配置状态，两个维度互不替代。</p>
+<pre><code class="hljs language-bash">systemctl --failed --no-pager                    <span class="hljs-comment"># 列出失败单元</span>
+systemctl show demo-api -p MainPID -p ExecMainStatus -p Restart -p RestartUSec -p NRestarts
+<span class="hljs-built_in">sudo</span> journalctl -u demo-api -b -n 100 --no-pager <span class="hljs-comment"># 本次开机日志</span>
+<span class="hljs-built_in">sudo</span> journalctl -u demo-api -f                   <span class="hljs-comment"># 持续查看控制台输出</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :8080&#x27;</span>                   <span class="hljs-comment"># 核对监听</span>
+curl -i --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/health
+</code></pre>
+<p>示例：<code>/health</code> 假设为应用实际实现的只读接口，返回预期健康结果后，再检查登录、数据读取等关键业务。旧版 systemd 可能没有 <code>NRestarts</code>，可改看 journal 的启动退出记录。<code>journalctl -f</code> 按 <code>Ctrl+C</code> 只退出日志查看。</p>
+<h2 id="12-控制台日志业务日志与容量">12. 控制台日志、业务日志与容量</h2>
+<table>
+<thead>
+<tr>
+<th>日志</th>
+<th>保存位置与作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>journal</td>
+<td>收集进程整个运行期间的标准输出与错误，不只启动阶段</td>
+</tr>
+<tr>
+<td>应用文件日志</td>
+<td>继续由 Logback、Redis、IoTDB 等自身配置决定</td>
+</tr>
+<tr>
+<td>JVM dump / 崩溃文件</td>
+<td>由 <code>HeapDumpPath</code>、<code>ErrorFile</code> 等参数决定</td>
+</tr>
+</tbody>
+</table>
+<p>systemd 不主动读取应用文件日志。保留相同工作目录、环境和应用配置，才能保持相对日志路径一致。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> journalctl --disk-usage                       <span class="hljs-comment"># journal 总占用</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">du</span> -sh /var/log/journal /run/log/journal 2&gt;/dev/null <span class="hljs-comment"># 实际日志目录</span>
+<span class="hljs-built_in">sudo</span> journalctl --list-boots                       <span class="hljs-comment"># 目前保留的开机记录</span>
+<span class="hljs-built_in">sudo</span> journalctl -u demo-api -b -1 -n 100 --no-pager <span class="hljs-comment"># 上次开机，需日志仍保留</span>
+</code></pre>
+<p>示例：只有 <code>/run/log/journal</code> 时，日志通常为临时存储，重启后丢失；<code>/var/log/journal</code> 用于持久存储。不能因为应用文件日志还在，就认为 journal 也跨重启保存。</p>
+<p>目录检查里的 <code>2&gt;/dev/null</code> 将标准错误丢弃，例如某个目录不存在的报错；正常的容量输出仍保留。它只隐藏提示，不代表目录都存在，排障时可以去掉后查看具体原因。</p>
+<p>需要持久保存时，在 <code>/etc/systemd/journald.conf</code> 的 <code>[Journal]</code> 下按需配置：</p>
+<pre><code class="hljs language-ini"><span class="hljs-section">[Journal]</span>
+<span class="hljs-attr">Storage</span>=persistent
+<span class="hljs-attr">SystemMaxUse</span>=<span class="hljs-number">500</span>M
+<span class="hljs-attr">RuntimeMaxUse</span>=<span class="hljs-number">100</span>M
+</code></pre>
+<p>示例：500MB和100MB分别约束持久和临时 journal 的容量，作用于整台服务器，不限制应用自己写的文件；轮转会有一定余量。仅设置容量不会单独开启持久化。不需要历史 journal 时，可保持现有存储策略。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl restart systemd-journald <span class="hljs-comment"># 应用配置，可能短暂影响日志采集</span>
+<span class="hljs-built_in">sudo</span> journalctl --flush                 <span class="hljs-comment"># 有持久存储时刷新临时日志</span>
+<span class="hljs-built_in">sudo</span> journalctl --disk-usage            <span class="hljs-comment"># 复查占用</span>
+</code></pre>
+<p>示例：上述操作针对日志服务，不是重启 Java；完成后再次检查实际日志目录。选项含义见 <a href="https://www.freedesktop.org/software/systemd/man/latest/journald.conf.html">journald.conf</a>。</p>
+<h2 id="13-由-systemd-管理后如何发版">13. 由 systemd 管理后如何发版</h2>
+<p>先上传新包到暂存位置；在维护时间停止服务，确认进程退出，备份并替换 JAR，再启动和验收。下面假设新包已经在 <code>/opt/demo/releases/demo-api.jar.new</code>：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> systemctl stop demo-api                          <span class="hljs-comment"># 主动停止</span>
+systemctl status demo-api --no-pager -l                <span class="hljs-comment"># 核对已停止</span>
+pgrep -af <span class="hljs-string">&#x27;demo-api.jar&#x27;</span>                              <span class="hljs-comment"># 核对没有遗留实例</span>
+<span class="hljs-built_in">sudo</span> <span class="hljs-built_in">cp</span> -p /opt/demo/demo-api.jar /opt/demo/demo-api.jar.bak <span class="hljs-comment"># 示例备份；已有备份时另取文件名</span>
+<span class="hljs-built_in">sudo</span> install -o demo -g demo -m 0644 /opt/demo/releases/demo-api.jar.new /opt/demo/demo-api.jar
+<span class="hljs-built_in">sudo</span> systemctl start demo-api                         <span class="hljs-comment"># 启动新版本</span>
+<span class="hljs-built_in">sudo</span> journalctl -u demo-api --since <span class="hljs-string">&#x27;5 minutes ago&#x27;</span> --no-pager
+</code></pre>
+<p>示例：启动后检查端口、健康接口和关键业务。备份应使用独立版本名避免覆盖；失败时停止新版本、恢复原包，再启动并验收。配置或数据库变更需要配套回滚方案，不能只恢复 JAR。</p>
+<p>只替换 JAR 不需要 <code>daemon-reload</code>；修改 <code>.service</code> 或覆盖配置时才需要。参数详细说明见 <a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html">systemd.service</a>。</p>
+<h2 id="14-常见问题">14. 常见问题</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled 但没运行</td>
+<td>enable 不等于 start；检查本次启动日志</td>
+</tr>
+<tr>
+<td>开机端口占用</td>
+<td>是否还有 cron、旧脚本或另一套单元启动同一实例</td>
+</tr>
+<tr>
+<td>启动后很快 inactive</td>
+<td>后台脚本与 Type 不匹配，或主进程已经退出</td>
+</tr>
+<tr>
+<td><code>203/EXEC</code></td>
+<td>可执行文件路径、权限、解释器、挂载选项与 SELinux</td>
+</tr>
+<tr>
+<td><code>217/USER</code></td>
+<td>User/Group 是否存在、是否可用</td>
+</tr>
+<tr>
+<td><code>200/CHDIR</code></td>
+<td>WorkingDirectory 是否存在、权限是否正确</td>
+</tr>
+<tr>
+<td><code>start-limit-hit</code></td>
+<td>先修根因，再按需 <code>systemctl reset-failed demo-api</code> 并启动</td>
+</tr>
+<tr>
+<td>重启后数据像丢失了</td>
+<td>首查配置和数据目录、运行用户，避免直接初始化数据</td>
+</tr>
+<tr>
+<td>日志路径变了</td>
+<td>首查 WorkingDirectory、环境变量、外部配置与配置环境</td>
+</tr>
+</tbody>
+</table>
+<p>相关笔记：<a href="linux-service-check-start-troubleshooting.html">服务检查与排障</a>、<a href="linux-system-status-commands.html">系统状态查看</a>。</p>
+`;return(s,o)=>(a(),n("div",null,[e(u,{doc:JSON.parse(s.$frontmatter.kb).doc,content:c,base:"../"},null,8,["doc"])]))}});export{r as __pageData,i as default};

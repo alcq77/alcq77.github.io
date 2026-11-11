@@ -1,0 +1,412 @@
+import{_ as n}from"./chunks/ArticlePage.BzJfrCud.js";import{o as e,c as s,m as t}from"./chunks/framework.CZZR5ESy.js";const i=JSON.parse('{"title":"Linux 服务检查、启动与排障","titleTemplate":":title · 知行笔记","description":"从进程、监听端口、网络连接和日志入手，检查 Java 应用、Nginx、Redis 和数据库等服务的运行情况，并定位启动失败或无法访问的原因。 按排查步骤选择命令，将 ‹服务单元名› 、 ‹端口› 、 ‹服务器IP› 、 ‹应用目录› 等占","frontmatter":{"title":"Linux 服务检查、启动与排障","titleTemplate":":title · 知行笔记","description":"从进程、监听端口、网络连接和日志入手，检查 Java 应用、Nginx、Redis 和数据库等服务的运行情况，并定位启动失败或无法访问的原因。 按排查步骤选择命令，将 ‹服务单元名› 、 ‹端口› 、 ‹服务器IP› 、 ‹应用目录› 等占","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"linux-service-check-start-troubleshooting\\",\\"title\\":\\"Linux 服务检查、启动与排障\\",\\"category\\":\\"Linux 运维\\",\\"tags\\":[\\"linux\\",\\"operations\\",\\"java\\",\\"nginx\\",\\"redis\\",\\"network\\",\\"troubleshooting\\"],\\"readingMinutes\\":21},\\"toc\\":[{\\"title\\":\\"1. 判断服务正常，要检查到哪一层\\",\\"level\\":2,\\"id\\":\\"1-判断服务正常要检查到哪一层\\"},{\\"title\\":\\"2. 先查看状态，避免重复启动\\",\\"level\\":2,\\"id\\":\\"2-先查看状态避免重复启动\\"},{\\"title\\":\\"systemd 管理的服务\\",\\"level\\":3,\\"id\\":\\"systemd-管理的服务\\"},{\\"title\\":\\"普通进程及资源\\",\\"level\\":3,\\"id\\":\\"普通进程及资源\\"},{\\"title\\":\\"3. 核对端口、绑定地址与进程归属\\",\\"level\\":2,\\"id\\":\\"3-核对端口绑定地址与进程归属\\"},{\\"title\\":\\"4. 区分网络问题、认证问题和业务问题\\",\\"level\\":2,\\"id\\":\\"4-区分网络问题认证问题和业务问题\\"},{\\"title\\":\\"5. 使用协议验证服务\\",\\"level\\":2,\\"id\\":\\"5-使用协议验证服务\\"},{\\"title\\":\\"HTTP\\",\\"level\\":3,\\"id\\":\\"http\\"},{\\"title\\":\\"Redis\\",\\"level\\":3,\\"id\\":\\"redis\\"},{\\"title\\":\\"MySQL\\",\\"level\\":3,\\"id\\":\\"mysql\\"},{\\"title\\":\\"6. Java JAR 的手动启动方式\\",\\"level\\":2,\\"id\\":\\"6-java-jar-的手动启动方式\\"},{\\"title\\":\\"7. Nginx 不在 PATH 中时怎么检查\\",\\"level\\":2,\\"id\\":\\"7-nginx-不在-path-中时怎么检查\\"},{\\"title\\":\\"8. Redis 的工作目录与地址\\",\\"level\\":2,\\"id\\":\\"8-redis-的工作目录与地址\\"},{\\"title\\":\\"9. firewalld 的逐步排查\\",\\"level\\":2,\\"id\\":\\"9-firewalld-的逐步排查\\"},{\\"title\\":\\"10. 日志排障与 nohup.out\\",\\"level\\":2,\\"id\\":\\"10-日志排障与-nohupout\\"},{\\"title\\":\\"11. 常见排障结论速查\\",\\"level\\":2,\\"id\\":\\"11-常见排障结论速查\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/linux-service-check-start-troubleshooting.md","filePath":"articles/linux-service-check-start-troubleshooting.md"}'),d={name:"articles/linux-service-check-start-troubleshooting.md"},r=Object.assign(d,{setup(a){const c=`<p>从进程、监听端口、网络连接和日志入手，检查 Java 应用、Nginx、Redis 和数据库等服务的运行情况，并定位启动失败或无法访问的原因。</p>
+<p>按排查步骤选择命令，将 <code>&lt;服务单元名&gt;</code>、<code>&lt;端口&gt;</code>、<code>&lt;服务器IP&gt;</code>、<code>&lt;应用目录&gt;</code> 等占位符替换为实际值。示例使用 <code>demo-api</code>、<code>/opt/demo-api</code> 和 <code>192.0.2.10</code>，执行时同样需要调整。</p>
+<details class="install-guide">
+<summary>安装网络检查工具与 Redis / MySQL 客户端</summary>
+<p>先用 <code>cat /etc/os-release</code> 确认系统，按需选择一套命令。客户端安装只用于连接检查，不要误装或重新初始化数据库服务端。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian：常用检查与Redis客户端</span>
+<span class="hljs-built_in">sudo</span> apt-get update
+<span class="hljs-built_in">sudo</span> apt-get install curl netcat-openbsd redis-tools
+</code></pre>
+<p>示例：<code>redis-tools</code>提供 <code>redis-cli</code>。MySQL客户端在Ubuntu常见为 <code>mysql-client</code>，Debian常用 <code>default-mysql-client</code>，应先查询再选择：</p>
+<pre><code class="hljs language-bash">apt-cache policy mysql-client default-mysql-client
+<span class="hljs-built_in">sudo</span> apt-get install default-mysql-client <span class="hljs-comment"># 仅当本机源提供且与目标实例兼容</span>
+</code></pre>
+<p>示例：默认客户端可能基于MariaDB，连接目标MySQL的认证插件/TLS需实际兼容；不兼容时采用与服务端匹配的官方客户端。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># RHEL系：网络工具</span>
+<span class="hljs-built_in">sudo</span> dnf install curl nmap-ncat
+dnf provides <span class="hljs-string">&#x27;*/redis-cli&#x27;</span> <span class="hljs-comment"># 查询当前源中Redis客户端属于哪个包</span>
+dnf provides <span class="hljs-string">&#x27;*/mysql&#x27;</span>     <span class="hljs-comment"># 查询MySQL兼容客户端属于哪个包</span>
+</code></pre>
+<p>示例：客户端可能随Redis包或MariaDB/MySQL客户端包提供，名称随系统和批准仓库变化。核对查询结果及依赖后执行 <code>sudo dnf install 实际包名</code>，不凭其他系统的包名直接套用；仅有yum时使用对应的yum查询/安装命令。</p>
+<p>CentOS 7使用下面这组；先查询客户端来源，避免误装并启动服务端：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> yum install curl nmap-ncat <span class="hljs-comment"># 只安装HTTP与TCP检查工具</span>
+yum provides <span class="hljs-string">&#x27;*/redis-cli&#x27;</span>     <span class="hljs-comment"># 查询现有批准仓库中的Redis客户端包</span>
+yum provides <span class="hljs-string">&#x27;*/mysql&#x27;</span>         <span class="hljs-comment"># 查询MySQL/MariaDB客户端包，不等于安装数据库</span>
+<span class="hljs-comment"># sudo yum install 实际客户端包名 # 核对版本、依赖和认证兼容性后再替换执行</span>
+</code></pre>
+<p>示例：仓库没有 <code>redis-cli</code>，先查原Redis安装目录是否已有客户端；不要直接添加新版发行版源。旧MariaDB客户端可能不支持目标MySQL的认证插件或TLS要求，改用匹配的客户端。CentOS 7仓库失效处理见<a href="linux-server-operations-commands.html">服务器常用命令</a>。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v curl nc redis-cli mysql
+redis-cli --version
+mysql --version
+</code></pre>
+<p>示例：已存在自定义安装时先查PATH，不重复安装另一套。<code>jps</code>来自JDK而非单独运维工具包，应使用应用匹配的JDK工具；Nginx配置检查也优先使用原实例二进制，不另装一套Nginx。</p>
+</details>
+<h2 id="1-判断服务正常要检查到哪一层">1. 判断服务正常，要检查到哪一层</h2>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>检查内容</th>
+<th>能证明什么</th>
+<th>仍不能证明什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>进程</td>
+<td><code>ps</code>、<code>pgrep</code>、<code>jps</code></td>
+<td>相关进程存在</td>
+<td>启动完成、端口可用</td>
+</tr>
+<tr>
+<td>监听</td>
+<td><code>ss</code></td>
+<td>指定进程监听指定地址和端口</td>
+<td>外部网络可达、业务正常</td>
+</tr>
+<tr>
+<td>网络</td>
+<td><code>nc</code>、<code>Test-NetConnection</code></td>
+<td>客户端能够建立 TCP 连接</td>
+<td>认证通过、协议正确</td>
+</tr>
+<tr>
+<td>协议</td>
+<td>HTTP 响应、Redis PING、数据库查询</td>
+<td>对应协议或简单操作成功</td>
+<td>全部业务功能正常</td>
+</tr>
+<tr>
+<td>业务</td>
+<td>登录、读取列表、必要的读写验证</td>
+<td>验证过的业务链路可用</td>
+<td>未覆盖的其他功能正常</td>
+</tr>
+</tbody>
+</table>
+<p>建议顺序：进程 → 监听地址和端口 → 本机协议验证 → 远程连接 → 业务验证。不要因为看到 Java 进程就宣布启动成功，也不要因为后端根路径返回 404 就认定服务退出。</p>
+<h2 id="2-先查看状态避免重复启动">2. 先查看状态，避免重复启动</h2>
+<h3 id="systemd-管理的服务">systemd 管理的服务</h3>
+<pre><code class="hljs language-bash">systemctl status &lt;服务单元名&gt; --no-pager
+systemctl is-active &lt;服务单元名&gt;
+journalctl -u &lt;服务单元名&gt; -n 100 --no-pager
+</code></pre>
+<p>示例：查看名为 <code>demo-api.service</code> 的服务状态和最近100条日志。</p>
+<pre><code class="hljs language-bash">systemctl status demo-api.service --no-pager
+systemctl is-active demo-api.service
+journalctl -u demo-api.service -n 100 --no-pager
+</code></pre>
+<p><code>is-active</code> 返回 <code>active</code> 表示单元处于活动状态；<code>failed</code> 表示失败，继续查看上面的日志。单元处于活动状态仍需验证端口和业务接口。</p>
+<p>如果服务由 systemd、容器或其他进程管理器托管，应通过原管理方式操作。不要再手动启动一份相同应用；手动杀进程后，管理器还可能自动拉起新进程。</p>
+<h3 id="普通进程及资源">普通进程及资源</h3>
+<pre><code class="hljs language-bash">ps -ww -eo pid,ppid,<span class="hljs-built_in">stat</span>,<span class="hljs-built_in">comm</span>,args
+pgrep -af java
+jps -lv
+free -h
+<span class="hljs-built_in">df</span> -h
+<span class="hljs-built_in">du</span> -sh &lt;应用目录&gt;
+</code></pre>
+<p>示例：筛选应用、核对 Java 启动参数，并检查内存、磁盘和应用目录占用。</p>
+<pre><code class="hljs language-bash">ps -ww -eo pid,ppid,<span class="hljs-built_in">stat</span>,<span class="hljs-built_in">comm</span>,args | grep <span class="hljs-string">&#x27;[d]emo-api.jar&#x27;</span>
+pgrep -af java
+jps -lv
+free -h
+<span class="hljs-built_in">df</span> -h
+<span class="hljs-built_in">du</span> -sh /opt/demo-api
+</code></pre>
+<p>例如进程输出含 <code>24680 java -jar /opt/demo-api/demo-api.jar</code>，表示 PID 为24680；<code>du</code> 输出 <code>320M /opt/demo-api</code>，表示该目录占用约320MB。<code>free</code> 的 <code>available</code> 假设为 <code>5.2Gi</code>，表示估计仍可供新应用使用的内存约5.2GiB。</p>
+<p><code>jps</code> 需要可用的 JDK 工具和足够权限；看不到进程不能单独证明应用不存在。判断具体应用时核对完整命令、JAR 路径和 PID，不要只依赖进程短名称。<code>free -h</code> 重点看 <code>available</code>，<code>df</code> 看文件系统空间，<code>du</code> 看目录占用。</p>
+<p>示例中的 <code>|</code> 是管道，把 <code>ps</code> 的标准输出交给 <code>grep</code> 筛选；<code>'[d]emo-api.jar'</code> 用字符组匹配应用名，并避免普通情况下把这条 <code>grep</code> 命令本身也列出来。</p>
+<h2 id="3-核对端口绑定地址与进程归属">3. 核对端口、绑定地址与进程归属</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> ss -lntp
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :&lt;端口&gt;&#x27;</span>
+ps -ww -p &lt;PID&gt; -o pid,ppid,<span class="hljs-built_in">stat</span>,<span class="hljs-built_in">comm</span>,args
+</code></pre>
+<p>示例：查看8080端口归属，并核对查到的24680号进程。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> ss -lntp
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :8080&#x27;</span>
+ps -ww -p 24680 -o pid,ppid,<span class="hljs-built_in">stat</span>,<span class="hljs-built_in">comm</span>,args
+</code></pre>
+<p>假设结果包含 <code>0.0.0.0:8080</code> 和 <code>pid=24680</code>，表示该进程监听全部 IPv4 本地地址的8080端口；若为 <code>127.0.0.1:8080</code>，则只监听回环地址。</p>
+<p>以上是 TCP 监听检查；UDP 使用 <code>ss -lnup</code>。需要较高权限才能完整显示其他用户的进程信息。</p>
+<table>
+<thead>
+<tr>
+<th>监听地址</th>
+<th>常见含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>127.0.0.1</code></td>
+<td>仅本机回环访问</td>
+</tr>
+<tr>
+<td>某个具体网卡 IP</td>
+<td>监听该地址；不能假定 <code>127.0.0.1</code> 也可连接</td>
+</tr>
+<tr>
+<td><code>0.0.0.0</code></td>
+<td>监听全部 IPv4 本地地址</td>
+</tr>
+<tr>
+<td><code>[::]</code></td>
+<td>IPv6 通配监听；是否同时接受 IPv4 需结合系统和应用配置确认</td>
+</tr>
+</tbody>
+</table>
+<p>服务提示端口占用时，先查监听 PID 和完整命令，再决定处理方式。进程退出和端口释放可能存在时间差；不要立即重复启动或根据旧 PID 直接结束进程。</p>
+<h2 id="4-区分网络问题认证问题和业务问题">4. 区分网络问题、认证问题和业务问题</h2>
+<p>Linux 客户端检查 TCP：</p>
+<pre><code class="hljs language-bash">nc -vz -w 3 &lt;服务器IP&gt; &lt;端口&gt;
+</code></pre>
+<p>示例：从当前 Linux 机器测试目标服务器的8080端口，最多等待3秒。</p>
+<pre><code class="hljs language-bash">nc -vz -w 3 192.0.2.10 8080
+</code></pre>
+<p>输出 <code>succeeded</code> 或 <code>open</code> 一类信息通常表示 TCP 连接成功，具体文字取决于本机 <code>nc</code> 实现；不能据此认定登录或业务接口正常。</p>
+<p>Windows PowerShell 检查 TCP：</p>
+<pre><code class="hljs language-powershell"><span class="hljs-built_in">Test-NetConnection</span> &lt;服务器IP&gt; <span class="hljs-literal">-Port</span> &lt;端口&gt;
+</code></pre>
+<p>示例：从 Windows 开发电脑测试同一端口。</p>
+<pre><code class="hljs language-powershell"><span class="hljs-built_in">Test-NetConnection</span> <span class="hljs-number">192.0</span>.<span class="hljs-number">2.10</span> <span class="hljs-literal">-Port</span> <span class="hljs-number">8080</span>
+</code></pre>
+<p>重点看 <code>TcpTestSucceeded</code>：<code>True</code> 表示本次 TCP 连接成功，<code>False</code> 表示失败。</p>
+<p><code>nc</code> 的选项以本机实现为准，未安装时可先使用对应协议客户端验证。</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ping 成功，TCP 失败</td>
+<td>监听地址、端口、防火墙、安全组、路由；Ping 不代表应用端口可用</td>
+</tr>
+<tr>
+<td>Connection refused</td>
+<td>目标地址无监听，或中间设备主动拒绝</td>
+</tr>
+<tr>
+<td>连接超时</td>
+<td>路径不通、过滤规则丢弃、服务无响应等；不能仅凭超时确定根因</td>
+</tr>
+<tr>
+<td>TCP 成功但认证失败</td>
+<td>账号、密码、来源授权、TLS 和服务端配置</td>
+</tr>
+<tr>
+<td>HTTP 401/403/404/405</td>
+<td>已收到 HTTP 响应；核对认证、路径、方法及响应是否来自预期服务</td>
+</tr>
+<tr>
+<td>HTTP 502/504</td>
+<td>已到达代理；继续检查上游地址、连接、超时和后端日志</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-使用协议验证服务">5. 使用协议验证服务</h2>
+<h3 id="http">HTTP</h3>
+<pre><code class="hljs language-bash">curl -I --connect-timeout 3 --max-time 5 http://&lt;服务器IP&gt;:&lt;端口&gt;/
+curl -i --connect-timeout 3 --max-time 5 http://&lt;服务器IP&gt;:&lt;端口&gt;/&lt;只读检查路径&gt;
+</code></pre>
+<p>示例：检查首页响应，再访问示例应用已实现的只读 <code>/health</code> 接口。</p>
+<pre><code class="hljs language-bash">curl -I --connect-timeout 3 --max-time 5 http://192.0.2.10:8080/
+curl -i --connect-timeout 3 --max-time 5 http://192.0.2.10:8080/health
+</code></pre>
+<p>例如首页返回404、<code>/health</code> 返回200及 <code>{&quot;status&quot;:&quot;UP&quot;}</code>，说明首页路径不存在，但健康接口可响应。Windows PowerShell 如需调用系统 curl 程序，使用 <code>curl.exe</code>。</p>
+<p><code>-I</code> 发送 HEAD，请求路径不支持 HEAD 时改用只读 GET。优先使用服务实际提供的健康检查或只读接口；根路径可用于初步确认响应，但不能替代业务验收。</p>
+<h3 id="redis">Redis</h3>
+<pre><code class="hljs language-bash">redis-cli -h &lt;服务器IP&gt; -p &lt;端口&gt; --askpass PING
+</code></pre>
+<p>示例：连接6379端口，按交互提示输入密码。</p>
+<pre><code class="hljs language-bash">redis-cli -h 192.0.2.10 -p 6379 --askpass PING
+</code></pre>
+<p>预期响应为 <code>PONG</code>；若提示 <code>WRONGPASS</code>，重点核对认证配置，不能当作端口未开放处理。</p>
+<p>返回 <code>PONG</code> 表示本次连接、认证和 PING 成功。使用 ACL 用户时补充 <code>--user &lt;用户名&gt;</code>；若启用 TLS，按实际配置使用 TLS 参数。避免把真实密码直接写进操作笔记。</p>
+<h3 id="mysql">MySQL</h3>
+<pre><code class="hljs language-bash">mysql -h &lt;服务器IP&gt; -P &lt;端口&gt; -u &lt;用户名&gt; -p
+</code></pre>
+<p>示例：使用只读账号 <code>demo_reader</code> 登录，密码按提示输入。</p>
+<pre><code class="hljs language-bash">mysql -h 192.0.2.10 -P 3306 -u demo_reader -p
+</code></pre>
+<p>看到 <code>mysql&gt;</code> 提示符表示连接和登录成功；<code>Access denied</code> 表示需要继续核对账号、密码及来源授权。</p>
+<p>连接后执行只读验证：</p>
+<pre><code class="hljs language-sql"><span class="hljs-keyword">SELECT</span> VERSION(), @<span class="hljs-variable">@lower_case_table_names</span>;
+<span class="hljs-keyword">SELECT</span> <span class="hljs-number">1</span>;
+</code></pre>
+<p>示例：登录后执行 <code>SELECT 1;</code>，结果应包含一行值 <code>1</code>；执行第一条查询若得到版本 <code>8.0.x</code>、<code>lower_case_table_names</code> 为 <code>1</code>，说明当前实例采用下文所述的小写名称策略。这里的版本和设置均为假设输出。</p>
+<p>连接成功不代表该账号可以访问业务库，还应核对目标库、表和必要权限。<code>lower_case_table_names=1</code> 表示库表名按小写保存且名称比较不区分大小写；已有数据库的大小写策略不应作为普通故障修复直接改动。</p>
+<p>其他数据库同样先用对应版本客户端连接，再执行只读查询；TCP 连通只完成了网络层检查。</p>
+<h2 id="6-java-jar-的手动启动方式">6. Java JAR 的手动启动方式</h2>
+<p>仅用于没有被现有服务管理器托管、且确认未运行的应用。先确定 Java 路径、工作目录、配置环境、依赖连接和端口。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> &lt;应用目录&gt;
+<span class="hljs-built_in">nohup</span> &lt;JAVA_HOME&gt;/bin/java \\
+  -Xms&lt;初始堆大小&gt; -Xmx&lt;最大堆大小&gt; \\
+  -Duser.timezone=Asia/Shanghai \\
+  -Dfile.encoding=UTF-8 \\
+  -jar &lt;应用文件名&gt;.jar \\
+  --spring.profiles.active=&lt;环境名&gt; \\
+  &gt;&gt; console.log 2&gt;&amp;1 &lt; /dev/null &amp;
+</code></pre>
+<p>示例：假设 Java 位于 <code>/usr/bin/java</code>，JAR 已放在 <code>/opt/demo-api</code>，且确认该应用尚未运行，启动8080端口的 Spring Boot 服务。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> /opt/demo-api
+<span class="hljs-built_in">nohup</span> /usr/bin/java \\
+  -Xms256m -Xmx512m \\
+  -Duser.timezone=Asia/Shanghai \\
+  -Dfile.encoding=UTF-8 \\
+  -jar demo-api.jar \\
+  --spring.profiles.active=prod \\
+  --server.port=8080 \\
+  &gt;&gt; console.log 2&gt;&amp;1 &lt; /dev/null &amp;
+</code></pre>
+<p>控制台可能返回 <code>[1] 24680</code>，表示后台作业及进程信息，并不表示应用已启动成功。示例堆参数仅演示语法，生产值按实际资源确定；控制台日志写入 <code>/opt/demo-api/console.log</code>。</p>
+<p>这是 Spring Boot 应用示例；普通 Java 应用的参数以自身实现为准。堆大小按负载和机器资源确定，还要为直接内存、线程栈、其他服务和操作系统留空间。<code>--add-opens</code> 等参数仅在应用确实需要时添加。</p>
+<ul>
+<li><code>-Xms</code>、<code>-Xmx</code>、<code>-D...</code> 是 JVM 参数，放在 <code>-jar</code> 前面。</li>
+<li>JAR 后面的参数传给应用；Spring Boot 的 <code>--spring.profiles.active</code> 属于这一类。</li>
+<li><code>&gt;&gt; console.log</code> 把标准输出追加到日志；换成 <code>&gt;</code> 会覆盖原内容，日志不存在且有权限时会创建。</li>
+<li><code>2&gt;&amp;1</code> 让标准错误跟随标准输出当前指向的位置，所以此处报错也追加到 <code>console.log</code>。<code>1</code> 是标准输出，<code>2</code> 是标准错误；重定向从左往右处理，应保留这里的顺序。</li>
+<li><code>&lt; /dev/null</code> 让标准输入立即结束，避免程序继续等待终端输入；它不会丢弃日志。</li>
+<li>命令末尾单独的 <code>&amp;</code> 表示后台运行，和 <code>2&gt;&amp;1</code> 中用于指代文件描述符的 <code>&amp;</code> 含义不同；后台返回不代表应用已经就绪。</li>
+<li><code>nohup</code> 不负责开机自启、崩溃恢复或就绪检查，长期运行按现有管理机制维护。</li>
+<li>相对路径基于进程工作目录；这会影响文件配置、日志和数据文件的位置。</li>
+</ul>
+<p>启动后检查本次新增日志、应用 PID、端口归属和只读接口。不要只凭后台命令返回成功判断应用已就绪。</p>
+<h2 id="7-nginx-不在-path-中时怎么检查">7. Nginx 不在 PATH 中时怎么检查</h2>
+<p>完整的安装、站点配置和故障处理见 <a href="nginx-operations.html">Nginx 配置、部署与日常运维</a>。</p>
+<p><code>command -v nginx</code> 没有结果，不代表未安装。Nginx 可能随前端部署包放在自定义目录，先检查原服务单元或启动脚本。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v nginx
+ps -ww -eo pid,ppid,<span class="hljs-built_in">stat</span>,args | grep <span class="hljs-string">&#x27;[n]ginx&#x27;</span>
+&lt;Nginx目录&gt;/sbin/nginx -p &lt;Nginx目录&gt;/ -c conf/nginx.conf -t
+</code></pre>
+<p>示例：假设 Nginx 安装在 <code>/opt/nginx</code>，先查进程，再测试该目录下的配置。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v nginx
+ps -ww -eo pid,ppid,<span class="hljs-built_in">stat</span>,args | grep <span class="hljs-string">&#x27;[n]ginx&#x27;</span>
+/opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf -t
+</code></pre>
+<p>配置检查输出含 <code>syntax is ok</code>、<code>test is successful</code> 表示测试通过；<code>command -v</code> 没有输出，只能说明当前 PATH 没有找到该命令。</p>
+<p>配置检查通过且确认尚未运行后，再启动：</p>
+<pre><code class="hljs language-bash">&lt;Nginx目录&gt;/sbin/nginx -p &lt;Nginx目录&gt;/ -c conf/nginx.conf
+</code></pre>
+<p>示例：确认尚未运行，且配置检查通过后启动同一实例。</p>
+<pre><code class="hljs language-bash">/opt/nginx/sbin/nginx -p /opt/nginx/ -c conf/nginx.conf
+</code></pre>
+<p>命令无输出不等于业务验证通过，还应检查进程、配置中的监听端口和页面响应。</p>
+<p>若由 systemd 管理，使用对应服务单元操作。若修改的是已运行实例，按原启动方式检查配置后 reload，保持正确的配置文件和 prefix，避免操作到另一套 Nginx。</p>
+<h2 id="8-redis-的工作目录与地址">8. Redis 的工作目录与地址</h2>
+<p>已有 Redis 启动前先读原配置，核对 <code>bind</code>、<code>port</code>、<code>dir</code>、日志路径及持久化配置。配置中的 <code>dir ./</code> 等相对路径会受启动目录影响。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> &lt;Redis目录&gt;
+./bin/redis-server ./redis.conf
+</code></pre>
+<p>示例：Redis 安装在 <code>/opt/redis</code>，按该目录的配置启动。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> /opt/redis
+./bin/redis-server ./redis.conf
+</code></pre>
+<p>若配置为 <code>dir ./</code>，数据目录会相对于本次工作目录定位；因此不能随意换一个目录执行相同命令。是否进入后台取决于配置。</p>
+<p>这是历史部署形态的示例，二进制可能位于 <code>src/</code>，也可能使用系统安装路径。是否后台运行取决于配置和托管方式。不要因为连接 <code>127.0.0.1</code> 失败就重启，先确认服务是否只绑定了某个网卡 IP。</p>
+<h2 id="9-firewalld-的逐步排查">9. firewalld 的逐步排查</h2>
+<p>仅适用于使用 firewalld 的机器；云环境还可能叠加安全组、网络 ACL 等规则。</p>
+<pre><code class="hljs language-bash">systemctl is-active firewalld
+<span class="hljs-built_in">sudo</span> firewall-cmd --get-active-zones
+<span class="hljs-built_in">sudo</span> firewall-cmd --zone=&lt;实际区域&gt; --query-port=&lt;端口&gt;/tcp
+<span class="hljs-built_in">sudo</span> firewall-cmd --zone=&lt;实际区域&gt; --list-all
+</code></pre>
+<p>示例：假设活动网卡属于 <code>public</code>，检查8080端口及完整区域规则。</p>
+<pre><code class="hljs language-bash">systemctl is-active firewalld
+<span class="hljs-built_in">sudo</span> firewall-cmd --get-active-zones
+<span class="hljs-built_in">sudo</span> firewall-cmd --zone=public --query-port=8080/tcp
+<span class="hljs-built_in">sudo</span> firewall-cmd --zone=public --list-all
+</code></pre>
+<p>例如返回 <code>active</code>，且区域列表显示网卡位于 <code>public</code>，才能按这个区域继续检查。<code>--query-port</code> 返回 <code>no</code> 时仍需查看完整规则。</p>
+<p><code>--query-port</code> 返回 <code>no</code>，不代表一定无法访问，还需查看 rich rule、服务规则等。区域应以实际网卡归属为准。</p>
+<p>确认需要授权某个客户端访问后，可先添加来源受限的运行时规则：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> firewall-cmd --zone=&lt;实际区域&gt; \\
+  --add-rich-rule=<span class="hljs-string">&#x27;rule family=&quot;ipv4&quot; source address=&quot;&lt;客户端IPv4&gt;/32&quot; port port=&quot;&lt;端口&gt;&quot; protocol=&quot;tcp&quot; accept&#x27;</span>
+</code></pre>
+<p>示例：临时允许单台开发电脑 <code>192.0.2.20</code> 访问服务器8080端口。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> firewall-cmd --zone=public \\
+  --add-rich-rule=<span class="hljs-string">&#x27;rule family=&quot;ipv4&quot; source address=&quot;192.0.2.20/32&quot; port port=&quot;8080&quot; protocol=&quot;tcp&quot; accept&#x27;</span>
+</code></pre>
+<p>返回 <code>success</code> 后，从开发电脑重新测试连接。该例假设服务器实际看到的来源就是此 IP，经过 NAT 时应核对实际来源。</p>
+<p>从该客户端重新测试。验证有效且需要长期保留时，再将同一条规则写入永久配置：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> firewall-cmd --permanent --zone=&lt;实际区域&gt; \\
+  --add-rich-rule=<span class="hljs-string">&#x27;rule family=&quot;ipv4&quot; source address=&quot;&lt;客户端IPv4&gt;/32&quot; port port=&quot;&lt;端口&gt;&quot; protocol=&quot;tcp&quot; accept&#x27;</span>
+</code></pre>
+<p>示例：临时规则验证有效，且确认需要长期保留时，补上同一条永久规则。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> firewall-cmd --permanent --zone=public \\
+  --add-rich-rule=<span class="hljs-string">&#x27;rule family=&quot;ipv4&quot; source address=&quot;192.0.2.20/32&quot; port port=&quot;8080&quot; protocol=&quot;tcp&quot; accept&#x27;</span>
+</code></pre>
+<p>返回 <code>success</code> 表示永久配置写入成功。这里已先添加运行时规则，不需要立即 reload。</p>
+<p>运行时规则立即生效，重载或重启后通常失效；永久配置本身不会立即改变运行时。上面分别添加了两份相同规则，无需为了使刚添加的运行时规则生效而 reload。reload 前应检查其他尚未持久化的运行时规则。</p>
+<p>若需求确实是向整个区域开放端口，可使用 <code>--add-port=&lt;端口&gt;/tcp</code>，但它不限定单个来源。不要把关闭整个防火墙作为常规解决方案。</p>
+<h2 id="10-日志排障与-nohupout">10. 日志排障与 nohup.out</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">ls</span> -l --time-style=long-iso &lt;日志文件&gt;
+<span class="hljs-built_in">tail</span> -n 100 &lt;日志文件&gt;
+<span class="hljs-built_in">tail</span> -f &lt;日志文件&gt;
+</code></pre>
+<p>示例：检查 Java 服务的日志修改时间，读取最近100行，再持续跟踪新日志。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">ls</span> -l --time-style=long-iso /opt/demo-api/console.log
+<span class="hljs-built_in">tail</span> -n 100 /opt/demo-api/console.log
+<span class="hljs-built_in">tail</span> -f /opt/demo-api/console.log
+</code></pre>
+<p>例如本次刚重启应用，日志修改时间却是数天前，应先确认输出路径是否正确。<code>tail -f</code> 按 <code>Ctrl+C</code> 结束查看，不会停止应用服务。</p>
+<p>先确认日志修改时间和本次启动时间，避免用旧日志解释新故障。重点找本次启动后的首个实质错误及异常原因链，而非只看最后一条报错。</p>
+<table>
+<thead>
+<tr>
+<th>日志来源</th>
+<th>常见位置与特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用文件日志</td>
+<td>由 Logback 等框架决定，可能同时输出控制台和文件</td>
+</tr>
+<tr>
+<td>nohup 控制台输出</td>
+<td>未显式重定向且符合 nohup 的输出条件时，可能落到 <code>nohup.out</code></td>
+</tr>
+<tr>
+<td>systemd 日志</td>
+<td>用 <code>journalctl -u</code> 查看，是否另写文件取决于应用配置</td>
+</tr>
+<tr>
+<td>启动早期错误</td>
+<td>可能发生在应用日志初始化前，应保留标准错误的可查入口</td>
+</tr>
+</tbody>
+</table>
+<p>应用已有文件日志，仍出现 <code>nohup.out</code>，通常是控制台输出没有明确重定向。明确输出路径能消除文件位置歧义，但不会自动建立滚动和容量限制。控制台日志和框架日志需要分别检查保留天数、单文件大小、压缩和总容量策略。</p>
+<h2 id="11-常见排障结论速查">11. 常见排障结论速查</h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>处理方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>脚本说 Java 已退出，<code>jps</code> 却仍有进程</td>
+<td>核对完整命令与启动 PID，排查进程短名称误判</td>
+</tr>
+<tr>
+<td>停止后马上启动提示端口占用</td>
+<td>查真实监听 PID，等待释放，检查自动拉起机制</td>
+</tr>
+<tr>
+<td>服务器本机可连，开发电脑不通</td>
+<td>查绑定地址、防火墙、安全组、路由和来源限制</td>
+</tr>
+<tr>
+<td>端口能连，应用仍报数据库错误</td>
+<td>查账号权限、数据库名、协议版本和实际生效配置</td>
+</tr>
+<tr>
+<td>Nginx 有响应，后端不可用</td>
+<td>查代理目标、路径重写、上游端口和后端日志</td>
+</tr>
+<tr>
+<td>服务在一台机器，依赖在另一台机器</td>
+<td><code>localhost</code> 指向当前机器，改查实际依赖地址及访问授权</td>
+</tr>
+<tr>
+<td>修改本地配置后服务器行为不变</td>
+<td>查部署包版本、外部配置、环境变量和启动参数</td>
+</tr>
+</tbody>
+</table>
+`;return(u,l)=>(e(),s("div",null,[t(n,{doc:JSON.parse(u.$frontmatter.kb).doc,content:c,base:"../"},null,8,["doc"])]))}});export{i as __pageData,r as default};

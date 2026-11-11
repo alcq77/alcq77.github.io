@@ -1,0 +1,724 @@
+import{_ as n}from"./chunks/ArticlePage.BzJfrCud.js";import{o as u,c as a,m as e}from"./chunks/framework.CZZR5ESy.js";const m=JSON.parse('{"title":"Docker 与 Docker Compose 常用运维命令","titleTemplate":":title · 知行笔记","description":"使用 Docker 和 Compose 查看容器状态、排查日志与网络问题，以及构建镜像、更新服务、备份数据和清理资源。 命令采用 Linux shell 与 Compose V2 的 docker compose 写法；旧的 docker-","frontmatter":{"title":"Docker 与 Docker Compose 常用运维命令","titleTemplate":":title · 知行笔记","description":"使用 Docker 和 Compose 查看容器状态、排查日志与网络问题，以及构建镜像、更新服务、备份数据和清理资源。 命令采用 Linux shell 与 Compose V2 的 docker compose 写法；旧的 docker-","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"docker-compose-operations-commands\\",\\"title\\":\\"Docker 与 Docker Compose 常用运维命令\\",\\"category\\":\\"容器运维\\",\\"tags\\":[\\"docker\\",\\"compose\\",\\"containers\\",\\"operations\\",\\"troubleshooting\\"],\\"readingMinutes\\":62},\\"toc\\":[{\\"title\\":\\"1. 环境、版本和目标主机\\",\\"level\\":2,\\"id\\":\\"1-环境版本和目标主机\\"},{\\"title\\":\\"2. 容器列表、筛选和状态\\",\\"level\\":2,\\"id\\":\\"2-容器列表筛选和状态\\"},{\\"title\\":\\"3. 创建并运行容器\\",\\"level\\":2,\\"id\\":\\"3-创建并运行容器\\"},{\\"title\\":\\"4. 日志、事件和退出原因\\",\\"level\\":2,\\"id\\":\\"4-日志事件和退出原因\\"},{\\"title\\":\\"5. 进入容器、执行命令与复制文件\\",\\"level\\":2,\\"id\\":\\"5-进入容器执行命令与复制文件\\"},{\\"title\\":\\"6. CPU、内存和磁盘排查\\",\\"level\\":2,\\"id\\":\\"6-cpu内存和磁盘排查\\"},{\\"title\\":\\"7. 镜像拉取、查看、构建和推送\\",\\"level\\":2,\\"id\\":\\"7-镜像拉取查看构建和推送\\"},{\\"title\\":\\"7.1 在线拉取、构建与仓库发布\\",\\"level\\":3,\\"id\\":\\"71-在线拉取构建与仓库发布\\"},{\\"title\\":\\"7.2 离线部署前，分清要打包的内容和平台\\",\\"level\\":3,\\"id\\":\\"72-离线部署前分清要打包的内容和平台\\"},{\\"title\\":\\"7.3 联网机导出镜像、生成校验和并上传\\",\\"level\\":3,\\"id\\":\\"73-联网机导出镜像生成校验和并上传\\"},{\\"title\\":\\"7.4 目标服务器校验、加载和离线启动\\",\\"level\\":3,\\"id\\":\\"74-目标服务器校验加载和离线启动\\"},{\\"title\\":\\"7.5 多个镜像、离线构建和容器导出的区别\\",\\"level\\":3,\\"id\\":\\"75-多个镜像离线构建和容器导出的区别\\"},{\\"title\\":\\"8. 网络、DNS 与端口\\",\\"level\\":2,\\"id\\":\\"8-网络dns-与端口\\"},{\\"title\\":\\"9. 挂载卷与持久化\\",\\"level\\":2,\\"id\\":\\"9-挂载卷与持久化\\"},{\\"title\\":\\"卷备份示例\\",\\"level\\":3,\\"id\\":\\"卷备份示例\\"},{\\"title\\":\\"10. Compose 的文件与项目范围\\",\\"level\\":2,\\"id\\":\\"10-compose-的文件与项目范围\\"},{\\"title\\":\\"11. Compose 启动、停止与重建\\",\\"level\\":2,\\"id\\":\\"11-compose-启动停止与重建\\"},{\\"title\\":\\"12. Compose 日志、执行和资源\\",\\"level\\":2,\\"id\\":\\"12-compose-日志执行和资源\\"},{\\"title\\":\\"13. Compose 更新、回滚和环境\\",\\"level\\":2,\\"id\\":\\"13-compose-更新回滚和环境\\"},{\\"title\\":\\"13.1 在线更新和配置来源\\",\\"level\\":3,\\"id\\":\\"131-在线更新和配置来源\\"},{\\"title\\":\\"13.2 Compose整套离线打包、传输与启动\\",\\"level\\":3,\\"id\\":\\"132-compose整套离线打包传输与启动\\"},{\\"title\\":\\"13.3 更新前留好回退版本，失败后按原参数恢复\\",\\"level\\":3,\\"id\\":\\"133-更新前留好回退版本失败后按原参数恢复\\"},{\\"title\\":\\"13.4 依赖、健康检查与开机自启\\",\\"level\\":3,\\"id\\":\\"134-依赖健康检查与开机自启\\"},{\\"title\\":\\"14. 清理命令：逐项确认范围\\",\\"level\\":2,\\"id\\":\\"14-清理命令逐项确认范围\\"},{\\"title\\":\\"15. 常见故障速查\\",\\"level\\":2,\\"id\\":\\"15-常见故障速查\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/docker-compose-operations-commands.md","filePath":"articles/docker-compose-operations-commands.md"}'),o={name:"articles/docker-compose-operations-commands.md"},r=Object.assign(o,{setup(l){const c=`<p>使用 Docker 和 Compose 查看容器状态、排查日志与网络问题，以及构建镜像、更新服务、备份数据和清理资源。</p>
+<p>命令采用 Linux shell 与 Compose V2 的 <code>docker compose</code> 写法；旧的 <code>docker-compose</code> 是另一套命令，执行前先确认本机版本，并调整示例名称与地址。启停、更新和清理操作按需选择。</p>
+<p>普通用户没有Docker操作权限时，使用管理员批准的sudo或已有rootless环境。镜像拉取、导出、加载和启动必须操作同一目标daemon；不要在rootless与 <code>sudo docker</code>、本机与远程context之间混用。示例中的版本、资源限制、目录和端口都需按实际部署核对。</p>
+<table>
+<thead>
+<tr>
+<th>要做什么</th>
+<th>阅读位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>查看状态、日志和资源，定位容器退出</td>
+<td>第1～6项</td>
+</tr>
+<tr>
+<td>构建镜像，打包后上传到离线服务器并加载</td>
+<td>第7项，尤其7.2～7.5</td>
+</tr>
+<tr>
+<td>排查端口和网络、备份与恢复数据</td>
+<td>第8、9项</td>
+</tr>
+<tr>
+<td>用Compose部署、离线迁移、更新和回滚</td>
+<td>第10～13项，离线部署看13.2</td>
+</tr>
+<tr>
+<td>释放磁盘或快速定位故障</td>
+<td>第14、15项，先查对象归属再清理</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-环境版本和目标主机">1. 环境、版本和目标主机</h2>
+<details class="install-guide">
+<summary>安装 Docker Engine 与 Compose 插件（Ubuntu / Debian）</summary>
+<p>仅用于官方当前支持的Ubuntu/Debian版本的新安装环境。先用 <code>cat /etc/os-release</code>、<code>uname -m</code> 确认发行版与架构；已有Docker、Podman、containerd或业务容器时，先核对兼容与迁移方案，不直接卸载替换。</p>
+<p>准备软件源：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> apt-get update                         <span class="hljs-comment"># 刷新批准的软件源索引</span>
+<span class="hljs-built_in">sudo</span> apt-get install ca-certificates curl    <span class="hljs-comment"># 安装证书和HTTPS下载工具</span>
+<span class="hljs-built_in">sudo</span> install -m 0755 -d /etc/apt/keyrings     <span class="hljs-comment"># 创建软件源公钥目录</span>
+. /etc/os-release                           <span class="hljs-comment"># 读取当前发行版变量</span>
+<span class="hljs-comment"># 下列步骤仅在ID为ubuntu或debian时使用</span>
+docker_os=<span class="hljs-string">&quot;<span class="hljs-variable">$ID</span>&quot;</span>                             <span class="hljs-comment"># 仅选择已确认支持的ubuntu或debian</span>
+curl -fL <span class="hljs-string">&quot;https://download.docker.com/linux/<span class="hljs-variable">$docker_os</span>/gpg&quot;</span> -o /tmp/docker.asc <span class="hljs-comment"># 下载官方源公钥，失败停止</span>
+<span class="hljs-built_in">sudo</span> install -m 0644 /tmp/docker.asc /etc/apt/keyrings/docker.asc <span class="hljs-comment"># 安装核对过指纹的公钥</span>
+<span class="hljs-comment"># 生成匹配发行版及架构的源定义；tee覆盖该源文件，执行前确认不是其他管理员维护的配置。</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/%s %s stable\\n&#x27;</span> \\
+  <span class="hljs-string">&quot;<span class="hljs-subst">$(dpkg --print-architecture)</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$docker_os</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${UBUNTU_CODENAME:-<span class="hljs-variable">$VERSION_CODENAME</span>}</span>&quot;</span> \\
+  | <span class="hljs-built_in">sudo</span> <span class="hljs-built_in">tee</span> /etc/apt/sources.list.d/docker.list &gt; /dev/null
+<span class="hljs-built_in">sudo</span> apt-get update                         <span class="hljs-comment"># 验证新源能够正常读取，失败不继续安装</span>
+</code></pre>
+<p>示例：Ubuntu使用ubuntu仓库及本机发行代号，Debian使用debian仓库；不要把Ubuntu代号写进Debian源。下载失败时先停止，确认网络、证书与官方源可达，不跳过签名。</p>
+<p><code>| sudo tee ... &gt; /dev/null</code> 中，<code>|</code> 将生成的源配置传给具有权限的 <code>tee</code> 写入文件；<code>&gt; /dev/null</code> 只丢弃 <code>tee</code> 同时输出到终端的那份内容，不会取消文件写入。<code>tee</code> 默认覆盖目标文件。</p>
+<p>安装并验证：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin <span class="hljs-comment"># 安装引擎、CLI和插件</span>
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> --now docker <span class="hljs-comment"># 新安装环境启动并开启自启</span>
+<span class="hljs-built_in">sudo</span> docker version                         <span class="hljs-comment"># 验证Client及Server连接</span>
+<span class="hljs-built_in">sudo</span> docker compose version                 <span class="hljs-comment"># 验证Compose V2插件</span>
+</code></pre>
+<p>示例：<code>docker compose version</code>能输出版本，表示V2插件可用；<code>docker version</code>还应能连接Server。安装包可能自动启动服务，需在批准的主机上操作。发行版支持范围及版本选择以 <a href="https://docs.docker.com/engine/install/ubuntu/">Ubuntu安装说明</a> 和 <a href="https://docs.docker.com/engine/install/debian/">Debian安装说明</a> 为准。</p>
+</details>
+<details class="install-guide">
+<summary>安装 Docker Engine 与 Compose 插件（RHEL 9 / CentOS Stream 9示例）</summary>
+<p>仅对匹配且受支持的发行版使用官方源；Rocky/AlmaLinux等兼容发行版须按其维护策略核对，不默认认定官方同等支持。已有容器运行时先核对现状。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /etc/os-release                         <span class="hljs-comment"># 确认当前系统，不套用到CentOS 7</span>
+<span class="hljs-built_in">sudo</span> dnf install dnf-plugins-core            <span class="hljs-comment"># 为示例中的DNF4安装源管理插件</span>
+<span class="hljs-comment"># CentOS Stream 9：选这一条</span>
+<span class="hljs-built_in">sudo</span> dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo <span class="hljs-comment"># 添加CentOS对应源</span>
+<span class="hljs-comment"># RHEL 9：改选这一条，不要两套源都加</span>
+<span class="hljs-comment"># sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo</span>
+<span class="hljs-built_in">sudo</span> dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin <span class="hljs-comment"># 安装引擎及插件</span>
+<span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> --now docker          <span class="hljs-comment"># 新安装环境启动并设置开机自启</span>
+<span class="hljs-built_in">sudo</span> docker version                         <span class="hljs-comment"># 确认Client和Server可用</span>
+<span class="hljs-built_in">sudo</span> docker compose version                 <span class="hljs-comment"># 确认Compose插件可用</span>
+</code></pre>
+<p>示例：安装时核对包源与GPG指纹。DNF5的源管理语法与DNF4可能不同，按系统和官方版本说明选择；CentOS 7不适用此清单，也不应通过关闭GPG校验或换成Stream源来强行安装。</p>
+<p>参考 <a href="https://docs.docker.com/engine/install/centos/">CentOS安装说明</a> 与 <a href="https://docs.docker.com/engine/install/rhel/">RHEL安装说明</a>。</p>
+</details>
+<details class="install-guide">
+<summary>已有Docker，只缺 docker compose 或普通用户无权限</summary>
+<p>先确认Docker来源及官方软件源已经正确配置，再按系统仅安装插件：</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian，已有匹配Docker官方源</span>
+<span class="hljs-built_in">sudo</span> apt-get update                         <span class="hljs-comment"># 更新现有批准源的包索引</span>
+<span class="hljs-built_in">sudo</span> apt-get install docker-compose-plugin  <span class="hljs-comment"># 仅补装匹配的Compose插件</span>
+<span class="hljs-comment"># RHEL系，已有匹配Docker官方源时改选下面这一条</span>
+<span class="hljs-comment"># sudo dnf install docker-compose-plugin</span>
+<span class="hljs-built_in">sudo</span> docker compose version                 <span class="hljs-comment"># 安装后核对插件版本</span>
+</code></pre>
+<p>示例：系统仓库安装的 <code>docker.io</code> 可能搭配发行版自己的Compose包，先查本机包来源，不混装官方与发行版整套运行时。无需为了使用Compose另装旧的 <code>docker-compose</code> Python工具。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> docker ps             <span class="hljs-comment"># 已获授权时单条sudo</span>
+<span class="hljs-built_in">sudo</span> docker compose version <span class="hljs-comment"># 同一管理身份下核对插件是否可用</span>
+</code></pre>
+<p>示例：普通用户无Docker socket权限可使用获准的sudo或已部署的rootless模式。加入docker组相当于授予很高的主机权限，需要管理员明确授权，不把socket改成777。详见 <a href="https://docs.docker.com/engine/install/linux-postinstall/">Docker非root使用说明</a>。</p>
+</details>
+<details class="install-guide">
+<summary>CentOS 7：维护已有Docker，先确认引擎与Compose版本</summary>
+<p>CentOS 7已结束维护，<a href="https://docs.docker.com/engine/install/centos/">Docker当前CentOS安装说明</a>面向受支持的Stream版本，不能套用到7。下面用于盘点已有运行环境；新部署先迁移到受维护系统，再按上面的对应步骤安装。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /etc/centos-release         <span class="hljs-comment"># 确认系统版本</span>
+<span class="hljs-built_in">uname</span> -r                       <span class="hljs-comment"># 记录实际运行内核，不代表全部功能均可用</span>
+rpm -q docker-ce docker-ce-cli containerd.io docker-compose-plugin <span class="hljs-comment"># 查询已安装官方RPM，其他来源可能查不到</span>
+<span class="hljs-built_in">command</span> -v docker docker-compose <span class="hljs-comment"># 找到已有程序，二进制安装不一定在RPM记录中</span>
+<span class="hljs-built_in">sudo</span> docker version            <span class="hljs-comment"># 分别检查Client与Server，连接失败不等于没有安装</span>
+<span class="hljs-built_in">sudo</span> docker info               <span class="hljs-comment"># 检查存储驱动、Docker根目录及cgroup信息</span>
+<span class="hljs-built_in">sudo</span> docker compose version    <span class="hljs-comment"># 有V2插件时查看版本；缺少插件时报错，继续查现状</span>
+docker-compose version         <span class="hljs-comment"># 仅有旧独立程序时查询它的版本</span>
+yum --showduplicates list docker-ce docker-compose-plugin <span class="hljs-comment"># 查询已有批准源的候选，不执行升级</span>
+</code></pre>
+<p>示例：只有Compose V1时常用命令入口为 <code>docker-compose ps</code>、<code>docker-compose logs --tail=100</code>，本文V2特有选项不能直接照搬。V1已停止维护；迁移前备份compose文件及数据，核对项目名、容器名称、网络与依赖语义，在测试环境验证，不直接替换可执行文件重建线上容器。</p>
+<p>没有适用插件或候选包时，保留原运行时，安排升级迁移；不能混装Stream RPM、关闭签名或下载最新版插件来碰运气。旧引擎不支持 <code>docker context</code> 等命令时先查 <code>docker --help</code>，用实际支持的命令查询当前目标，不因排查而升级整套引擎。cgroup v1限制与计数见<a href="linux-performance-troubleshooting.html">性能排查</a>。</p>
+</details>
+<pre><code class="hljs language-bash">docker version             <span class="hljs-comment"># 客户端和服务端版本</span>
+docker info                <span class="hljs-comment"># 存储驱动、日志驱动、根目录等</span>
+docker compose version     <span class="hljs-comment"># Compose 插件版本</span>
+docker context <span class="hljs-built_in">ls</span>          <span class="hljs-comment"># 可用连接目标</span>
+docker context show        <span class="hljs-comment"># 当前目标</span>
+docker system <span class="hljs-built_in">df</span>           <span class="hljs-comment"># 镜像、容器、卷、缓存占用</span>
+docker system <span class="hljs-built_in">df</span> -v        <span class="hljs-comment"># 详细占用</span>
+</code></pre>
+<p>示例：<code>docker version</code> 只有 Client、Server 连接失败时，检查 daemon、socket 权限和当前 context。远程 context 的操作作用于远端，执行删除前尤其需要核对。</p>
+<pre><code class="hljs language-bash">systemctl status docker --no-pager -l          <span class="hljs-comment"># 系统安装的 Docker 服务状态</span>
+<span class="hljs-built_in">sudo</span> journalctl -u docker -b -n 100 --no-pager <span class="hljs-comment"># 本次开机 daemon 日志</span>
+docker --<span class="hljs-built_in">help</span>                               <span class="hljs-comment"># CLI 帮助</span>
+docker run --<span class="hljs-built_in">help</span>                           <span class="hljs-comment"># 当前版本支持的启动选项</span>
+</code></pre>
+<p>示例：rootless Docker 的服务可能属于用户级 systemd，需使用对应用户的 <code>systemctl --user</code>。不要因命令权限不足就把 Docker socket 改成所有人可写；Docker 控制权限本身具有很高的主机权限。</p>
+<h2 id="2-容器列表筛选和状态">2. 容器列表、筛选和状态</h2>
+<pre><code class="hljs language-bash">docker ps                                      <span class="hljs-comment"># 正在运行的容器</span>
+docker ps -a                                   <span class="hljs-comment"># 包含已退出容器</span>
+docker ps --filter name=demo-web                <span class="hljs-comment"># 名称匹配</span>
+docker ps -a --filter status=exited             <span class="hljs-comment"># 退出容器</span>
+docker ps --format <span class="hljs-string">&#x27;table {{.Names}}\\t{{.Status}}\\t{{.Ports}}&#x27;</span> <span class="hljs-comment"># 按名称、状态和端口显示摘要</span>
+docker inspect demo-web                        <span class="hljs-comment"># 完整配置和状态</span>
+docker inspect -f <span class="hljs-string">&#x27;{{json .State}}&#x27;</span> demo-web     <span class="hljs-comment"># 状态、退出码、健康检查</span>
+</code></pre>
+<p>示例：<code>Up</code> 表示主进程存活；配置了健康检查才会有 <code>healthy/unhealthy</code>。<code>Exited (137)</code> 可能涉及 SIGKILL，但不能仅凭退出码断言 OOM，还要核对 <code>OOMKilled</code> 和主机日志。inspect 可能包含环境变量中的凭证，分享前脱敏。</p>
+<h2 id="3-创建并运行容器">3. 创建并运行容器</h2>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 新建演示容器：回环8080映射容器80，限制资源并配置日志轮转；先确认名称和端口未占用。</span>
+docker run -d --name demo-web \\
+  --restart unless-stopped \\
+  -p 127.0.0.1:8080:80 \\
+  --memory 256m --cpus 1 \\
+  --log-driver json-file \\
+  --log-opt max-size=10m --log-opt max-file=3 \\
+  nginx:1.28
+</code></pre>
+<p>示例：创建名为 <code>demo-web</code> 的 Nginx，主机回环8080映射到容器80，最多1个CPU配额和256MB内存，控制台日志按文件滚动。镜像标签需使用已批准且可用的版本，精确复现可固定 digest。这里的资源值仅为演示。</p>
+<p><code>-p 8080:80</code> 通常向全部主机地址发布，开放范围与只绑定127.0.0.1不同；还要核对 Docker 的转发规则和实际外部可达性。不要仅凭主机防火墙界面认定端口被拦截。</p>
+<pre><code class="hljs language-bash">docker start demo-web          <span class="hljs-comment"># 启动已创建的容器</span>
+docker stop -t 30 demo-web     <span class="hljs-comment"># 优雅停止，超时后可能强制结束</span>
+docker restart -t 30 demo-web  <span class="hljs-comment"># 重启，会中断连接</span>
+docker update --restart unless-stopped demo-web <span class="hljs-comment"># 修改重启策略</span>
+</code></pre>
+<p>示例：<code>start</code> 复用原容器配置，不会采用新的镜像或新的端口参数；要修改这些配置，需要重建容器。上述为备选操作，不要一起执行。</p>
+<p>创建前用 <code>docker ps -a --filter name=demo-web</code>确认名称是否已被旧容器占用，用 <code>sudo ss -lntp 'sport = :8080'</code>核对监听。名称冲突时先查旧容器用途，不直接强删；端口占用时核对归属或选择其他获准端口。启动后执行下面的只读检查：</p>
+<pre><code class="hljs language-bash">docker ps -a --filter name=demo-web          <span class="hljs-comment"># 查看容器是否存活、有无持续重启</span>
+docker logs --<span class="hljs-built_in">tail</span> 50 demo-web               <span class="hljs-comment"># 核对入口进程和配置错误</span>
+docker port demo-web                        <span class="hljs-comment"># 查看实际发布地址及端口</span>
+curl -I --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/ <span class="hljs-comment"># 从主机验证新连接</span>
+</code></pre>
+<p>示例：看到 <code>127.0.0.1:8080</code>映射且请求返回预期网页响应，才继续验证实际业务。创建失败时先查错误，不反复运行同一个run；已经创建但退出的容器仍占用名称。</p>
+<h2 id="4-日志事件和退出原因">4. 日志、事件和退出原因</h2>
+<pre><code class="hljs language-bash">docker logs --<span class="hljs-built_in">tail</span> 100 --timestamps demo-web       <span class="hljs-comment"># 最近100行及时间</span>
+docker logs --since 30m --<span class="hljs-built_in">tail</span> 300 demo-web        <span class="hljs-comment"># 最近30分钟</span>
+docker logs -f --<span class="hljs-built_in">tail</span> 100 demo-web                <span class="hljs-comment"># 实时跟踪</span>
+docker inspect -f <span class="hljs-string">&#x27;{{.State.ExitCode}} {{.State.OOMKilled}} {{.State.Error}}&#x27;</span> demo-web <span class="hljs-comment"># 退出码、OOM标记及引擎错误</span>
+docker events --since 30m --filter container=demo-web <span class="hljs-comment"># 事件流</span>
+</code></pre>
+<p>示例：日志中查应用异常，inspect 中查退出码和 OOM 标记，events 中查 <code>die</code>、<code>restart</code> 等事件。事件不是永久审计记录，也不能单独证明是谁操作了容器。<code>logs -f</code>、<code>events</code> 按 <code>Ctrl+C</code> 退出查看，不会停止容器。</p>
+<p>先查 <code>docker ps -a → inspect状态 → 最近日志 → 同时段daemon/内核日志</code>。例如 <code>OOMKilled=true</code>需要继续核对容器限制和主机内存；退出码1应先读应用报错，不能用增大内存统一处理。镜像主进程正常结束也会退出容器，<code>-d</code>不会把已结束的程序自动变成常驻服务。</p>
+<p><code>docker logs</code> 主要查看标准输出与错误，能否读取取决于日志驱动及相关配置；应用写在容器文件系统里的日志要另查。不要手工截断 Docker 内部日志文件，优先配置日志轮转。</p>
+<h2 id="5-进入容器执行命令与复制文件">5. 进入容器、执行命令与复制文件</h2>
+<pre><code class="hljs language-bash">docker <span class="hljs-built_in">exec</span> -it demo-web sh                  <span class="hljs-comment"># 进入已有容器</span>
+docker <span class="hljs-built_in">exec</span> demo-web nginx -t                <span class="hljs-comment"># 容器内执行一次配置校验</span>
+docker <span class="hljs-built_in">exec</span> -u 0 -it demo-web sh             <span class="hljs-comment"># 确有需要时使用容器内 root</span>
+docker <span class="hljs-built_in">cp</span> demo-web:/etc/nginx/nginx.conf ./nginx.conf <span class="hljs-comment"># 复制到本机</span>
+docker <span class="hljs-built_in">cp</span> ./nginx.conf demo-web:/tmp/nginx.conf       <span class="hljs-comment"># 复制到容器临时位置</span>
+</code></pre>
+<p>示例：精简镜像不一定有 <code>bash</code>、<code>curl</code>、<code>ps</code>，可先尝试 <code>sh</code>；distroless 镜像可能连 shell 也没有。复制到 <code>/tmp</code> 不会自动应用配置；修改前需核对挂载与原配置。</p>
+<p><code>exec</code>只适用于正在运行的容器，已退出时先查看logs与inspect，不为了进入shell反复启动异常服务。需要重定向或管道时，应明确让容器内shell解释，例如 <code>docker exec demo-web sh -c 'nginx -t 2&gt;&amp;1'</code>；没有shell的镜像不能使用这一写法。</p>
+<p><code>exec</code> 创建的交互 shell 中执行 <code>exit</code> 通常只退出该 shell。不要与 <code>attach</code> 混淆：attach 连接主进程的输入输出，<code>Ctrl+C</code> 可能给主进程发送信号；默认脱离快捷键为 <code>Ctrl+P</code> 再 <code>Ctrl+Q</code>。</p>
+<p>容器内临时修改可能在重建时消失；长期配置写进镜像、挂载文件或 Compose 清单。</p>
+<h2 id="6-cpu内存和磁盘排查">6. CPU、内存和磁盘排查</h2>
+<pre><code class="hljs language-bash">docker stats --no-stream                          <span class="hljs-comment"># 一次性资源快照</span>
+docker stats demo-web                             <span class="hljs-comment"># 实时资源</span>
+docker top demo-web                               <span class="hljs-comment"># 容器进程</span>
+docker inspect -f <span class="hljs-string">&#x27;{{.HostConfig.Memory}} {{.HostConfig.NanoCpus}}&#x27;</span> demo-web <span class="hljs-comment"># 内存字节上限及CPU核数×10^9</span>
+docker ps -s                                      <span class="hljs-comment"># 可写层大小</span>
+docker diff demo-web                              <span class="hljs-comment"># 可写层变更</span>
+docker system <span class="hljs-built_in">df</span> -v                               <span class="hljs-comment"># Docker 存储占用</span>
+</code></pre>
+<p>示例：容器内存接近限制时结合 <code>OOMKilled</code> 排查。<code>ps -s</code> 的可写层不包括全部挂载卷和日志占用，磁盘满时还需查主机文件系统、卷、日志和构建缓存。</p>
+<pre><code class="hljs language-bash">docker info --format <span class="hljs-string">&#x27;{{.DockerRootDir}}&#x27;</span>     <span class="hljs-comment"># 找到本daemon数据目录，远程context返回的是远端路径</span>
+<span class="hljs-built_in">df</span> -h                                      <span class="hljs-comment"># 在对应daemon主机查看文件系统空间</span>
+<span class="hljs-built_in">df</span> -i                                      <span class="hljs-comment"># 检查inode是否耗尽，避免只看剩余GB</span>
+docker inspect -f <span class="hljs-string">&#x27;{{.HostConfig.LogConfig.Type}} {{.LogPath}}&#x27;</span> demo-web <span class="hljs-comment"># 查日志驱动与引擎记录的日志路径</span>
+</code></pre>
+<p>示例：<code>Memory=268435456</code>为256MiB，<code>NanoCpus=1000000000</code>为1个CPU配额；字段为0时通常没有通过对应字段设置限制，还需核对其他配额和父cgroup。<code>docker stats</code>的内存展示可能扣除部分缓存，不能简单等同进程RSS；CPU高需结合容器进程和应用采样。实时stats按Ctrl+C退出。不要直接删除 <code>/var/lib/docker</code>、修改引擎内部元数据或截断活动日志来腾空间。</p>
+<h2 id="7-镜像拉取查看构建和推送">7. 镜像拉取、查看、构建和推送</h2>
+<h3 id="71-在线拉取构建与仓库发布">7.1 在线拉取、构建与仓库发布</h3>
+<pre><code class="hljs language-bash">docker image <span class="hljs-built_in">ls</span>                                   <span class="hljs-comment"># 本地镜像</span>
+docker pull nginx:1.28                            <span class="hljs-comment"># 拉取指定标签</span>
+docker image inspect nginx:1.28                   <span class="hljs-comment"># digest、架构等</span>
+docker <span class="hljs-built_in">history</span> nginx:1.28                         <span class="hljs-comment"># 镜像层历史</span>
+docker build --pull -t demo-api:1.0.0 .            <span class="hljs-comment"># 当前目录 Dockerfile 构建</span>
+docker tag demo-api:1.0.0 registry.example.com/team/demo-api:1.0.0 <span class="hljs-comment"># 给同一镜像增加仓库标签，不复制业务数据</span>
+docker login registry.example.com                 <span class="hljs-comment"># 按提示认证</span>
+docker push registry.example.com/team/demo-api:1.0.0 <span class="hljs-comment"># 上传镜像，需已认证且有推送权限</span>
+docker <span class="hljs-built_in">logout</span> registry.example.com                <span class="hljs-comment"># 退出仓库登录</span>
+</code></pre>
+<p>示例：构建后给同一镜像加仓库标签再推送。推送前确认仓库和权限；不要把密码放进 <code>-p</code> 参数或 Dockerfile。构建上下文中的凭证应通过 <code>.dockerignore</code> 排除，构建秘密使用专门的 secret 挂载。</p>
+<p>构建示例以当前目录有正确Dockerfile及业务文件为前提。<code>--pull</code>会尝试更新基础镜像，Dockerfile中的安装命令也可能联网；“目标服务器离线运行”不等于“构建过程无需网络”。需要可复现发布时，用批准的固定版本或digest，并保留源码提交、Dockerfile、构建参数和镜像ID。</p>
+<h3 id="72-离线部署前分清要打包的内容和平台">7.2 离线部署前，分清要打包的内容和平台</h3>
+<p>完整顺序：目标机确认运行环境与平台 → 联网机拉取或构建目标镜像 → 导出镜像包及校验清单 → 传输 → 目标机校验 → load → 核对镜像 → 按原运行参数创建容器 → 验证或回退。</p>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th><code>docker image save</code>会包含吗</th>
+<th>还需要准备什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>已选镜像的层及镜像配置、标签</td>
+<td>包含</td>
+<td>导出时明确写出需要的完整镜像名</td>
+</tr>
+<tr>
+<td>当前容器可写层的临时修改</td>
+<td>不包含</td>
+<td>将必要修改纳入Dockerfile，重新构建</td>
+</tr>
+<tr>
+<td>命名卷、bind mount中的数据</td>
+<td>不包含</td>
+<td>按第9项单独备份、传输和恢复</td>
+</tr>
+<tr>
+<td>Compose清单、运行参数、外置配置</td>
+<td>不包含</td>
+<td>保存清单、环境来源、挂载文件和目录结构</td>
+</tr>
+<tr>
+<td>数据库、证书私钥、外部服务</td>
+<td>不包含</td>
+<td>使用对应备份及安全交付方式，核对目标依赖可达</td>
+</tr>
+<tr>
+<td>Docker Engine、Compose插件</td>
+<td>不包含</td>
+<td>目标机预先安装兼容的运行环境</td>
+</tr>
+</tbody>
+</table>
+<p>先在<strong>目标服务器</strong>检查，普通用户需要相应Docker及SSH权限：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">uname</span> -m                                   <span class="hljs-comment"># 查看目标机CPU架构</span>
+docker version                             <span class="hljs-comment"># 确认Server可连接及引擎版本</span>
+docker info --format <span class="hljs-string">&#x27;{{.OSType}}/{{.Architecture}}&#x27;</span> <span class="hljs-comment"># 核对目标daemon的系统和架构</span>
+docker compose version                     <span class="hljs-comment"># 使用Compose部署时确认插件版本</span>
+<span class="hljs-built_in">df</span> -h                                      <span class="hljs-comment"># 检查接收目录及Docker数据盘的可用空间</span>
+docker info --format <span class="hljs-string">&#x27;{{.DockerRootDir}}&#x27;</span>    <span class="hljs-comment"># 找到镜像实际加载到哪个数据盘</span>
+</code></pre>
+<p>示例：Linux <code>x86_64</code>通常对应 <code>linux/amd64</code>，<code>aarch64</code>通常对应 <code>linux/arm64</code>。Docker Desktop需确认使用Linux容器模式，不能拿Windows容器镜像交给Linux引擎。包大小不是最终占用，加载、解压和新旧版本并存都需要空间。</p>
+<p>联网机与目标机架构不同时，拉取目标平台，例如 <code>docker pull --platform linux/amd64 nginx:1.28</code>。自有应用可在已配置目标平台构建能力的Buildx上执行 <code>docker buildx build --platform linux/amd64 --load -t demo-api:1.0.0 .</code>，再检查本地镜像。<code>--load</code>用于把单平台结果装入本地镜像存储，构建缓存里有结果不等于 <code>docker image save</code>能找到；跨平台构建还可能需要模拟器或原生构建节点。<a href="https://docs.docker.com/reference/cli/docker/buildx/build/">Buildx构建说明</a></p>
+<p>下面采用较通用的save/load方式，不依赖较新API才有的 <code>save/load --platform</code>。save只导出本地已有内容，不会自动替你下载其他平台；多平台镜像存储和旧引擎之间也需先做兼容性验证。</p>
+<h3 id="73-联网机导出镜像生成校验和并上传">7.3 联网机导出镜像、生成校验和并上传</h3>
+<p>以下演示把Nginx镜像交付给 <code>linux/amd64</code>目标机。<code>nginx:1.28</code>为示例标签，实际应替换为本次批准的具体镜像；为每轮交付建独立空目录，不覆盖上轮回退包。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">mkdir</span> ./offline-demo &amp;&amp; <span class="hljs-built_in">cd</span> ./offline-demo    <span class="hljs-comment"># 在当前可写目录创建本轮工作目录；已存在则先停止核对</span>
+docker pull --platform linux/amd64 nginx:1.28 <span class="hljs-comment"># 联网机拉取目标平台镜像，失败不继续打包</span>
+docker image inspect --format <span class="hljs-string">&#x27;{{.Id}} {{.Os}}/{{.Architecture}}&#x27;</span> nginx:1.28 <span class="hljs-comment"># 确认镜像ID及平台</span>
+docker image inspect --format <span class="hljs-string">&#x27;{{.Id}} {{.Os}}/{{.Architecture}}&#x27;</span> nginx:1.28 &gt; image-info.txt <span class="hljs-comment"># 记录交付镜像身份</span>
+docker image save -o nginx-1.28.tar nginx:1.28 <span class="hljs-comment"># 把已确认的镜像及标签写成tar文件</span>
+<span class="hljs-built_in">ls</span> -lh nginx-1.28.tar                       <span class="hljs-comment"># 确认文件存在且有合理大小</span>
+<span class="hljs-built_in">sha256sum</span> nginx-1.28.tar image-info.txt &gt; SHA256SUMS <span class="hljs-comment"># 生成本轮文件校验清单</span>
+<span class="hljs-built_in">sha256sum</span> -c SHA256SUMS                     <span class="hljs-comment"># 联网机先检查自己的交付文件</span>
+</code></pre>
+<p>示例校验输出为 <code>nginx-1.28.tar: OK</code>和 <code>image-info.txt: OK</code>；镜像信息形如 <code>sha256:... linux/amd64</code>。<code>&gt;</code>会创建或覆盖右侧文件；导出使用 <code>-o</code>直接写包，不把终端输出当成镜像文件。包内容和来源仍需可信，SHA256只检查文件是否一致。</p>
+<p>需要压缩时，可在确认tar导出成功后使用 <code>gzip -c nginx-1.28.tar &gt; nginx-1.28.tar.gz</code>将压缩结果写入新文件并保留原tar；随后应对实际传输的 <code>.tar.gz</code>重新生成清单，上传和加载也改为该文件。目标机 <code>docker image load -i nginx-1.28.tar.gz</code>可读取gzip压缩包。不要只改扩展名冒充压缩，也不要校验tar却上传另一个未经校验的文件。<a href="https://docs.docker.com/reference/cli/docker/image/save/">save</a>与<a href="https://docs.docker.com/reference/cli/docker/image/load/">load</a>说明。</p>
+<p>在联网机执行传输，地址、用户和SSH端口按实际授权替换。先确认目标SSH主机指纹，不关闭主机身份校验：</p>
+<pre><code class="hljs language-bash">ssh -p 22 ops@192.0.2.20 <span class="hljs-string">&#x27;mkdir -p ~/offline-demo&#x27;</span> <span class="hljs-comment"># 在目标登录用户家目录准备接收目录</span>
+scp -P 22 nginx-1.28.tar image-info.txt SHA256SUMS ops@192.0.2.20:~/offline-demo/ <span class="hljs-comment"># 上传镜像、身份记录与校验清单</span>
+ssh -p 22 ops@192.0.2.20                    <span class="hljs-comment"># 登录目标机，下面的加载命令改在这里执行</span>
+</code></pre>
+<p><code>ssh -p</code>为小写p，<code>scp -P</code>为大写P。每轮使用独立接收目录，目录已有文件时先核对版本；传输完成不代表校验通过。目标目录无权限时先用用户自己的接收目录，再由获准管理员放到部署位置，不把目录改成777。</p>
+<details class="install-guide">
+<summary>缺少scp、校验或压缩工具，以及Windows上传方式</summary>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v ssh scp <span class="hljs-built_in">sha256sum</span> tar gzip        <span class="hljs-comment"># 查询当前机器是否具备传输、校验和归档工具</span>
+</code></pre>
+<p>在能访问批准软件源的机器上，按系统安装缺失包：</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># Ubuntu / Debian：只安装缺少的工具。</span>
+<span class="hljs-built_in">sudo</span> apt-get update                         <span class="hljs-comment"># 更新批准源索引</span>
+<span class="hljs-built_in">sudo</span> apt-get install openssh-client coreutils tar gzip <span class="hljs-comment"># scp/ssh、SHA256与归档工具</span>
+</code></pre>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 使用dnf的RHEL系；已有CentOS 7改用其批准仓库和yum，不套用Stream包。</span>
+<span class="hljs-built_in">sudo</span> dnf install openssh-clients coreutils tar gzip <span class="hljs-comment"># 安装本机匹配的工具包</span>
+<span class="hljs-comment"># sudo yum install openssh-clients coreutils tar gzip # CentOS 7有匹配候选时才选择执行</span>
+</code></pre>
+<p>离线目标机缺软件包时，需事先准备匹配发行版、架构及依赖的离线安装介质，镜像tar不会提供这些宿主机工具。</p>
+<p>Windows已启用OpenSSH客户端时，可以在PowerShell进入交付文件目录后执行同样的 <code>scp -P 22 ...</code>上传。也可使用MobaXterm的SFTP面板上传上述三个文件到同一目录；仍然在Linux目标机执行 <code>sha256sum -c SHA256SUMS</code>。不要通过终端复制粘贴tar二进制内容。Windows上需核对Docker目标为Linux平台；本文的Bash数组和shell语法不能原样贴进PowerShell。</p>
+</details>
+<h3 id="74-目标服务器校验加载和离线启动">7.4 目标服务器校验、加载和离线启动</h3>
+<p>以下在<strong>目标服务器</strong>执行；先确认接收文件已齐全，且本机Docker环境符合7.2的检查结果：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> ~/offline-demo                           <span class="hljs-comment"># 进入本轮实际接收目录</span>
+<span class="hljs-built_in">sha256sum</span> -c SHA256SUMS                      <span class="hljs-comment"># 必须所有文件均为OK，失败先重传，不继续load</span>
+<span class="hljs-built_in">cat</span> image-info.txt                          <span class="hljs-comment"># 查看预期镜像ID及平台，不执行此文件内容</span>
+docker image load -i nginx-1.28.tar          <span class="hljs-comment"># 把镜像加载进当前daemon，不会自动启动或更新容器</span>
+docker image inspect --format <span class="hljs-string">&#x27;{{.Id}} {{.Os}}/{{.Architecture}}&#x27;</span> nginx:1.28 <span class="hljs-comment"># 与交付身份记录逐项对比</span>
+docker image <span class="hljs-built_in">ls</span> nginx:1.28                   <span class="hljs-comment"># 确认完整名称和标签都存在</span>
+</code></pre>
+<p>load通常输出 <code>Loaded image: nginx:1.28</code>。检查安装后镜像的ID、OS和架构与 <code>image-info.txt</code>一致。镜像ID、仓库manifest digest、tar文件SHA256是不同概念，不能把三者当作同一串哈希；离线包加载后也不保证保留所有远端仓库digest元数据。</p>
+<p>加载相同标签可能将该标签指向另一份镜像，但不会更新已运行的容器。已有服务升级先按第13项保存旧容器配置、镜像ID和回退版本，不能因为load成功就认为业务已经切换。</p>
+<p>下面仅在没有同名演示容器、回环8080端口空闲时运行；若第3项已启动过同名容器，改用其他明确名称及端口或按原部署方式更新：</p>
+<pre><code class="hljs language-bash">docker ps -a --filter name=demo-web          <span class="hljs-comment"># 核对名称占用和旧容器用途</span>
+<span class="hljs-built_in">sudo</span> ss -lntp <span class="hljs-string">&#x27;sport = :8080&#x27;</span>                <span class="hljs-comment"># 核对主机端口，存在其他监听先处理冲突</span>
+<span class="hljs-comment"># 只用本地已加载镜像创建演示容器，不访问镜像仓库；新连接仅绑定主机回环地址。</span>
+docker run -d --name demo-web --pull=never \\
+  --restart unless-stopped \\
+  -p 127.0.0.1:8080:80 \\
+  --log-driver json-file --log-opt max-size=10m --log-opt max-file=3 \\
+  nginx:1.28
+docker ps -a --filter name=demo-web          <span class="hljs-comment"># 查看是否运行或异常退出</span>
+docker logs --<span class="hljs-built_in">tail</span> 100 demo-web              <span class="hljs-comment"># 查看启动错误</span>
+curl -I --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/ <span class="hljs-comment"># 验证目标机本地HTTP响应</span>
+</code></pre>
+<p><code>--pull=never</code>使镜像缺失时直接报错，避免离线环境等待拉取；它不禁止容器中的应用联网，数据库、DNS、许可证和启动脚本下载等运行依赖仍要事先准备。命令支持情况先查本机 <code>docker run --help</code>；旧版本不支持时应使用已验证的兼容流程，不能忽略参数后假定不会联网。</p>
+<p>示例：端口映射正确、日志无配置错误、本机返回预期Nginx页面后，再查实际代理、域名和业务路径。其他机器不能直接访问目标机的127.0.0.1；需要对外服务时按批准的监听地址及访问规则发布，不为排障随意改为全网开放。</p>
+<h3 id="75-多个镜像离线构建和容器导出的区别">7.5 多个镜像、离线构建和容器导出的区别</h3>
+<p>多个已在本地核验的镜像可合并保存，例如 <code>docker image save -o stack-images.tar demo-api:1.0.0 redis:7.4</code>；目标机执行 <code>docker image load -i stack-images.tar</code>，再逐个检查名称和平台。Compose应按实际生效清单列出全部镜像，完整流程见13.2，不能只打包主应用却漏掉数据库、缓存或工具服务。</p>
+<p><code>save/load</code>用于迁移镜像；<code>export/import</code>主要处理容器文件系统，不会自动保留完整镜像历史、原运行配置和挂载卷数据，不能作为同等替代。也不要用 <code>docker commit</code>替代可复现构建，挂载卷不会因此自动打入镜像。</p>
+<p>真正的离线构建还要准备Dockerfile引用的基础镜像、构建前端、语言依赖、系统包、BuildKit能力与构建上下文；目标机已有业务运行镜像，并不代表重新build就无需联网。只有离线运行需求时，优先在具备构建条件的机器完成构建，再save/load交付。</p>
+<h2 id="8-网络dns-与端口">8. 网络、DNS 与端口</h2>
+<pre><code class="hljs language-bash">docker network <span class="hljs-built_in">ls</span>                                     <span class="hljs-comment"># 网络列表</span>
+docker network inspect demo-net                       <span class="hljs-comment"># 网段、成员</span>
+docker port demo-web                                  <span class="hljs-comment"># 主机发布端口</span>
+docker inspect -f <span class="hljs-string">&#x27;{{json .NetworkSettings.Networks}}&#x27;</span> demo-web <span class="hljs-comment"># 查看容器实际加入的网络和地址</span>
+docker <span class="hljs-built_in">exec</span> demo-web <span class="hljs-built_in">cat</span> /etc/resolv.conf              <span class="hljs-comment"># 容器 DNS 配置</span>
+curl -I --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/ <span class="hljs-comment"># 从宿主机检查发布端口</span>
+</code></pre>
+<p>示例：同一自定义网络中的服务通常用容器名或服务名通信；容器内的 <code>localhost</code> 指容器自身。容器服务需监听可被其他容器访问的地址，不应只绑定容器内127.0.0.1。</p>
+<pre><code class="hljs language-bash">docker network create demo-net             <span class="hljs-comment"># 新建用户网络</span>
+docker network connect demo-net demo-web   <span class="hljs-comment"># 把容器加入网络，会改变连通范围</span>
+docker network disconnect demo-net demo-web <span class="hljs-comment"># 从网络移除，会影响连接</span>
+</code></pre>
+<p>示例：只在确认拓扑后执行连接操作。排查顺序是容器进程 → 容器监听 → 网络成员 → DNS → 主机端口 → 外部规则 → 应用认证；不要通过反复重启代替定位。</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>下一步怎么查</th>
+<th>如何判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本机发布端口也不通</td>
+<td><code>docker port</code>、容器日志、主机监听与转发规则</td>
+<td>先区分没发布、进程没启动、应用监听错地址</td>
+</tr>
+<tr>
+<td>本机能访问，外部不通</td>
+<td>发布地址、路由、防火墙、云安全组和前置代理</td>
+<td>绑定127.0.0.1时本来就仅限本机，不直接放开全部来源</td>
+</tr>
+<tr>
+<td>服务名无法解析</td>
+<td>两端是否在同一用户网络、实际Compose服务名</td>
+<td>默认bridge不等同自定义网络的服务发现能力</td>
+</tr>
+<tr>
+<td>解析正常却连接拒绝</td>
+<td>目标应用端口、监听地址、启动就绪与日志</td>
+<td>容器间使用容器端口，通常不是宿主机映射端口</td>
+</tr>
+<tr>
+<td>外部DNS或HTTPS失败</td>
+<td>容器resolv.conf、出口、代理及证书链</td>
+<td>不以写死公网DNS、关闭TLS验证作为通用修复</td>
+</tr>
+</tbody>
+</table>
+<p>容器没有curl或诊断工具时，优先使用应用自检、主机已有工具或获准的调试镜像；离线环境先按第7项准备调试镜像，不在生产容器临时联网安装一堆软件。<code>EXPOSE 80</code>只是镜像元数据，不能代替 <code>-p</code>发布端口。</p>
+<h2 id="9-挂载卷与持久化">9. 挂载卷与持久化</h2>
+<pre><code class="hljs language-bash">docker volume <span class="hljs-built_in">ls</span>                                 <span class="hljs-comment"># 命名卷列表</span>
+docker volume inspect demo-data                  <span class="hljs-comment"># 卷属性</span>
+docker inspect -f <span class="hljs-string">&#x27;{{json .Mounts}}&#x27;</span> demo-web      <span class="hljs-comment"># 实际挂载来源、目标、读写模式</span>
+docker volume create demo-data                   <span class="hljs-comment"># 创建命名卷</span>
+</code></pre>
+<p>示例：命名卷用于持久数据；bind mount 使用明确的宿主机路径。卷挂载到原有非空目录时会遮盖镜像里的相应内容，不能看到文件不一定等于数据已删除。</p>
+<p>只读挂载的启动示例：</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 将已经存在的主机静态目录只读挂载；使用独立名称和空闲回环端口。</span>
+docker run -d --name demo-static \\
+  -p 127.0.0.1:8081:80 \\
+  --mount <span class="hljs-built_in">type</span>=<span class="hljs-built_in">bind</span>,src=/opt/demo/html,dst=/usr/share/nginx/html,<span class="hljs-built_in">readonly</span> \\
+  nginx:1.28
+</code></pre>
+<p>示例：主机 <code>/opt/demo/html</code> 必须存在。容器可以读取但不能通过该挂载写入静态文件。数据库挂载还应核对 UID/GID、SELinux 标签和备份策略，不能直接用全目录 <code>chmod 777</code> 解决。</p>
+<h3 id="卷备份示例">卷备份示例</h3>
+<p>以下用于普通文件卷，先停止或排空所有写入者，确认业务允许一致性备份。命令在Docker daemon所在主机执行；远程context不会替你把CLI本地目录上传到远端。离线环境先按第7项加载同平台的辅助镜像。</p>
+<pre><code class="hljs language-bash">docker volume inspect demo-data             <span class="hljs-comment"># 确认备份的是实际业务卷，查不到先停止，不让run自动建空卷</span>
+BACKUP_DIR=$(<span class="hljs-built_in">mktemp</span> -d <span class="hljs-string">&quot;<span class="hljs-variable">$PWD</span>/volume-backup.XXXXXXXX&quot;</span>) <span class="hljs-comment"># 创建唯一的本轮备份目录，失败不继续</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$BACKUP_DIR</span>&quot;</span>                 <span class="hljs-comment"># 记录备份位置，恢复时使用同一目录</span>
+docker image inspect alpine:3.22            <span class="hljs-comment"># 确认辅助镜像已准备，离线机器不能临时拉取</span>
+<span class="hljs-comment"># 启动临时辅助容器：源卷只读挂载，归档写到宿主机本轮备份目录。</span>
+docker run --<span class="hljs-built_in">rm</span> --pull=never \\
+  --mount <span class="hljs-built_in">type</span>=volume,src=demo-data,dst=/data,<span class="hljs-built_in">readonly</span> \\
+  --mount <span class="hljs-built_in">type</span>=<span class="hljs-built_in">bind</span>,src=<span class="hljs-string">&quot;<span class="hljs-variable">$BACKUP_DIR</span>&quot;</span>,dst=/backup \\
+  alpine:3.22 tar -czf /backup/demo-data.tgz -C /data .
+gzip -t <span class="hljs-string">&quot;<span class="hljs-variable">$BACKUP_DIR</span>/demo-data.tgz&quot;</span>          <span class="hljs-comment"># 完整检查gzip数据流，失败不把该归档视为有效备份</span>
+tar -tzf <span class="hljs-string">&quot;<span class="hljs-variable">$BACKUP_DIR</span>/demo-data.tgz&quot;</span> | <span class="hljs-built_in">head</span> <span class="hljs-comment"># 预览归档路径，默认最多显示10行</span>
+<span class="hljs-built_in">sha256sum</span> <span class="hljs-string">&quot;<span class="hljs-variable">$BACKUP_DIR</span>/demo-data.tgz&quot;</span>        <span class="hljs-comment"># 记录备份文件哈希，传输后再次对比</span>
+</code></pre>
+<p>示例：辅助容器退出后归档仍在主机备份目录。在线准备机缺少辅助镜像时先执行 <code>docker pull alpine:3.22</code>并核对平台；缺少宿主机tar/gzip/SHA256工具见7.3的折叠说明。数据库运行中直接打包数据目录通常不能保证一致性，应优先使用数据库备份工具或受支持的快照流程。</p>
+<p><code>tar -tzf ... | head</code> 中的 <code>|</code> 把归档文件列表交给 <code>head</code>，默认只显示前10行；这只用于快速查看，不等于已经完整校验或恢复验证了整个备份。</p>
+<p>恢复前先验证备份，使用新的空卷演练，不覆盖已有生产数据：</p>
+<pre><code class="hljs language-bash">RESTORE_VOLUME=<span class="hljs-string">&quot;demo-data-restore-<span class="hljs-subst">$(date +%Y%m%d-%H%M%S)</span>&quot;</span> <span class="hljs-comment"># 选新的恢复卷名，确认同名卷不存在</span>
+docker volume create <span class="hljs-string">&quot;<span class="hljs-variable">$RESTORE_VOLUME</span>&quot;</span>     <span class="hljs-comment"># 创建独立空卷；原业务卷不覆盖</span>
+<span class="hljs-comment"># 只读挂载归档并解压到新卷，辅助镜像须已在本地准备。</span>
+docker run --<span class="hljs-built_in">rm</span> --pull=never \\
+  --mount <span class="hljs-built_in">type</span>=volume,src=<span class="hljs-string">&quot;<span class="hljs-variable">$RESTORE_VOLUME</span>&quot;</span>,dst=/data \\
+  --mount <span class="hljs-built_in">type</span>=<span class="hljs-built_in">bind</span>,src=<span class="hljs-string">&quot;<span class="hljs-variable">$BACKUP_DIR</span>&quot;</span>,dst=/backup,<span class="hljs-built_in">readonly</span> \\
+  alpine:3.22 tar -xzf /backup/demo-data.tgz -C /data
+docker volume inspect <span class="hljs-string">&quot;<span class="hljs-variable">$RESTORE_VOLUME</span>&quot;</span>    <span class="hljs-comment"># 确认恢复目标和实际卷属性</span>
+</code></pre>
+<p>示例：恢复后用隔离的兼容应用验证文件数量、关键内容、UID/GID和业务读写，确认无误才安排切换；不能仅凭tar退出码认定业务恢复成功。新终端先把 <code>BACKUP_DIR</code>重新设为实际备份目录。文件系统ACL、扩展属性等额外要求还需匹配工具和备份格式；数据库逻辑备份按数据库自己的恢复流程验证。</p>
+<h2 id="10-compose-的文件与项目范围">10. Compose 的文件与项目范围</h2>
+<pre><code class="hljs language-bash">docker compose <span class="hljs-built_in">ls</span>                                 <span class="hljs-comment"># Compose 项目列表</span>
+docker compose -p demo -f /opt/demo/compose.yaml config -q <span class="hljs-comment"># 校验</span>
+docker compose -p demo -f /opt/demo/compose.yaml config --services <span class="hljs-comment"># 服务名</span>
+docker compose -p demo -f /opt/demo/compose.yaml config --images   <span class="hljs-comment"># 镜像</span>
+</code></pre>
+<p>示例：使用固定 <code>-p demo</code> 与 <code>-f /opt/demo/compose.yaml</code>，避免在不同目录意外操作另一套项目。完整 <code>config</code> 会展开环境变量，可能显示敏感值，分享时不要直接贴出原始结果。</p>
+<p>下面的 Compose 命令均假设已进入 <code>/opt/demo</code>，使用该目录的 <code>compose.yaml</code> 和固定项目名 <code>demo</code>；跨目录、自动化或有多个清单时保留完整的 <code>-p/-f/--env-file</code>参数，每轮操作保持一致。</p>
+<p>最小示例文件：</p>
+<pre><code class="hljs language-yaml"><span class="hljs-attr">services:</span>
+  <span class="hljs-attr">web:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">nginx:1.28</span>
+    <span class="hljs-attr">ports:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;127.0.0.1:8080:80&quot;</span>
+    <span class="hljs-attr">restart:</span> <span class="hljs-string">unless-stopped</span>
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">./html:/usr/share/nginx/html:ro</span>
+    <span class="hljs-attr">logging:</span>
+      <span class="hljs-attr">driver:</span> <span class="hljs-string">json-file</span>
+      <span class="hljs-attr">options:</span>
+        <span class="hljs-attr">max-size:</span> <span class="hljs-string">&quot;10m&quot;</span>
+        <span class="hljs-attr">max-file:</span> <span class="hljs-string">&quot;3&quot;</span>
+</code></pre>
+<p>各字段：<code>image</code>为要运行的镜像名；<code>ports</code>为主机回环8080到容器80；<code>restart</code>为容器重启策略；<code>volumes</code>把清单目录下的html只读挂载；<code>logging</code>限制新容器的控制台日志文件大小与份数。</p>
+<p>首次新建演示项目时，在已获准且可写的项目目录保存上述清单为 <code>compose.yaml</code>，再准备网页。已有站点不覆盖现有index：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> /opt/demo                               <span class="hljs-comment"># 进入管理员准备且允许访问的项目目录</span>
+<span class="hljs-built_in">mkdir</span> -p html                              <span class="hljs-comment"># 准备bind mount源目录，避免误挂空目录</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\\n&#x27;</span> <span class="hljs-string">&#x27;&lt;!doctype html&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;h1&gt;demo ready&lt;/h1&gt;&#x27;</span> &gt; html/index.html <span class="hljs-comment"># 仅新建演示站点写入验证页面</span>
+docker compose -p demo -f compose.yaml config -q <span class="hljs-comment"># 校验清单语法、变量和结构</span>
+docker compose -p demo -f compose.yaml config --images <span class="hljs-comment"># 记录实际引用的镜像名</span>
+</code></pre>
+<p>示例：该清单不需要旧式顶层 <code>version</code>字段。<code>web</code>是服务名，不要求容器名也叫web；不要凭猜测名字操作容器，使用 <code>docker compose -p demo ps</code>查询。语法检查不会验证所有主机文件权限、外部服务就绪或业务正确性。</p>
+<h2 id="11-compose-启动停止与重建">11. Compose 启动、停止与重建</h2>
+<pre><code class="hljs language-bash">docker compose -p demo config -q           <span class="hljs-comment"># 先校验</span>
+docker compose -p demo up -d               <span class="hljs-comment"># 创建/按配置重建并后台运行</span>
+docker compose -p demo ps -a               <span class="hljs-comment"># 查看项目内容器</span>
+docker compose -p demo start web           <span class="hljs-comment"># 启动已存在的服务容器</span>
+docker compose -p demo stop -t 30 web       <span class="hljs-comment"># 停止，保留容器</span>
+docker compose -p demo restart web         <span class="hljs-comment"># 重启原容器</span>
+docker compose -p demo up -d --no-deps web  <span class="hljs-comment"># 只更新目标服务，不连带启动依赖</span>
+</code></pre>
+<p>示例：修改环境变量、端口或镜像后，使用 <code>up -d</code> 应用变化；<code>restart</code> 不会重新读取这些变更来重建容器。<code>--no-deps</code> 只在依赖已经满足时使用。</p>
+<p>首次启动建议按 <code>config -q → 准备镜像和挂载文件 → up -d → ps -a → logs → 主机入口 → 实际业务</code>执行。命令返回容器ID或状态为running不等于业务就绪；镜像有健康检查时结合healthy，否则用实际接口检查。前台 <code>docker compose up</code>按Ctrl+C可能停止这一组服务，后台启动使用 <code>-d</code>；<code>logs -f</code>退出仅停止看日志。</p>
+<pre><code class="hljs language-bash">docker compose -p demo up -d --force-recreate web <span class="hljs-comment"># 强制重建，会替换容器</span>
+docker compose -p demo down                      <span class="hljs-comment"># 删除项目容器和非外部网络</span>
+</code></pre>
+<p>示例：<code>down</code> 会中断整个项目。默认不删除命名卷，但容器可写层会丢失，匿名卷再次启动时也未必自动复用；重要数据应明确挂载。不要为查看状态执行 <code>down</code>。</p>
+<h2 id="12-compose-日志执行和资源">12. Compose 日志、执行和资源</h2>
+<pre><code class="hljs language-bash">docker compose -p demo logs --<span class="hljs-built_in">tail</span> 100 --timestamps web <span class="hljs-comment"># 最近日志</span>
+docker compose -p demo logs -f --since 10m web           <span class="hljs-comment"># 实时日志</span>
+docker compose -p demo <span class="hljs-built_in">exec</span> web sh                      <span class="hljs-comment"># 进入运行容器</span>
+docker compose -p demo <span class="hljs-built_in">exec</span> -T web nginx -t              <span class="hljs-comment"># 无TTY执行，适合脚本</span>
+docker compose -p demo top                              <span class="hljs-comment"># 进程</span>
+docker compose -p demo port web 80                       <span class="hljs-comment"># 查询映射</span>
+docker compose -p demo run --<span class="hljs-built_in">rm</span> --no-deps web nginx -t   <span class="hljs-comment"># 一次性新容器</span>
+</code></pre>
+<p>示例：<code>exec</code> 在原容器执行；<code>run</code> 创建一次性容器，默认不发布服务端口，仍可能访问该服务声明的卷和网络，执行写操作前应核对影响。资源检查可取 <code>ps -q</code> 返回的容器ID再用 <code>docker stats</code>。</p>
+<pre><code class="hljs language-bash">docker compose -p demo ps -q web             <span class="hljs-comment"># 查询实际运行的web容器ID，不假设其名称</span>
+docker stats --no-stream 容器ID              <span class="hljs-comment"># 将上一条查询的真实ID代入，查看一次资源快照</span>
+curl -I --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/ <span class="hljs-comment"># 核对示例主机端口的响应</span>
+</code></pre>
+<p><code>ps -q</code>可能返回多个副本或没有结果；没有运行容器时先用 <code>ps -a</code>查退出状态，不直接把空命令替换传给stats，因为无容器参数的stats会展示全部运行容器。</p>
+<h2 id="13-compose-更新回滚和环境">13. Compose 更新、回滚和环境</h2>
+<h3 id="131-在线更新和配置来源">13.1 在线更新和配置来源</h3>
+<pre><code class="hljs language-bash">docker compose -p demo pull web             <span class="hljs-comment"># 仅拉取，不更新运行容器</span>
+docker compose -p demo up -d --no-deps web   <span class="hljs-comment"># 按新镜像重建目标服务</span>
+docker compose -p demo logs --<span class="hljs-built_in">tail</span> 100 web   <span class="hljs-comment"># 核对启动日志</span>
+docker compose -p demo ps                   <span class="hljs-comment"># 查看状态</span>
+</code></pre>
+<p>示例：更新前保留原清单、镜像 digest 和数据备份。失败时把清单改回原镜像再 <code>up -d --no-deps web</code>；镜像回滚不会回滚数据库和挂载配置。</p>
+<pre><code class="hljs language-bash">docker compose -p demo build --pull web                 <span class="hljs-comment"># 本地构建</span>
+docker compose -p demo up -d --build web                <span class="hljs-comment"># 构建并应用</span>
+docker compose -p demo --env-file .env.prod config -q    <span class="hljs-comment"># 指定变量来源</span>
+docker compose -p demo -f compose.yaml -f compose.prod.yaml config -q <span class="hljs-comment"># 合并校验</span>
+docker compose -p demo --profile tools config --services <span class="hljs-comment"># 配置指定 profile</span>
+</code></pre>
+<p>示例：多文件顺序会影响最终配置，后文件按 Compose 合并规则覆盖或补充；相对路径通常基于第一个清单的位置。<code>.env</code> 常用于清单插值，不代表所有变量自动进入容器；容器环境需通过 <code>environment</code> 或 <code>env_file</code> 等声明。</p>
+<p><code>--env-file</code>显式指定清单插值来源，但已有shell变量仍可能覆盖同名值。需要验证最终镜像名时查看 <code>config --images</code>，配置中关键变量可用 <code>\${APP_IMAGE:?请设置APP_IMAGE}</code>要求非空。完整config和inspect可能展开密码，保存在受控目录并限制权限，不放进公开文档或普通发布日志。</p>
+<h3 id="132-compose整套离线打包传输与启动">13.2 Compose整套离线打包、传输与启动</h3>
+<p>本节以第10项的最小静态站点为完整例子：<code>compose.yaml</code>引用 <code>nginx:1.28</code>，挂载同目录的 <code>html/</code>。两端Docker平台必须匹配，目标机已安装兼容的Engine和Compose，端口与项目名已确认。所有镜像都在准备机先拉取或构建，目标机不build、不pull。</p>
+<p><strong>准备机：先核对实际清单。</strong> 以下假设准备机上的 <code>/opt/demo</code>就是本轮部署内容，不从正在变化的目录中途打包：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> /opt/demo                               <span class="hljs-comment"># 进入本轮完整项目目录</span>
+docker compose -p demo -f compose.yaml config -q <span class="hljs-comment"># 先验证清单和变量</span>
+docker compose -p demo -f compose.yaml config --services <span class="hljs-comment"># 确认本轮服务范围</span>
+docker compose -p demo -f compose.yaml config --images <span class="hljs-comment"># 确认所有最终镜像名及标签</span>
+docker compose -p demo -f compose.yaml pull  <span class="hljs-comment"># 联网准备机拉取本例镜像，失败先处理</span>
+</code></pre>
+<p>真实项目若包含 <code>build:</code>，先在有构建条件的机器构建并为每个服务设置明确 <code>image:</code>；不要指望目标机补构建。多文件、profile和环境文件必须在列镜像、拉取、校验和启动时保持一致。准备机架构不同于目标机时，按7.2给每项服务明确匹配的 <code>platform</code>并取得对应镜像；不能只改平台字段却没有对应镜像。</p>
+<p><strong>准备机：制作交付包。</strong> 本例没有额外环境文件或密钥；下面只复制明确需要的清单与网页，不整目录打包源码、日志和凭据：</p>
+<pre><code class="hljs language-bash">BUNDLE_DIR=$(<span class="hljs-built_in">mktemp</span> -d <span class="hljs-string">&quot;<span class="hljs-variable">$PWD</span>/offline-release.XXXXXXXX&quot;</span>) <span class="hljs-comment"># 为本轮创建唯一交付目录</span>
+<span class="hljs-built_in">cp</span> -p compose.yaml <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/compose.yaml&quot;</span> <span class="hljs-comment"># 复制已校验的部署清单</span>
+<span class="hljs-built_in">cp</span> -a html <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/html&quot;</span>               <span class="hljs-comment"># 复制本例静态文件，保留清单中的相对目录</span>
+docker compose -p demo -f compose.yaml config --images &gt; <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/images.txt&quot;</span> <span class="hljs-comment"># 输出本轮镜像清单</span>
+<span class="hljs-built_in">sort</span> -u -o <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/images.txt&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/images.txt&quot;</span> <span class="hljs-comment"># 去重，保留完整镜像名</span>
+<span class="hljs-built_in">mapfile</span> -t OFFLINE_IMAGES &lt; <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/images.txt&quot;</span> <span class="hljs-comment"># Bash按行读入数组，不进行空格拆分</span>
+<span class="hljs-built_in">test</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${#OFFLINE_IMAGES[@]}</span>&quot;</span> -gt 0           <span class="hljs-comment"># 必须至少有一个镜像，失败先检查清单和profile</span>
+docker image inspect --format <span class="hljs-string">&#x27;{{.Id}} {{.Os}}/{{.Architecture}} {{json .RepoTags}}&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${OFFLINE_IMAGES[@]}</span>&quot;</span> <span class="hljs-comment"># 全部镜像必须存在且平台正确</span>
+docker image save -o <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/images.tar&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${OFFLINE_IMAGES[@]}</span>&quot;</span> <span class="hljs-comment"># 合并保存本轮全部已核验镜像</span>
+docker image inspect --format <span class="hljs-string">&#x27;{{.Id}} {{.Os}}/{{.Architecture}} {{json .RepoTags}}&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${OFFLINE_IMAGES[@]}</span>&quot;</span> &gt; <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>/image-info.txt&quot;</span> <span class="hljs-comment"># 保存身份记录</span>
+<span class="hljs-built_in">cd</span> <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>&quot;</span>                           <span class="hljs-comment"># 清单使用相对文件名，便于目标机原样校验</span>
+find compose.yaml html images.txt image-info.txt images.tar -<span class="hljs-built_in">type</span> f -<span class="hljs-built_in">exec</span> <span class="hljs-built_in">sha256sum</span> {} + &gt; SHA256SUMS <span class="hljs-comment"># 校验清单和网页也纳入交付校验</span>
+<span class="hljs-built_in">sha256sum</span> -c SHA256SUMS                     <span class="hljs-comment"># 发送前确认每一项均为OK</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>&quot;</span>                 <span class="hljs-comment"># 记录本轮交付目录绝对路径</span>
+</code></pre>
+<p><code>mapfile</code>和数组语法用于Bash，不能直接贴进PowerShell或sh。<code>&quot;\${OFFLINE_IMAGES[@]}&quot;</code>逐项传递镜像名；不是只把images.txt本身当成镜像。任一检查、复制或save失败时停在该步骤，不生成看似完整的交付包。</p>
+<p>清单中的其他bind mount、配置、secret文件要单独确认内容、权限和交付路径；符号链接的目标不会被 <code>cp -a</code>自动带上。命名卷数据不在本包内，按第9项迁移；外部网络、外部卷和依赖服务需在目标预先准备。包含环境文件时按同一参数验证，秘密通过受控方式交付，不把展开后的完整config随意打包或公开。</p>
+<p><strong>准备机：传输整个交付目录。</strong> 记录本轮目录名，例如 <code>offline-release.A1b2C3d4</code>，不要与之前的单镜像 <code>offline-demo</code>目录混淆：</p>
+<pre><code class="hljs language-bash">ssh -p 22 ops@192.0.2.20 <span class="hljs-string">&#x27;mkdir -p ~/releases&#x27;</span> <span class="hljs-comment"># 在目标用户家目录准备交付父目录</span>
+scp -P 22 -r <span class="hljs-string">&quot;<span class="hljs-variable">$BUNDLE_DIR</span>&quot;</span> ops@192.0.2.20:~/releases/ <span class="hljs-comment"># 递归上传本轮目录，保留内部相对结构</span>
+</code></pre>
+<p><strong>目标机：先校验、加载，再启动。</strong> 下例将目录名替换为实际上传结果，不把演示目录名当作固定值：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> ~/releases/offline-release.A1b2C3d4        <span class="hljs-comment"># 进入本轮实际接收目录，后续保持同一终端</span>
+<span class="hljs-built_in">sha256sum</span> -c SHA256SUMS                      <span class="hljs-comment"># 所有文件均为OK才继续</span>
+docker compose -p demo -f compose.yaml config -q <span class="hljs-comment"># 在目标版本Compose上再次校验</span>
+docker compose -p demo -f compose.yaml config --images <span class="hljs-comment"># 与images.txt逐项核对名称、标签和平台配置</span>
+docker image load -i images.tar             <span class="hljs-comment"># 加载所有交付镜像，不会自动重建现有容器</span>
+<span class="hljs-built_in">mapfile</span> -t OFFLINE_IMAGES &lt; images.txt       <span class="hljs-comment"># 读取交付镜像名</span>
+<span class="hljs-built_in">test</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${#OFFLINE_IMAGES[@]}</span>&quot;</span> -gt 0           <span class="hljs-comment"># 空清单或读取失败时停止</span>
+docker image inspect --format <span class="hljs-string">&#x27;{{.Id}} {{.Os}}/{{.Architecture}} {{json .RepoTags}}&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${OFFLINE_IMAGES[@]}</span>&quot;</span> <span class="hljs-comment"># 与image-info.txt对比</span>
+docker compose -p demo -f compose.yaml up --<span class="hljs-built_in">help</span> <span class="hljs-comment"># 先确认当前版本支持--pull和--no-build</span>
+docker compose -p demo -f compose.yaml up -d --pull never --no-build <span class="hljs-comment"># 只用本地镜像创建或更新本轮项目</span>
+docker compose -p demo -f compose.yaml ps -a <span class="hljs-comment"># 核对全部服务是否运行，有无异常退出</span>
+docker compose -p demo -f compose.yaml logs --<span class="hljs-built_in">tail</span> 100 <span class="hljs-comment"># 查看本轮启动日志</span>
+curl -fsS --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/ <span class="hljs-comment"># 本例应能读到demo ready网页</span>
+</code></pre>
+<p>示例成功表现：校验项全部OK，镜像身份与平台匹配，web运行，HTTP正文包含本例 <code>demo ready</code>；真实业务继续验收登录、接口与依赖。<code>--pull never</code>禁止拉取镜像，<code>--no-build</code>禁止构建；它们不会禁止应用本身联网。旧Compose不支持相关选项时，不直接去掉参数冒充离线部署，应先确认其受控兼容方案。<a href="https://docs.docker.com/reference/cli/docker/compose/up/">Compose up选项</a></p>
+<p>此处用交付目录直接运行适合新建演示站点；已有项目切换前必须保存运行版本，确认项目名仍是同一套，且清单全部配置完整。相对bind mount会随着发布目录改变指向；数据库和持久目录应使用明确稳定的宿主机路径、受控命名卷或外部卷，不放进每轮临时交付目录。默认命名卷还与项目名有关，不能随意换 <code>-p</code>造成业务连到空卷。</p>
+<h3 id="133-更新前留好回退版本失败后按原参数恢复">13.3 更新前留好回退版本，失败后按原参数恢复</h3>
+<p>以同一 <code>/opt/demo/compose.yaml</code>维护的web服务为例，其他服务不变。以下是维护窗口内的操作流程，不是整机零停机发布：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> /opt/demo                               <span class="hljs-comment"># 进入本次维护的原项目目录</span>
+DEPLOY_BACKUP=$(<span class="hljs-built_in">mktemp</span> -d <span class="hljs-string">&quot;<span class="hljs-variable">$PWD</span>/deploy-backup.XXXXXXXX&quot;</span>) <span class="hljs-comment"># 为本轮配置和镜像记录建独立目录</span>
+<span class="hljs-built_in">cp</span> -p compose.yaml <span class="hljs-string">&quot;<span class="hljs-variable">$DEPLOY_BACKUP</span>/compose.yaml&quot;</span> <span class="hljs-comment"># 备份本轮修改前清单</span>
+docker compose -p demo -f compose.yaml config -q <span class="hljs-comment"># 确认原清单有效</span>
+docker compose -p demo -f compose.yaml ps -q web <span class="hljs-comment"># 查询当前web容器ID，多个副本时逐个记录</span>
+</code></pre>
+<p>把刚刚查到的真实容器ID填入下面变量。这里应从运行容器的 <code>.Image</code>取得镜像ID，而不是只检查可能已被pull/load改变的标签：</p>
+<pre><code class="hljs language-bash">RUNNING_WEB_ID=<span class="hljs-string">&#x27;实际容器ID&#x27;</span>                 <span class="hljs-comment"># 替换为本轮确认的单个web容器ID</span>
+OLD_WEB_IMAGE=$(docker inspect -f <span class="hljs-string">&#x27;{{.Image}}&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$RUNNING_WEB_ID</span>&quot;</span>) <span class="hljs-comment"># 读取当前容器真正使用的镜像ID</span>
+docker image inspect <span class="hljs-string">&quot;<span class="hljs-variable">$OLD_WEB_IMAGE</span>&quot;</span>      <span class="hljs-comment"># 确认该旧镜像仍存在，失败先停止更新</span>
+ROLLBACK_IMAGE=<span class="hljs-string">&quot;local/demo-web:rollback-<span class="hljs-subst">$(date +%Y%m%d-%H%M%S)</span>&quot;</span> <span class="hljs-comment"># 给旧镜像准备独立保留标签</span>
+docker image tag <span class="hljs-string">&quot;<span class="hljs-variable">$OLD_WEB_IMAGE</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$ROLLBACK_IMAGE</span>&quot;</span> <span class="hljs-comment"># 固定回退引用，避免原标签被新load覆盖</span>
+<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$ROLLBACK_IMAGE</span>&quot;</span> &gt; <span class="hljs-string">&quot;<span class="hljs-variable">$DEPLOY_BACKUP</span>/rollback-image.txt&quot;</span> <span class="hljs-comment"># 保存回退镜像名</span>
+docker image save -o <span class="hljs-string">&quot;<span class="hljs-variable">$DEPLOY_BACKUP</span>/rollback-image.tar&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$ROLLBACK_IMAGE</span>&quot;</span> <span class="hljs-comment"># 需要磁盘或跨机恢复时保留旧镜像包</span>
+</code></pre>
+<p>同时备份实际环境文件、挂载配置和需要恢复的数据，权限与秘密范围按部署约定处理。回退标签只能避免失去原标签，不能防止 <code>image prune -a</code>删除未被容器引用的旧镜像，所以观察期内保留归档，不执行无差别清理。</p>
+<p>随后编辑原位置的清单，将web改为已批准的新镜像，在线环境先pull；离线环境按13.2校验并load本轮镜像后执行：</p>
+<pre><code class="hljs language-bash">docker compose -p demo -f compose.yaml config -q <span class="hljs-comment"># 修改后先检查语法和变量</span>
+docker compose -p demo -f compose.yaml up -d --no-deps --pull never --no-build web <span class="hljs-comment"># 只更新已确认依赖正常的web</span>
+docker compose -p demo -f compose.yaml ps -a web <span class="hljs-comment"># 确认当前状态</span>
+docker compose -p demo -f compose.yaml logs --<span class="hljs-built_in">tail</span> 100 web <span class="hljs-comment"># 核对新启动日志</span>
+curl -fsS --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/ <span class="hljs-comment"># 检查真实业务响应，路径按实际配置</span>
+</code></pre>
+<p>回退时先保存失败日志，再恢复<strong>原清单路径</strong>及本轮备份中的环境/挂载配置。不要直接用备份子目录的compose.yaml启动，否则相对挂载路径可能变了。下面假设本次只改了该清单：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%s\\n&#x27;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$DEPLOY_BACKUP</span>&quot;</span>              <span class="hljs-comment"># 新终端先将变量恢复为本轮真实备份目录</span>
+<span class="hljs-built_in">cp</span> -p <span class="hljs-string">&quot;<span class="hljs-variable">$DEPLOY_BACKUP</span>/compose.yaml&quot;</span> ./compose.yaml <span class="hljs-comment"># 在原位置恢复原清单，避免改变相对路径基准</span>
+<span class="hljs-built_in">cat</span> <span class="hljs-string">&quot;<span class="hljs-variable">$DEPLOY_BACKUP</span>/rollback-image.txt&quot;</span>     <span class="hljs-comment"># 读取旧版本的固定回退标签</span>
+</code></pre>
+<p>将原清单中web的 <code>image</code>设为记录的回退标签；旧镜像不在本地时，先从本轮 <code>rollback-image.tar</code>执行load，再验证：</p>
+<pre><code class="hljs language-bash">docker compose -p demo -f compose.yaml config -q <span class="hljs-comment"># 校验恢复后的清单</span>
+docker compose -p demo -f compose.yaml up -d --no-deps --pull never --no-build web <span class="hljs-comment"># 按回退引用重建web</span>
+docker compose -p demo -f compose.yaml logs --<span class="hljs-built_in">tail</span> 100 web <span class="hljs-comment"># 检查恢复日志</span>
+curl -fsS --connect-timeout 3 --max-time 5 http://127.0.0.1:8080/ <span class="hljs-comment"># 重做原版本业务验收</span>
+</code></pre>
+<p>这会替换服务容器，可能中断请求；不先down整个项目，不使用 <code>down -v</code>回滚。数据库迁移、数据写入和外部副作用不会因换回镜像自动恢复，需预先确认兼容性、对应备份及业务回退方案。</p>
+<h3 id="134-依赖健康检查与开机自启">13.4 依赖、健康检查与开机自启</h3>
+<pre><code class="hljs language-yaml"><span class="hljs-attr">services:</span>
+  <span class="hljs-attr">cache:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">redis:7.4</span>
+    <span class="hljs-attr">healthcheck:</span>
+      <span class="hljs-attr">test:</span> [<span class="hljs-string">&quot;CMD&quot;</span>, <span class="hljs-string">&quot;redis-cli&quot;</span>, <span class="hljs-string">&quot;ping&quot;</span>]
+      <span class="hljs-attr">interval:</span> <span class="hljs-string">10s</span>
+      <span class="hljs-attr">timeout:</span> <span class="hljs-string">3s</span>
+      <span class="hljs-attr">retries:</span> <span class="hljs-number">5</span>
+  <span class="hljs-attr">app:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">registry.example.com/team/demo-api:1.0.0</span>
+    <span class="hljs-attr">depends_on:</span>
+      <span class="hljs-attr">cache:</span>
+        <span class="hljs-attr">condition:</span> <span class="hljs-string">service_healthy</span>
+</code></pre>
+<p>示例：此 Redis 示例仅供未启用认证的受控演示环境，app 镜像为占位地址。<code>service_healthy</code> 在启动阶段等待健康检查；运行后依赖失效仍需应用重连。普通短写 <code>depends_on</code> 只表达启动顺序。单独的 <code>unhealthy</code> 不会自动触发 Docker 重启策略。</p>
+<p>Docker daemon 开机启动与容器重启策略是两层配置；Compose 自身不是常驻守护进程，配置 <code>restart</code> 后由 Docker 负责对应容器的重启行为。</p>
+<h2 id="14-清理命令逐项确认范围">14. 清理命令：逐项确认范围</h2>
+<p>先用 <code>docker system df -v</code> 确认占用与对象归属。以下命令有删除作用，单独按需执行：</p>
+<pre><code class="hljs language-bash">docker <span class="hljs-built_in">rm</span> demo-old                  <span class="hljs-comment"># 删除已停止的指定容器，可写层丢失</span>
+docker image <span class="hljs-built_in">rm</span> demo-api:old         <span class="hljs-comment"># 删除指定镜像标签/镜像</span>
+docker image prune                  <span class="hljs-comment"># 清理悬空镜像</span>
+docker builder prune                <span class="hljs-comment"># 清理构建缓存，后续构建可能变慢</span>
+docker container prune              <span class="hljs-comment"># 删除所有已停止容器</span>
+docker network prune                <span class="hljs-comment"># 清理未被容器使用的网络</span>
+</code></pre>
+<p>示例：退出容器可能保留重要日志或未挂载的数据，先检查再删除；不默认加 <code>-f</code> 跳过确认。<code>image prune -a</code> 会扩大到未被容器引用的镜像，可能删掉本地回滚镜像。</p>
+<p>以下范围更大，不作为常规巡检命令：</p>
+<pre><code class="hljs language-bash">docker system prune            <span class="hljs-comment"># 综合清理停止容器、未用网络、悬空镜像和构建缓存</span>
+docker volume <span class="hljs-built_in">rm</span> demo-unused   <span class="hljs-comment"># 删除指定未使用卷，其数据会丢失</span>
+docker compose -p demo down -v  <span class="hljs-comment"># 删除项目容器与关联非外部卷，会丢失卷数据</span>
+</code></pre>
+<p>示例：停用项目后卷也许暂时没有容器引用，但仍是需要保留的数据库。不要把“未使用”等同“无价值”；卷清理必须先核对备份和数据归属。</p>
+<p>推荐顺序：<code>system df -v</code>找大对象 → <code>inspect</code>确认所属项目和挂载 → 保存日志、回退镜像或数据备份 → 删除具体对象 → 再查磁盘。先用带名称或ID的定点删除；只有明确允许全局范围时再考虑prune，过滤条件也不能替代归属核对。</p>
+<p>例如清理单个已停止的演示容器前：</p>
+<pre><code class="hljs language-bash">docker inspect demo-old                     <span class="hljs-comment"># 查状态、挂载和项目标签，先确认不是待恢复业务</span>
+docker logs --<span class="hljs-built_in">tail</span> 100 demo-old              <span class="hljs-comment"># 保存需要的故障证据，日志驱动不支持时查对应日志源</span>
+docker <span class="hljs-built_in">rm</span> demo-old                          <span class="hljs-comment"># 确认可丢弃可写层后删除这个停止容器，不加-v</span>
+docker system <span class="hljs-built_in">df</span> -v                         <span class="hljs-comment"># 对比镜像、容器、卷和缓存占用</span>
+<span class="hljs-built_in">df</span> -h                                      <span class="hljs-comment"># 在daemon主机复查文件系统实际可用空间</span>
+</code></pre>
+<p>示例：删除一个容器不一定释放镜像共享层或挂载卷空间；仍有进程持有已删除文件时，文件系统空间也可能暂不回收。不要看到释放量较小就立即扩大到 <code>system prune -a --volumes</code>。</p>
+<h2 id="15-常见故障速查">15. 常见故障速查</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先执行与判断</th>
+<th>后续处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cannot connect to daemon</td>
+<td><code>docker version</code>、context、服务状态</td>
+<td>区分引擎未启动、连接目标错和权限不足；rootless查用户服务</td>
+</tr>
+<tr>
+<td>容器不断重启</td>
+<td><code>ps -a</code>、<code>inspect .State</code>、<code>logs --tail 100</code></td>
+<td>按应用错误、入口退出、权限、依赖逐项处理，不反复restart掩盖故障</td>
+</tr>
+<tr>
+<td>OOMKilled</td>
+<td><code>inspect</code>核对OOM标记、<code>stats</code>、主机内核日志</td>
+<td>结合容器配额与宿主机压力定位；退出码137不独自等于OOM</td>
+</tr>
+<tr>
+<td>容器正常但访问不到</td>
+<td><code>docker port</code>、<code>network inspect</code>、主机curl</td>
+<td>核对容器内监听、目标端口和回环绑定，再查外部访问规则</td>
+</tr>
+<tr>
+<td>容器内连localhost失败</td>
+<td><code>network inspect</code>确认网络成员</td>
+<td>改用实际服务名和容器端口，localhost是容器自身</td>
+</tr>
+<tr>
+<td>修改清单不生效</td>
+<td>同一参数的 <code>config -q</code>、<code>config --images</code>、<code>ps -a</code></td>
+<td>确认文件、项目、环境和profile，再up重建；restart不会应用新清单</td>
+</tr>
+<tr>
+<td>重建后数据没了</td>
+<td><code>inspect .Mounts</code>、<code>volume ls/inspect</code></td>
+<td>先核对项目名、卷名和路径，别向疑似空卷继续写入；按备份恢复</td>
+</tr>
+<tr>
+<td>日志占满磁盘</td>
+<td><code>system df -v</code>、LogConfig、主机 <code>df -h/-i</code></td>
+<td>分别处理日志、卷和缓存，新日志轮转配置通常需重建容器才采用</td>
+</tr>
+<tr>
+<td>pull失败</td>
+<td>镜像名、认证、目标平台、DNS/代理/证书</td>
+<td>在准备机解决后再打包；不关闭证书或仓库安全验证</td>
+</tr>
+<tr>
+<td>SHA256校验失败</td>
+<td>在正确目录执行 <code>sha256sum -c SHA256SUMS</code></td>
+<td>核对是否混了两轮文件、传输中断或被改动，重传后再load</td>
+</tr>
+<tr>
+<td>load成功却启动拉取</td>
+<td><code>image ls/inspect</code>与清单 <code>config --images</code>对照</td>
+<td>核对完整仓库名、标签、平台和daemon，离线用never/no-build</td>
+</tr>
+<tr>
+<td>exec format error或平台不匹配</td>
+<td>镜像Os/Architecture与目标daemon信息</td>
+<td>取得目标平台镜像；单纯改标签不能转换架构，脚本格式也需另查</td>
+</tr>
+<tr>
+<td>load后运行的仍是旧版本</td>
+<td>对比容器 <code>.Image</code>和本地标签ID</td>
+<td>load不重建容器，按第13项保留回退引用后切换</td>
+</tr>
+<tr>
+<td>exec找不到sh</td>
+<td>核对镜像是否含shell、容器是否运行</td>
+<td>使用镜像允许的调试方式或已准备的辅助镜像</td>
+</tr>
+</tbody>
+</table>
+<p>优先保留现场，再做最小范围修复。可先执行下面的只读检查；容器名、项目名和清单路径按实际目标选择，不把Docker与Compose两组都当作必需操作：</p>
+<pre><code class="hljs language-bash">docker ps -a                               <span class="hljs-comment"># 看整体运行、退出和重启状态</span>
+docker inspect -f <span class="hljs-string">&#x27;{{json .State}}&#x27;</span> demo-web <span class="hljs-comment"># 查目标状态、错误、OOM和健康检查</span>
+docker logs --<span class="hljs-built_in">tail</span> 100 --timestamps demo-web <span class="hljs-comment"># 关联本轮启动和故障时间</span>
+docker port demo-web                       <span class="hljs-comment"># 确认发布入口</span>
+docker inspect -f <span class="hljs-string">&#x27;{{json .Mounts}}&#x27;</span> demo-web <span class="hljs-comment"># 确认数据与配置实际来自哪里</span>
+docker compose -p demo -f /opt/demo/compose.yaml ps -a <span class="hljs-comment"># Compose管理时按同一项目检查</span>
+</code></pre>
+<p>修复后重复原来失败的同一入口与业务操作，检查日志无新增错误、状态稳定、数据正确。重启后能Up、curl返回某个200或端口在监听，都不能代替业务验收。</p>
+<p>命令选项以本机 <code>--help</code> 为准，可查 <a href="https://docs.docker.com/reference/cli/docker/">Docker CLI</a> 与 <a href="https://docs.docker.com/reference/cli/docker/compose/">Compose CLI</a>。另见 <a href="kubernetes-operations-commands.html">Kubernetes 常用运维命令</a>。</p>
+`;return(s,p)=>(u(),a("div",null,[e(n,{doc:JSON.parse(s.$frontmatter.kb).doc,content:c,base:"../"},null,8,["doc"])]))}});export{m as __pageData,r as default};

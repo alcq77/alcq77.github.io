@@ -1,0 +1,531 @@
+import{_ as t}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as a,m as s}from"./chunks/framework.CZZR5ESy.js";const p=JSON.parse('{"title":"Kafka 核心机制与源码排查","titleTemplate":":title · 知行笔记","description":"当日志能指出现象却解释不了原因时，沿着“请求入口 → 负责组件 → 状态变化 → 日志与指标”寻找证据。这里以 Apache Kafka 4.0.2 tag 为源码定位基准，重点解决消息不可见、空间不回收、Broker 恢复慢、请求超时和协","frontmatter":{"title":"Kafka 核心机制与源码排查","titleTemplate":":title · 知行笔记","description":"当日志能指出现象却解释不了原因时，沿着“请求入口 → 负责组件 → 状态变化 → 日志与指标”寻找证据。这里以 Apache Kafka 4.0.2 tag 为源码定位基准，重点解决消息不可见、空间不回收、Broker 恢复慢、请求超时和协","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"kafka-internals\\",\\"title\\":\\"Kafka 核心机制与源码排查\\",\\"category\\":\\"消息队列\\",\\"tags\\":[\\"kafka\\",\\"mq\\",\\"internals\\",\\"source-code\\",\\"troubleshooting\\"],\\"readingMinutes\\":26},\\"toc\\":[{\\"title\\":\\"1. 先确认版本，再找实现\\",\\"level\\":2,\\"id\\":\\"1-先确认版本再找实现\\"},{\\"title\\":\\"2. 从哪个请求入口开始\\",\\"level\\":2,\\"id\\":\\"2-从哪个请求入口开始\\"},{\\"title\\":\\"3. 一条消息写入与读取经过什么\\",\\"level\\":2,\\"id\\":\\"3-一条消息写入与读取经过什么\\"},{\\"title\\":\\"写入链路\\",\\"level\\":3,\\"id\\":\\"写入链路\\"},{\\"title\\":\\"读取链路\\",\\"level\\":3,\\"id\\":\\"读取链路\\"},{\\"title\\":\\"4. 写进日志了，为什么消费者还看不到\\",\\"level\\":2,\\"id\\":\\"4-写进日志了为什么消费者还看不到\\"},{\\"title\\":\\"5. 磁盘目录中的文件分别是什么\\",\\"level\\":2,\\"id\\":\\"5-磁盘目录中的文件分别是什么\\"},{\\"title\\":\\"6. 索引怎么找消息，为什么它不是每条一项\\",\\"level\\":2,\\"id\\":\\"6-索引怎么找消息为什么它不是每条一项\\"},{\\"title\\":\\"7. 留存到期后空间为什么没立刻降下来\\",\\"level\\":2,\\"id\\":\\"7-留存到期后空间为什么没立刻降下来\\"},{\\"title\\":\\"8. Broker 重启恢复很慢，是卡死还是在扫描\\",\\"level\\":2,\\"id\\":\\"8-broker-重启恢复很慢是卡死还是在扫描\\"},{\\"title\\":\\"9. 请求处理为什么分网络线程和处理线程\\",\\"level\\":2,\\"id\\":\\"9-请求处理为什么分网络线程和处理线程\\"},{\\"title\\":\\"10. Purgatory：延迟请求不等于线程一直阻塞\\",\\"level\\":2,\\"id\\":\\"10-purgatory延迟请求不等于线程一直阻塞\\"},{\\"title\\":\\"11. ISR、Follower抓取与Leader Epoch\\",\\"level\\":2,\\"id\\":\\"11-isrfollower抓取与leader-epoch\\"},{\\"title\\":\\"12. KRaft 元数据不同步怎么查\\",\\"level\\":2,\\"id\\":\\"12-kraft-元数据不同步怎么查\\"},{\\"title\\":\\"13. 协调器为什么会导致提交失败\\",\\"level\\":2,\\"id\\":\\"13-协调器为什么会导致提交失败\\"},{\\"title\\":\\"14. Rebalance卡住：是在入组、分配还是恢复\\",\\"level\\":2,\\"id\\":\\"14-rebalance卡住是在入组分配还是恢复\\"},{\\"title\\":\\"15. 源码排查如何收尾\\",\\"level\\":2,\\"id\\":\\"15-源码排查如何收尾\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/kafka-internals.md","filePath":"articles/kafka-internals.md"}'),e={name:"articles/kafka-internals.md"},i=Object.assign(e,{setup(r){const c=`<p>当日志能指出现象却解释不了原因时，沿着“请求入口 → 负责组件 → 状态变化 → 日志与指标”寻找证据。这里以 <strong>Apache Kafka 4.0.2 tag</strong> 为源码定位基准，重点解决消息不可见、空间不回收、Broker 恢复慢、请求超时和协调器异常。</p>
+<p>日常命令见 <a href="kafka-operations.html">Kafka 部署、运维与故障排查</a>，发送、提交和事务示例见 <a href="kafka-reliability.html">Kafka 消息生产、消费与可靠性实践</a>。</p>
+<h2 id="1-先确认版本再找实现">1. 先确认版本，再找实现</h2>
+<p>不要拿当前 trunk 的实现解释一个旧版本的错误。先保存 Broker 版本、客户端版本、日志中的异常与栈、组协议及 KRaft/ZooKeeper 部署方式，再选择对应 tag。</p>
+<table>
+<thead>
+<tr>
+<th>旧实现里常见的名称</th>
+<th>4.0.2 中应重点找什么</th>
+<th>容易误判的地方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Log.scala</td>
+<td>UnifiedLog、LocalLog、storage模块中的LogSegment/LogLoader</td>
+<td>日志逻辑已拆分，不是源码“不见了”</td>
+</tr>
+<tr>
+<td>KafkaController、ZkPartitionStateMachine</td>
+<td>QuorumController、元数据日志与Broker元数据发布</td>
+<td>不能继续删除ZooKeeper节点修KRaft</td>
+</tr>
+<tr>
+<td>GroupMetadataManager.scala</td>
+<td>group-coordinator模块及兼容classic组的实现</td>
+<td>新旧组协议、协调器实现要分别识别</td>
+</tr>
+<tr>
+<td>consumer Fetcher、AbstractCoordinator</td>
+<td>ClassicKafkaConsumer或AsyncKafkaConsumer内部路径</td>
+<td>不同协议线程模型不同</td>
+</tr>
+<tr>
+<td>utils.timer中的Scala类</td>
+<td>server-common中的timer实现</td>
+<td>时间轮思想相似，文件位置发生变化</td>
+</tr>
+</tbody>
+</table>
+<details class="install-guide">
+<summary>展开：获取源码、定位文件和运行一个测试</summary>
+<p>在独立开发目录执行，不在生产 Broker 上编译或打断点。需要 Git、JDK 17+，Gradle Wrapper 会下载依赖；IDE 按 Gradle 工程导入，阅读 Scala 文件时安装 Scala 插件。</p>
+<p>CentOS 7可先用 <code>sudo yum install git</code> 安装源码查看工具（使用现有批准仓库），不直接用基础仓库的旧JDK构建Kafka 4.0.2。JDK准备与glibc兼容检查见<a href="kafka-operations.html">运维笔记</a>；编译和测试优先在受维护的开发机执行。缺少TLS/证书能力导致Git或Gradle下载失败时处理原始错误，不关闭证书校验，也不替换生产主机glibc。</p>
+<pre><code class="hljs language-bash">git <span class="hljs-built_in">clone</span> --branch 4.0.2 --depth 1 https://github.com/apache/kafka.git kafka-source-4.0.2 <span class="hljs-comment"># 获取与示例一致的源码</span>
+<span class="hljs-built_in">cd</span> kafka-source-4.0.2                              <span class="hljs-comment"># 进入这份源码checkout</span>
+git describe --tags --always                       <span class="hljs-comment"># 再次确认tag或提交</span>
+java -version                                     <span class="hljs-comment"># 查看本次构建使用的JDK</span>
+./gradlew --version                               <span class="hljs-comment"># 使用仓库Wrapper，不另行猜Gradle版本</span>
+git ls-files <span class="hljs-string">&#x27;*KafkaApis*&#x27;</span> <span class="hljs-string">&#x27;*ReplicaManager*&#x27;</span> <span class="hljs-string">&#x27;*LogSegment*&#x27;</span> <span class="hljs-string">&#x27;*LogLoader*&#x27;</span> <span class="hljs-comment"># 按组件找路径</span>
+git grep -n <span class="hljs-string">&#x27;handleProduceRequest&#x27;</span> -- core          <span class="hljs-comment"># 找生产请求入口和调用点</span>
+git grep -n <span class="hljs-string">&#x27;OffsetOutOfRangeException&#x27;</span> -- core storage <span class="hljs-comment"># 从异常名向实现反查</span>
+./gradlew :storage:<span class="hljs-built_in">test</span> --tests org.apache.kafka.storage.internals.log.LogSegmentTest <span class="hljs-comment"># 只运行相关日志段测试</span>
+</code></pre>
+<p>示例：首次构建需要联网，下载失败应保留准确错误并修复下载路径或代理，不从不明网盘替换 Wrapper JAR。先阅读该 tag 的 README 和构建配置；如果测试类在其他版本移动了位置，先用 <code>git ls-files '*LogSegmentTest*'</code> 确认，再调整模块和类名。</p>
+<p>源码查找不一定需要额外安装 <code>rg</code>，Git 自带的 <code>git grep</code> 足够。若已安装 ripgrep，可以用 <code>rg -n '关键词' core storage</code> 快速定位。</p>
+</details>
+<h2 id="2-从哪个请求入口开始">2. 从哪个请求入口开始</h2>
+<table>
+<thead>
+<tr>
+<th>要排查的问题</th>
+<th>从这里进入</th>
+<th>继续追的组件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发送失败、发送慢</td>
+<td>KafkaApis.handleProduceRequest</td>
+<td>ReplicaManager、Partition、UnifiedLog</td>
+</tr>
+<tr>
+<td>消息拉不到</td>
+<td>KafkaApis.handleFetchRequest</td>
+<td>ReplicaManager.fetchMessages、读取隔离、日志段</td>
+</tr>
+<tr>
+<td>提交位移失败</td>
+<td>KafkaApis.handleOffsetCommitRequest</td>
+<td>GroupCoordinatorService、OffsetMetadataManager</td>
+</tr>
+<tr>
+<td>新建/修改主题不同步</td>
+<td>Broker到Controller的管理请求与转发</td>
+<td>QuorumController、MetadataImage、BrokerMetadataPublisher</td>
+</tr>
+<tr>
+<td>元数据错误地址</td>
+<td>Metadata响应及监听器选择</td>
+<td>广播端点、客户端元数据刷新与连接</td>
+</tr>
+<tr>
+<td>旧事务被隔离</td>
+<td>Producer状态与事务协调器</td>
+<td>producerId、epoch、transactional.id与事务标记</td>
+</tr>
+</tbody>
+</table>
+<p>4.0.2 的入口文件见 <a href="https://github.com/apache/kafka/blob/4.0.2/core/src/main/scala/kafka/server/KafkaApis.scala">KafkaApis.scala</a>。它仍是查 Broker 数据请求的好入口，但 KRaft 管理请求和新组协议已经不能只靠旧版的一张调用图解释。</p>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 在源码checkout中搜索；这些操作只读文件</span>
+git grep -n <span class="hljs-string">&#x27;handleFetchRequest&#x27;</span> -- core            <span class="hljs-comment"># 找到FETCH请求入口</span>
+git grep -n <span class="hljs-string">&#x27;fetchMessages&#x27;</span> -- core                <span class="hljs-comment"># 查看入口到副本管理器的调用</span>
+git grep -n <span class="hljs-string">&#x27;appendAsLeader&#x27;</span> -- core storage        <span class="hljs-comment"># 继续追到Leader日志写入</span>
+</code></pre>
+<p>示例：看到方法名不代表已经找到根因。还要核对当前请求实际走了哪个分支、用什么参数、在哪一步等待，以及异常是否由底层错误转换而来。</p>
+<h2 id="3-一条消息写入与读取经过什么">3. 一条消息写入与读取经过什么</h2>
+<h3 id="写入链路">写入链路</h3>
+<pre><code class="hljs language-text">业务 send
+  → 序列化、分区选择、元数据检查
+  → RecordAccumulator 按分区累积批次
+  → Sender 发送 Produce 请求
+  → Broker 网络线程 → 请求队列 → 请求处理线程
+  → KafkaApis → ReplicaManager → Partition → UnifiedLog / LocalLog
+  → LogSegment → FileRecords → 文件系统页缓存
+  → 副本确认条件满足 → 响应 → Producer回调或Future完成
+</code></pre>
+<p>这里有三个不同的完成点：进入客户端缓冲区、写入 Leader 本地日志、满足发送确认条件。只记录 <code>send()</code> 调用耗时，会漏掉后两部分。</p>
+<p>页缓存中的写入不等于每条消息都已经执行 fsync。Kafka 的可靠性必须结合副本与确认机制讨论，不能只因为“日志文件看见了”就证明任意断电后都能保留。</p>
+<h3 id="读取链路">读取链路</h3>
+<pre><code class="hljs language-text">Consumer poll / Follower抓取
+  → Fetch请求
+  → KafkaApis.handleFetchRequest
+  → ReplicaManager.fetchMessages
+  → 确定可读边界与目标副本
+  → 日志段定位、索引查找、文件读取
+  → 数据足够或等待结束 → Fetch响应
+  → 客户端解压、反序列化 → 业务处理
+</code></pre>
+<p>Follower 抓取的用途是复制，普通消费者的用途是业务读取，隔离边界不同；不能把两者的 fetch offset、等待时间和可见范围混为一谈。</p>
+<h2 id="4-写进日志了为什么消费者还看不到">4. 写进日志了，为什么消费者还看不到</h2>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>含义</th>
+<th>需要牢记的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Log Start Offset</td>
+<td>当前对外可读取的最早位置</td>
+<td>之前的数据可能已因留存/删除不可读</td>
+</tr>
+<tr>
+<td>LEO</td>
+<td>当前副本日志下一条写入位置</td>
+<td>是末端位置，不是末条消息本身</td>
+</tr>
+<tr>
+<td>HW</td>
+<td>已复制提交范围的上界</td>
+<td>普通业务消费者读取offset小于HW的记录</td>
+</tr>
+<tr>
+<td>LSO</td>
+<td>Last Stable Offset</td>
+<td>read_committed的稳定上界，受未决事务约束</td>
+</tr>
+<tr>
+<td>position</td>
+<td>客户端下一条将返回的位置</td>
+<td>拉取/缓存和业务完成进度不一定相同</td>
+</tr>
+<tr>
+<td>committed</td>
+<td>消费者组已保存的下一位置</td>
+<td>崩溃恢复时依靠它继续</td>
+</tr>
+</tbody>
+</table>
+<p>例如 Log Start=100、HW=150、LEO=155，普通消费者不能直接看到 150～154。若 LSO=140，<code>read_committed</code> 的可见边界还要向前收敛，并过滤已中止事务与控制记录。LSO 不是 Log Start Offset 的缩写。</p>
+<p>排查顺序：确认实际 Topic/集群 → 记录 producer 确认的 partition/offset → 检查 ISR 与复制进度 → 检查消费者隔离级别和事务 → 检查组的 position/committed 与业务过滤逻辑。</p>
+<p>在管理机沿用运维篇变量执行：</p>
+<pre><code class="hljs language-bash">bin/kafka-get-offsets.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> --topic <span class="hljs-string">&quot;<span class="hljs-variable">$TOPIC</span>&quot;</span> --<span class="hljs-keyword">time</span> earliest <span class="hljs-comment"># 查询各分区当前最早位置</span>
+bin/kafka-get-offsets.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> --topic <span class="hljs-string">&quot;<span class="hljs-variable">$TOPIC</span>&quot;</span> --<span class="hljs-keyword">time</span> latest <span class="hljs-comment"># 查询工具返回的末端位置</span>
+bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> --describe --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> <span class="hljs-comment"># 对比消费者组提交位置</span>
+</code></pre>
+<p>示例：位移差不总等于严格消息数，压实、事务控制记录会形成空洞。不同 API 的末端位置也可能受隔离与请求方式影响；不能仅用 CLI 的 latest 一列推导每个副本的全部内部水位。</p>
+<p>需要确认边界逻辑时，在源码中找：</p>
+<pre><code class="hljs language-bash">git grep -n <span class="hljs-string">&#x27;FetchHighWatermark\\|FetchTxnCommitted\\|FetchLogEnd&#x27;</span> -- core storage <span class="hljs-comment"># 找各类读取隔离分支</span>
+git grep -n <span class="hljs-string">&#x27;lastStableOffset\\|highWatermark&#x27;</span> -- core/src/main/scala/kafka/log <span class="hljs-comment"># 对照LSO/HW的计算与更新</span>
+</code></pre>
+<h2 id="5-磁盘目录中的文件分别是什么">5. 磁盘目录中的文件分别是什么</h2>
+<p>业务分区通常对应一个主题分区目录。一个分区日志由多个日志段组成，日志段用起始 offset 命名；压实后该起始 offset 不一定仍有一条可见消息。</p>
+<table>
+<thead>
+<tr>
+<th>文件/目录特征</th>
+<th>常见作用</th>
+<th>排查时怎么用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20位数字.log</td>
+<td>消息批次数据</td>
+<td>核对实际文件、批次与恢复范围</td>
+</tr>
+<tr>
+<td>同前缀.index</td>
+<td>相对offset到物理位置的稀疏索引</td>
+<td>解释定位过程与索引损坏</td>
+</tr>
+<tr>
+<td>同前缀.timeindex</td>
+<td>时间戳到offset的索引</td>
+<td>解释按时间回放的位置选择</td>
+</tr>
+<tr>
+<td>.txnindex</td>
+<td>已中止事务相关索引</td>
+<td>与事务读取过滤一起看</td>
+</tr>
+<tr>
+<td>.snapshot</td>
+<td>例如生产者状态快照</td>
+<td>不能与KRaft元数据快照混用解释</td>
+</tr>
+<tr>
+<td>.deleted</td>
+<td>等待异步删除的文件</td>
+<td>观察是否持续堆积，不直接手工rm</td>
+</tr>
+<tr>
+<td>.cleaned / .swap</td>
+<td>压实或替换过程的中间文件</td>
+<td>与cleaner、恢复日志对照</td>
+</tr>
+<tr>
+<td>-future目录</td>
+<td>日志目录迁移中的目标副本</td>
+<td>查未完成迁移与额外空间占用</td>
+</tr>
+<tr>
+<td>__cluster_metadata相关目录</td>
+<td>KRaft元数据日志/快照</td>
+<td>属于控制平面，不能当普通Topic清理</td>
+</tr>
+</tbody>
+</table>
+<p>在<strong>对应 Broker</strong>上先查实际日志目录，再限量列文件：</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> find /var/lib/kafka/orders-0 -maxdepth 1 -<span class="hljs-built_in">type</span> f -<span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;%f %s bytes\\n&#x27;</span> <span class="hljs-comment"># 示例：列分区0文件及大小</span>
+</code></pre>
+<p>示例：目录名按实际替换，数据可能分散在多个挂载点。不要只复制一个 <code>.log</code> 文件就认为完成了集群备份，更不能把其他机器的 <code>meta.properties</code> 或元数据目录直接覆盖回来。</p>
+<h2 id="6-索引怎么找消息为什么它不是每条一项">6. 索引怎么找消息，为什么它不是每条一项</h2>
+<p>offset 索引保存的是“相对起始 offset、物理文件位置”。它是稀疏索引：先找到不大于目标 offset 的索引项，再向前扫描日志批次，不能把查询不到精确索引项当成消息丢失。</p>
+<p>时间索引通常先帮助找到候选 offset，再交给 offset 索引和数据文件确定实际记录。事件时间不一定严格递增，按时间查询时还要结合消息中的时间戳类型和时区。</p>
+<p>4.0.2 的实现位于 storage 模块：</p>
+<ul>
+<li><a href="https://github.com/apache/kafka/blob/4.0.2/storage/src/main/java/org/apache/kafka/storage/internals/log/LogSegment.java">LogSegment.java</a>：append、read、recover 与日志段切分条件。</li>
+<li><a href="https://github.com/apache/kafka/blob/4.0.2/storage/src/main/java/org/apache/kafka/storage/internals/log/OffsetIndex.java">OffsetIndex.java</a>：相对位移、lookup 和索引项写入。</li>
+<li><a href="https://github.com/apache/kafka/blob/4.0.2/storage/src/main/java/org/apache/kafka/storage/internals/log/TimeIndex.java">TimeIndex.java</a>：时间戳及位移的单调约束。</li>
+</ul>
+<p>索引使用内存映射，查找还要考虑页缓存。观察到读取延迟突增时，要关联 major fault、磁盘读、内存竞争与历史回放，不能只凭二分查找复杂度判断它“一定很快”。</p>
+<details class="install-guide">
+<summary>展开：只读检查日志段和索引</summary>
+<p>优先对完整保留的诊断副本操作，避免在高负载 Broker 上扫描大量消息。路径必须换成实际文件，不把输出中的敏感 payload 随意分享。</p>
+<pre><code class="hljs language-bash">bin/kafka-dump-log.sh --files /path/to/00000000000000000000.<span class="hljs-built_in">log</span> <span class="hljs-comment"># 查看批次元数据与校验信息</span>
+bin/kafka-dump-log.sh --files /path/to/00000000000000000000.index <span class="hljs-comment"># 查看位移索引项</span>
+bin/kafka-dump-log.sh --files /path/to/00000000000000000000.timeindex <span class="hljs-comment"># 查看时间索引项</span>
+bin/kafka-dump-log.sh --files /path/to/00000000000000000000.<span class="hljs-built_in">log</span> --deep-iteration <span class="hljs-comment"># 深入检查批次中的记录</span>
+</code></pre>
+<p>示例：<code>baseOffset</code>、<code>lastOffset</code>、<code>producerId</code>、<code>producerEpoch</code>、事务/控制标记能帮助解释重试与事务行为。需要看消息体时再按本版本帮助添加 <code>--print-data-log</code>；它可能打印业务明文。</p>
+<p>不要在线修改索引、手工截断日志或尝试跳过 CRC。看到索引损坏，先保留错误、硬盘证据与健康副本情况，再制定节点恢复方案。</p>
+</details>
+<h2 id="7-留存到期后空间为什么没立刻降下来">7. 留存到期后空间为什么没立刻降下来</h2>
+<p>留存是策略判断与后台回收过程，并非数据库式逐行 delete。要沿着主题实际配置、段切分、可删除段判断、异步删除和磁盘释放逐步查。</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>验证点</th>
+<th>处理方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>小流量主题只剩一个大时间跨度段</td>
+<td>段时间戳、<a href="http://segment.ms">segment.ms</a>、当前段状态</td>
+<td>评估切分周期，不盲目调得极小</td>
+</tr>
+<tr>
+<td>retention.bytes远小于总占用</td>
+<td>分区数、副本数与每个副本实际目录</td>
+<td>按每分区阈值重新估算容量</td>
+</tr>
+<tr>
+<td>compact主题一直增大</td>
+<td>key是否稳定、可清理范围、dirty比例、cleaner状态</td>
+<td>查cleaner异常与吞吐，不改成删所有历史</td>
+</tr>
+<tr>
+<td>很多.deleted文件</td>
+<td>删除延迟、后台任务、存储异常</td>
+<td>查删除流程是否持续推进</td>
+</tr>
+<tr>
+<td>文件已删但df未降</td>
+<td>打开的已删除文件、挂载点</td>
+<td>找持有进程，安排正确关闭或恢复</td>
+</tr>
+<tr>
+<td>分区集中同时roll</td>
+<td>切分配置及创建时间一致</td>
+<td>验证I/O尖峰后评估segment.jitter.ms</td>
+</tr>
+</tbody>
+</table>
+<p>在源码 checkout 中，围绕证据查找：</p>
+<pre><code class="hljs language-bash">git grep -n <span class="hljs-string">&#x27;deleteOldSegments&#x27;</span> -- core storage     <span class="hljs-comment"># 看删除策略入口及调用者</span>
+git grep -n <span class="hljs-string">&#x27;shouldRoll\\|rollJitterMs&#x27;</span> -- storage   <span class="hljs-comment"># 看切分条件与扰动值</span>
+git grep -n <span class="hljs-string">&#x27;fileDeleteDelayMs&#x27;</span> -- core storage     <span class="hljs-comment"># 看异步删除相关配置如何使用</span>
+</code></pre>
+<p>示例：调整切分抖动适合已证实的集中切分尖峰，不解决所有磁盘满问题；时间留存、压实与对象存储分层保留还应按实际启用功能分别检查。</p>
+<h2 id="8-broker-重启恢复很慢是卡死还是在扫描">8. Broker 重启恢复很慢，是卡死还是在扫描</h2>
+<p>非正常退出后，Broker 可能检查日志尾部、校验批次、重建索引、恢复生产者状态，并处理未完成的文件替换。分区和日志段多、存储慢时，这些步骤会很耗时。</p>
+<p>排查顺序：看恢复日志是否持续前进 → 对照磁盘读和CPU → 获取两次线程栈 → 检查最近一次退出是否正常 → 再判断是否真正停滞。</p>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> journalctl -u kafka --since <span class="hljs-string">&#x27;20 minutes ago&#x27;</span> --no-pager | grep -Ei <span class="hljs-string">&#x27;recover|index|corrupt|truncate|loaded|error&#x27;</span> <span class="hljs-comment"># 找恢复进度和具体失败文件</span>
+iostat -xz 1 5                                    <span class="hljs-comment"># 观察恢复期间是否仍有磁盘读取</span>
+jcmd <span class="hljs-string">&quot;<span class="hljs-variable">$PID</span>&quot;</span> Thread.<span class="hljs-built_in">print</span> -l &gt; recovery-threads-1.txt <span class="hljs-comment"># 服务用户执行，记录当前栈</span>
+<span class="hljs-comment"># 间隔十几秒再次取样，对比是否停留在同一位置</span>
+jcmd <span class="hljs-string">&quot;<span class="hljs-variable">$PID</span>&quot;</span> Thread.<span class="hljs-built_in">print</span> -l &gt; recovery-threads-2.txt <span class="hljs-comment"># 保留第二份，不覆盖第一份</span>
+</code></pre>
+<p>示例：<code>PID</code> 必须先按运维篇确认。持续出现不同分区的恢复完成日志，通常说明仍在工作；同一个错误文件反复失败则重点查存储损坏与权限。不要循环强杀重启，这可能使正常恢复永远无法完成。</p>
+<p>追实现从 <a href="https://github.com/apache/kafka/blob/4.0.2/storage/src/main/java/org/apache/kafka/storage/internals/log/LogLoader.java">LogLoader.java</a> 的 <code>load</code>、<code>recoverLog</code>、<code>recoverSegment</code> 开始。日志中若出现截断，记录被截到的位置，并结合健康副本和 Controller/Leader 变化评估影响，不能把截断理解成无害的普通启动信息。</p>
+<h2 id="9-请求处理为什么分网络线程和处理线程">9. 请求处理为什么分网络线程和处理线程</h2>
+<p>Broker 用网络线程处理连接和网络读写，把请求交给处理队列；请求处理线程执行 API 逻辑。响应再回到相应网络线程的响应队列。网络收发与具体业务处理各有瓶颈。</p>
+<pre><code class="hljs language-text">连接 → Acceptor → Processor → Request队列
+                           ↓
+                    请求处理线程 / KafkaApis
+                           ↓
+连接 ← Processor ← 相应Processor的Response队列
+</code></pre>
+<p>如果请求队列上涨，而下游处理线程都在等磁盘，提高网络线程数并不能治好它。先拆解请求耗时，再确定应该改应用、线程池、磁盘、复制还是网络。</p>
+<table>
+<thead>
+<tr>
+<th>指标/证据</th>
+<th>对应阶段</th>
+<th>从源码和线程栈查什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RequestQueueTimeMs</td>
+<td>等待处理</td>
+<td>请求队列、handler忙碌原因</td>
+</tr>
+<tr>
+<td>LocalTimeMs</td>
+<td>本地处理</td>
+<td>日志、格式转换、锁及回调</td>
+</tr>
+<tr>
+<td>RemoteTimeMs</td>
+<td>依赖副本等远端条件</td>
+<td>ISR、Follower抓取与磁盘</td>
+</tr>
+<tr>
+<td>ResponseQueueTimeMs</td>
+<td>等待响应被网络线程取走</td>
+<td>Processor及响应队列</td>
+</tr>
+<tr>
+<td>ResponseSendTimeMs</td>
+<td>返回响应</td>
+<td>网络和客户端读取速度</td>
+</tr>
+</tbody>
+</table>
+<p>Broker 请求统计与 Producer 端总耗时不是同一个计时范围。客户端还可能经历元数据等待、批次等待、重试和缓冲区排队。比较两个指标前，先确认计时起止点、单位和分位数。</p>
+<h2 id="10-purgatory延迟请求不等于线程一直阻塞">10. Purgatory：延迟请求不等于线程一直阻塞</h2>
+<p>典型例子是 <code>acks=all</code> 的 Produce：本地写完后还没满足副本确认条件，不能立即响应。Broker 可以把这个操作登记到 Purgatory，待状态变化或超时后完成，而不是让每个请求独占一个线程干等。</p>
+<p>同样，Fetch 在数据不足时可能等待更多数据或等待时间到期。“没有马上返回”不一定是故障。</p>
+<pre><code class="hljs language-text">立即检查完成条件
+  ├─ 满足 → 完成并响应
+  └─ 未满足 → 按分区/组等key登记watch + 超时任务
+                 ├─ 状态变化 → 再检查 → 完成
+                 └─ 超时     → 完成超时处理
+</code></pre>
+<p>排查 Purgatory 增长：先看对应请求数量、正常流量基线与超时率，再看副本同步或组状态为何无法满足条件。不能看到缓存里有很多操作，就断言内存泄漏，更不能通过一味延长超时解决等待条件无法满足的问题。</p>
+<p>时间轮负责高效安排超时任务，watcher 负责条件变化后的重试检查。它们不是同一件事。时间轮内部使用桶和链表，上层仍可能使用 DelayQueue 管理桶，不能简单写成“完全不用延迟队列”。</p>
+<p>在源码中定位：</p>
+<pre><code class="hljs language-bash">git ls-files <span class="hljs-string">&#x27;*DelayedProduce*&#x27;</span> <span class="hljs-string">&#x27;*DelayedOperation*&#x27;</span> <span class="hljs-string">&#x27;*TimingWheel*&#x27;</span> <span class="hljs-comment"># 找当前版本的类位置</span>
+git grep -n <span class="hljs-string">&#x27;tryCompleteElseWatch\\|checkAndComplete&#x27;</span> -- core server-common <span class="hljs-comment"># 追条件检查与登记</span>
+git grep -n <span class="hljs-string">&#x27;advanceClock&#x27;</span> -- server-common        <span class="hljs-comment"># 追时间轮推进与超时处理</span>
+</code></pre>
+<p>示例：时间轮中的请求数量、watch记录数、已完成但尚待清理记录数含义不同，监控不能互相代用。<code>*.purge.interval.requests</code> 的 requests 是触发计数相关阈值，不应解释成固定毫秒周期。</p>
+<h2 id="11-isrfollower抓取与leader-epoch">11. ISR、Follower抓取与Leader Epoch</h2>
+<p>Follower 主动向 Leader 拉取数据，写自己的日志，再向 Leader 提供新的抓取位置。Leader 根据副本状态推进水位与确认条件。Leader/Follower 各自观察到的位置可能暂时不同，不能仅凭一个时点截图断言复制坏了。</p>
+<p>ISR 判断关注副本是否及时保持同步，不按“固定相差多少条”简单裁决。排查收缩要关联抓取错误、网络、Follower 写盘和GC，而非只查 Leader。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+<th>不应混淆</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Broker epoch</td>
+<td>区分节点注册/会话等代际</td>
+<td>不等于分区Leader任期</td>
+</tr>
+<tr>
+<td>Leader epoch</td>
+<td>识别分区Leader代际与日志边界</td>
+<td>不等于consumer组generation</td>
+</tr>
+<tr>
+<td>Producer epoch</td>
+<td>隔离旧生产者会话</td>
+<td>不等于Broker版本号</td>
+</tr>
+<tr>
+<td>组generation/member epoch</td>
+<td>维护组成员与分配代际</td>
+<td>不能拿旧代际继续提交</td>
+</tr>
+</tbody>
+</table>
+<p>Leader 发生变化后，副本需要确定共同日志前缀，必要时截断分叉部分，再继续同步。Leader Epoch 及对应位移缓存帮助识别这些边界，减少旧高水位方案在某些切换场景下的问题，但不是任何配置下的“永不丢失保证”。</p>
+<p>看到 <code>FENCED_LEADER_EPOCH</code>、<code>UNKNOWN_LEADER_EPOCH</code> 时，按同一 topic/partition 对齐 Controller 变化、Leader 变化及抓取请求。短暂错误后自动恢复与持续失败的处理不同。</p>
+<pre><code class="hljs language-bash">git grep -n <span class="hljs-string">&#x27;FENCED_LEADER_EPOCH\\|UNKNOWN_LEADER_EPOCH&#x27;</span> -- core storage <span class="hljs-comment"># 找触发错误与恢复逻辑</span>
+git grep -n <span class="hljs-string">&#x27;truncateToEpochEndOffsets\\|truncateOnFetch&#x27;</span> -- core <span class="hljs-comment"># 检查该版本截断路径</span>
+git grep -n <span class="hljs-string">&#x27;numReplicaFetchers&#x27;</span> -- core            <span class="hljs-comment"># 看抓取线程如何按源Broker组织</span>
+</code></pre>
+<p>示例：增加 <code>num.replica.fetchers</code> 前先确认 CPU、磁盘和网络有余量；线程数变化还会改变分区到线程的映射，不把它当所有复制慢问题的固定解法。</p>
+<h2 id="12-kraft-元数据不同步怎么查">12. KRaft 元数据不同步怎么查</h2>
+<p>KRaft 元数据日志保存集群控制信息，Controller quorum 决定这些变更的提交顺序，Broker 消费元数据变更并发布到本地组件。控制平面的复制与业务 Topic 的 ISR 机制分开运作。</p>
+<p>当出现创建主题后部分客户端长期看不到、Broker 长时间 fenced、反复选举等现象：先排除连接到了不同集群或广播地址错误，再检查 quorum、多数派、元数据同步和 Broker 注册情况。</p>
+<pre><code class="hljs language-bash">bin/kafka-metadata-quorum.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> describe --status <span class="hljs-comment"># 查当前Controller及元数据提交位置</span>
+bin/kafka-metadata-quorum.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> describe --replication <span class="hljs-comment"># 查元数据副本落后情况</span>
+bin/kafka-features.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> describe <span class="hljs-comment"># 看metadata.version和kraft.version等功能级别</span>
+</code></pre>
+<p>示例：已有进程不代表已正常注册并提供服务。若多数派不成立，优先恢复原 Controller 节点与网络，不能删除元数据目录后建立一个“看起来能启动”的新集群来替代原集群。</p>
+<p>源码定位到 <a href="https://github.com/apache/kafka/blob/4.0.2/metadata/src/main/java/org/apache/kafka/controller/QuorumController.java">QuorumController.java</a> 与 <a href="https://github.com/apache/kafka/blob/4.0.2/core/src/main/scala/kafka/server/metadata/BrokerMetadataPublisher.scala">BrokerMetadataPublisher.scala</a>。前者聚合 Controller 的元数据操作，后者把元数据变化发布给 Broker 组件。要同时追“记录是否提交”和“Broker是否应用到相应组件”。</p>
+<p>旧版 <code>/controller</code> 临时节点、UpdateMetadataRequest 推送和 Zk 状态机只适用于对应旧实现。在 KRaft 上执行删除 ZooKeeper 节点既无助于修复，也可能误操作到另一个系统。</p>
+<h2 id="13-协调器为什么会导致提交失败">13. 协调器为什么会导致提交失败</h2>
+<p>消费者组的提交位置和组元数据由协调器管理并持久化到内部主题。组映射到 <code>__consumer_offsets</code> 的特定分区，其 Leader 所在 Broker 与协调器定位密切相关；不要手工改变该内部主题分区数来“扩容协调器”。</p>
+<p>位移主题并非只保存 offset，还保存组管理相关记录。压实和 tombstone 参与旧状态清理；消费者组查询位移通常通过协调器的内存状态返回，并不是每次都从头扫描位移主题。</p>
+<p>当分区 Leader 转移后，新协调器需要恢复状态。此时可能返回正在加载或协调器不可用；如果长期不恢复，查内部主题可用性、恢复进度、磁盘与错误日志，而不是只重启客户端。</p>
+<pre><code class="hljs language-bash">bin/kafka-consumer-groups.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> --describe --group <span class="hljs-string">&quot;<span class="hljs-variable">$GROUP</span>&quot;</span> --state <span class="hljs-comment"># 找协调器与组状态</span>
+bin/kafka-topics.sh --bootstrap-server <span class="hljs-string">&quot;<span class="hljs-variable">$BS</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">\${ADMIN[@]}</span>&quot;</span> --describe --topic __consumer_offsets <span class="hljs-comment"># 检查内部主题副本与ISR</span>
+</code></pre>
+<p>示例：业务 Topic 三副本正常，不代表内部主题也正常。若协调器错误来自内部主题副本不足，单纯改业务 Topic 配置不会修复它。</p>
+<p>4.0.2 中可从 <code>group-coordinator</code> 的 <code>GroupCoordinatorService</code> 追到 <a href="https://github.com/apache/kafka/blob/4.0.2/group-coordinator/src/main/java/org/apache/kafka/coordinator/group/OffsetMetadataManager.java">OffsetMetadataManager</a> 的 <code>commitOffset</code>、<code>replay</code> 等路径。注意区分“提交的业务分区位置”和“内部主题那条记录自身的 offset”，它们不是同一个数值。</p>
+<h2 id="14-rebalance卡住是在入组分配还是恢复">14. Rebalance卡住：是在入组、分配还是恢复</h2>
+<p>classic 协议可按 JoinGroup → 选分配方案 → SyncGroup → 分配生效追踪。成员 Leader 是消费者组里的一个客户端角色，和分区 Leader、Controller 不是同一个东西。</p>
+<table>
+<thead>
+<tr>
+<th>状态/错误</th>
+<th>核对的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PreparingRebalance持续很久</td>
+<td>是否有成员一直无法重新入组、poll超时或重复启停</td>
+</tr>
+<tr>
+<td>CompletingRebalance持续很久</td>
+<td>分配方案是否返回、是否能持久化、内部主题是否可用</td>
+</tr>
+<tr>
+<td>UNKNOWN_MEMBER_ID / ILLEGAL_GENERATION</td>
+<td>客户端是否还拿旧成员身份或旧代际操作</td>
+</tr>
+<tr>
+<td>FENCED_INSTANCE_ID</td>
+<td>是否有并发实例复用了静态成员ID</td>
+</tr>
+<tr>
+<td>INCONSISTENT_GROUP_PROTOCOL</td>
+<td>组协议/分配策略是否相容</td>
+</tr>
+<tr>
+<td>COORDINATOR_LOAD_IN_PROGRESS</td>
+<td>新协调器是否还在恢复状态</td>
+</tr>
+</tbody>
+</table>
+<p>心跳检测存活，poll 间隔限制业务处理停顿；两者解决不同问题。网络心跳正常，也不代表一个长时间不 poll 的消费者仍能安全保有分区。</p>
+<p>4.x 新消费者协议使用不同的分配和成员状态流程。先查看 <code>group.protocol</code>，再选择对应代码路径，不把“所有组都经历完整JoinGroup/SyncGroup停顿”写成无版本边界的结论。</p>
+<pre><code class="hljs language-bash">git ls-files <span class="hljs-string">&#x27;*ClassicKafkaConsumer*&#x27;</span> <span class="hljs-string">&#x27;*AsyncKafkaConsumer*&#x27;</span> <span class="hljs-string">&#x27;*ClassicGroup*&#x27;</span> <span class="hljs-comment"># 找到不同客户端/组实现</span>
+git grep -n <span class="hljs-string">&#x27;handleJoinGroup\\|handleSyncGroup&#x27;</span> -- core group-coordinator <span class="hljs-comment"># classic入组与同步入口</span>
+git grep -n <span class="hljs-string">&#x27;consumerGroupHeartbeat&#x27;</span> -- group-coordinator <span class="hljs-comment"># 新消费者协议入口</span>
+</code></pre>
+<p>示例：先从出问题成员的 <a href="http://client.id">client.id</a>、<a href="http://member.id">member.id</a>、<a href="http://group.id">group.id</a> 与分区对齐日志；一条正常的“重新加入组”提示，不足以证明服务故障。</p>
+<h2 id="15-源码排查如何收尾">15. 源码排查如何收尾</h2>
+<p>把结论落到能验证的证据：哪个版本、哪条请求、哪个分区、什么状态条件没满足、具体耗时或异常在哪里。接着在隔离环境构造最小复现，比较修复前后结果，再选择配置调整、应用修复或已发布版本升级。</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>应留下的产物</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>缩小范围</td>
+<td>时间窗口、客户端/Broker版本、组协议、主题分区</td>
+</tr>
+<tr>
+<td>对齐现场</td>
+<td>客户端日志、对应Broker日志、指标与线程栈</td>
+</tr>
+<tr>
+<td>定位分支</td>
+<td>请求入口、实际走到的方法、输入参数与状态条件</td>
+</tr>
+<tr>
+<td>验证假设</td>
+<td>最小复现、相关测试用例、可重复的失败结果</td>
+</tr>
+<tr>
+<td>确认修复</td>
+<td>对应release修复记录、回归验证、故障窗口监控</td>
+</tr>
+<tr>
+<td>观察恢复</td>
+<td>ISR、水位、消费进度、业务去重与端到端结果</td>
+</tr>
+</tbody>
+</table>
+<p>复现时一次只改一个变量。尤其涉及删除、截断、非 ISR 选举、位移重置时，要把数据影响单独验证，不能仅以“错误日志不再出现”认定问题已经解决。</p>
+`;return(u,o)=>(n(),a("div",null,[s(t,{doc:JSON.parse(u.$frontmatter.kb).doc,content:c,base:"../"},null,8,["doc"])]))}});export{p as __pageData,i as default};
