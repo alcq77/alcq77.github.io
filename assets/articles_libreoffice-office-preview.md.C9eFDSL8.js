@@ -1,4 +1,4 @@
-import{_ as a}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as u,m as l}from"./chunks/framework.CZZR5ESy.js";const i=JSON.parse('{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","frontmatter":{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"libreoffice-office-preview\\",\\"title\\":\\"LibreOffice 实现 DOC、XLS、PPT 在线预览\\",\\"category\\":\\"文档处理\\",\\"tags\\":[\\"libreoffice\\",\\"jodconverter\\",\\"doc\\",\\"xls\\",\\"ppt\\",\\"pdf\\",\\"java\\",\\"preview\\",\\"文档转换\\",\\"在线预览\\",\\"UNO\\",\\"进程管理\\"],\\"readingMinutes\\":31},\\"toc\\":[{\\"title\\":\\"1. 三种格式怎么转\\",\\"level\\":2,\\"id\\":\\"1-三种格式怎么转\\"},{\\"title\\":\\"2. 安装 LibreOffice 和字体\\",\\"level\\":2,\\"id\\":\\"2-安装-libreoffice-和字体\\"},{\\"title\\":\\"3. 用命令行验证转换\\",\\"level\\":2,\\"id\\":\\"3-用命令行验证转换\\"},{\\"title\\":\\"4. Java 转换示例\\",\\"level\\":2,\\"id\\":\\"4-java-转换示例\\"},{\\"title\\":\\"4.1 Maven 配置\\",\\"level\\":3,\\"id\\":\\"41-maven-配置\\"},{\\"title\\":\\"4.2 程序怎样接管 LibreOffice\\",\\"level\\":3,\\"id\\":\\"42-程序怎样接管-libreoffice\\"},{\\"title\\":\\"4.3 可复用的转换器\\",\\"level\\":3,\\"id\\":\\"43-可复用的转换器\\"},{\\"title\\":\\"4.4 编译、运行和判断结果\\",\\"level\\":3,\\"id\\":\\"44-编译运行和判断结果\\"},{\\"title\\":\\"5. 异步转换与前端轮询\\",\\"level\\":2,\\"id\\":\\"5-异步转换与前端轮询\\"},{\\"title\\":\\"5.1 前端轮询示例\\",\\"level\\":3,\\"id\\":\\"51-前端轮询示例\\"},{\\"title\\":\\"6. 缓存和文件更新\\",\\"level\\":2,\\"id\\":\\"6-缓存和文件更新\\"},{\\"title\\":\\"7. 文件读取、跨域和下载\\",\\"level\\":2,\\"id\\":\\"7-文件读取跨域和下载\\"},{\\"title\\":\\"8. 空文件怎么处理\\",\\"level\\":2,\\"id\\":\\"8-空文件怎么处理\\"},{\\"title\\":\\"9. 转换失败时查哪里\\",\\"level\\":2,\\"id\\":\\"9-转换失败时查哪里\\"},{\\"title\\":\\"10. 上线前跑哪些文件\\",\\"level\\":2,\\"id\\":\\"10-上线前跑哪些文件\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/libreoffice-office-preview.md","filePath":"articles/libreoffice-office-preview.md"}'),e={name:"articles/libreoffice-office-preview.md"},d=Object.assign(e,{setup(p){const s=`<p>系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。</p>
+import{_ as a}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as u,m as l}from"./chunks/framework.CZZR5ESy.js";const i=JSON.parse('{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","frontmatter":{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"libreoffice-office-preview\\",\\"title\\":\\"LibreOffice 实现 DOC、XLS、PPT 在线预览\\",\\"category\\":\\"文档处理\\",\\"tags\\":[\\"libreoffice\\",\\"jodconverter\\",\\"doc\\",\\"xls\\",\\"ppt\\",\\"pdf\\",\\"java\\",\\"preview\\",\\"文档转换\\",\\"在线预览\\",\\"UNO\\",\\"进程管理\\"],\\"readingMinutes\\":34},\\"toc\\":[{\\"title\\":\\"1. 三种格式怎么转\\",\\"level\\":2,\\"id\\":\\"1-三种格式怎么转\\"},{\\"title\\":\\"2. 安装 LibreOffice 和字体\\",\\"level\\":2,\\"id\\":\\"2-安装-libreoffice-和字体\\"},{\\"title\\":\\"3. 用命令行验证转换\\",\\"level\\":2,\\"id\\":\\"3-用命令行验证转换\\"},{\\"title\\":\\"4. Java 转换示例\\",\\"level\\":2,\\"id\\":\\"4-java-转换示例\\"},{\\"title\\":\\"4.1 Maven 配置\\",\\"level\\":3,\\"id\\":\\"41-maven-配置\\"},{\\"title\\":\\"4.2 程序怎样接管 LibreOffice\\",\\"level\\":3,\\"id\\":\\"42-程序怎样接管-libreoffice\\"},{\\"title\\":\\"4.3 可复用的转换器\\",\\"level\\":3,\\"id\\":\\"43-可复用的转换器\\"},{\\"title\\":\\"4.4 编译、运行和判断结果\\",\\"level\\":3,\\"id\\":\\"44-编译运行和判断结果\\"},{\\"title\\":\\"5. 异步转换与前端轮询\\",\\"level\\":2,\\"id\\":\\"5-异步转换与前端轮询\\"},{\\"title\\":\\"5.1 前端轮询示例\\",\\"level\\":3,\\"id\\":\\"51-前端轮询示例\\"},{\\"title\\":\\"6. 缓存和文件更新\\",\\"level\\":2,\\"id\\":\\"6-缓存和文件更新\\"},{\\"title\\":\\"7. 文件读取、跨域和下载\\",\\"level\\":2,\\"id\\":\\"7-文件读取跨域和下载\\"},{\\"title\\":\\"8. 空文件怎么处理\\",\\"level\\":2,\\"id\\":\\"8-空文件怎么处理\\"},{\\"title\\":\\"9. 转换失败时查哪里\\",\\"level\\":2,\\"id\\":\\"9-转换失败时查哪里\\"},{\\"title\\":\\"10. 上线前跑哪些文件\\",\\"level\\":2,\\"id\\":\\"10-上线前跑哪些文件\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/libreoffice-office-preview.md","filePath":"articles/libreoffice-office-preview.md"}'),e={name:"articles/libreoffice-office-preview.md"},d=Object.assign(e,{setup(p){const s=`<p>系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。</p>
 <h2 id="1-三种格式怎么转">1. 三种格式怎么转</h2>
 <table>
 <thead>
@@ -159,7 +159,45 @@ pdfinfo <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WOR
 </table>
 <p>不要先手工启动一个监听2002的Office，再让本例启动第二个。<code>ExistingProcessAction.FAIL</code>会在发现占用进程时拒绝启动，避免误接管或结束其他服务的Office。确实要连接一个由外部程序启动的Office，应另选连接已有进程的管理方式，不能把两种启动方式混用。</p>
 <p>部署时只需在转换机器上安装LibreOffice，不用另外启动一个Office服务。首次转换前看不到<code>soffice</code>进程是正常的；Java程序提交任务后才会启动它。</p>
-<p>下面把管理器放进一个可复用对象中，首次转换时启动。<code>convert</code>和<code>close</code>使用同一把锁，防止关闭过程中又启动Office；同一实例中的转换也会串行执行。接入服务时，整个服务共享这个对象，HTTP请求只提交转换任务。</p>
+<p>下面用两个文件演示接管过程。把 <code>officeHome</code> 换成第 2 节查到的安装根目录，<code>first</code> 和 <code>second</code> 传入可读取的旧版 Office 文件，方法返回两个 PDF 所在的目录。依赖沿用 4.1 节。</p>
+<pre><code class="hljs language-java"><span class="hljs-keyword">import</span> com.sun.star.document.MacroExecMode;
+<span class="hljs-keyword">import</span> org.jodconverter.core.office.OfficeUtils;
+<span class="hljs-keyword">import</span> org.jodconverter.local.LocalConverter;
+<span class="hljs-keyword">import</span> org.jodconverter.local.office.ExistingProcessAction;
+<span class="hljs-keyword">import</span> org.jodconverter.local.office.LocalOfficeManager;
+
+<span class="hljs-keyword">import</span> java.nio.file.Files;
+<span class="hljs-keyword">import</span> java.nio.file.Path;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OfficeProcessDemo</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">Path</span> <span class="hljs-title function_">convertPair</span><span class="hljs-params">(String officeHome, Path first, Path second)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-type">Path</span> <span class="hljs-variable">work</span> <span class="hljs-operator">=</span> Files.createTempDirectory(<span class="hljs-string">&quot;office-process-demo-&quot;</span>);
+        <span class="hljs-type">LocalOfficeManager</span> <span class="hljs-variable">manager</span> <span class="hljs-operator">=</span> LocalOfficeManager.builder()
+                .officeHome(officeHome)                         <span class="hljs-comment">// 安装根目录，其下有 program/soffice</span>
+                .workingDir(work.toFile())                      <span class="hljs-comment">// 管理器在这里准备进程的用户配置</span>
+                .hostName(<span class="hljs-string">&quot;127.0.0.1&quot;</span>).portNumbers(<span class="hljs-number">2002</span>)        <span class="hljs-comment">// Java 通过本机 UNO 连接 Office</span>
+                .existingProcessAction(ExistingProcessAction.FAIL) <span class="hljs-comment">// 遇到已有 Office 进程时启动失败</span>
+                .startFailFast(<span class="hljs-literal">true</span>)                           <span class="hljs-comment">// 等待 Office 启动并建立连接</span>
+                .taskExecutionTimeout(<span class="hljs-number">120_000L</span>)                <span class="hljs-comment">// 单个转换任务最多执行 120 秒</span>
+                .build();
+
+        <span class="hljs-keyword">try</span> {
+            manager.start();                                   <span class="hljs-comment">// 启动 soffice，无需手工启动</span>
+            <span class="hljs-type">LocalConverter</span> <span class="hljs-variable">converter</span> <span class="hljs-operator">=</span> LocalConverter.builder()
+                    .officeManager(manager)
+                    .loadProperty(<span class="hljs-string">&quot;MacroExecutionMode&quot;</span>, MacroExecMode.NEVER_EXECUTE)
+                    .build();
+            converter.convert(first.toFile()).to(work.resolve(<span class="hljs-string">&quot;first.pdf&quot;</span>).toFile()).execute();
+            converter.convert(second.toFile()).to(work.resolve(<span class="hljs-string">&quot;second.pdf&quot;</span>).toFile()).execute();
+            <span class="hljs-keyword">return</span> work;                                       <span class="hljs-comment">// 两次转换共用一个管理器</span>
+        } <span class="hljs-keyword">finally</span> {
+            OfficeUtils.stopQuietly(manager);                   <span class="hljs-comment">// 转换失败时也尝试关闭 Office</span>
+        }
+    }
+}
+</code></pre>
+<p>例如传入 <code>sample.doc</code> 和 <code>slides.ppt</code>，转换后查看返回目录里的 <code>first.pdf</code> 和 <code>second.pdf</code>，检查完再清理本次目录。要验证 XLS，把任意一个输入换成真实的 <code>.xls</code>。如果启动报端口冲突，先用第 9 节的 <code>ss</code> 命令确认谁在监听，再为该实例分配空闲端口。</p>
+<p>长期运行的服务可用下一节的 <code>OfficeToPdf</code>。服务只创建一次，后台任务调用同一个实例的 <code>convert</code>，停止接收任务后再调用 <code>close</code>。<code>convert</code> 和 <code>close</code> 共用一把锁，转换和关闭按顺序执行。</p>
 <h3 id="43-可复用的转换器">4.3 可复用的转换器</h3>
 <p>保存到 <code>src/main/java/example/preview/OfficeToPdf.java</code>。此程序只负责转换已获准读取的本地文件，不包含上传接口、鉴权和异步队列。</p>
 <pre><code class="hljs language-java"><span class="hljs-keyword">package</span> example.preview;
