@@ -4,31 +4,31 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>LibreOffice 实现 DOC、XLS、PPT 在线预览 · 知行笔记</title>
-    <meta name="description" content="旧版 Word、Excel、PowerPoint 文件无法直接交给浏览器统一展示时，可以在服务端使用 LibreOffice 转成 PDF，再由前端的 PDF 阅读器展示。本文使用通用文件服务举例，覆盖安装、单文件转换、Java 接入、异步">
+    <meta name="description" content="系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转">
     <meta name="generator" content="VitePress v1.6.4">
     <link rel="preload stylesheet" href="/assets/style.3JBcQeE6.css" as="style">
     <link rel="preload stylesheet" href="/vp-icons.css" as="style">
-    <script type="module" src="/assets/chunks/metadata.e903136f.js"></script>
+    <script type="module" src="/assets/chunks/metadata.de00b28c.js"></script>
     <script type="module" src="/assets/app.B7lso3jx.js"></script>
     <link rel="modulepreload" href="/assets/chunks/theme.C4DViv87.js">
     <link rel="modulepreload" href="/assets/chunks/framework.CZZR5ESy.js">
     <link rel="modulepreload" href="/assets/chunks/ArticlePage.BzJfrCud.js">
-    <link rel="modulepreload" href="/assets/articles_libreoffice-office-preview.md.BR7NDWhv.lean.js">
+    <link rel="modulepreload" href="/assets/articles_libreoffice-office-preview.md.B2H6nsnG.lean.js">
     <link rel="icon" type="image/png" href="/favicon.png">
     <meta name="color-scheme" content="light dark">
     <script>try{document.documentElement.dataset.theme=localStorage.getItem("kb-theme")||"light"}catch{}</script>
     <script id="check-mac-os">document.documentElement.classList.toggle("mac",/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
   </head>
   <body data-base="../">
-    <div id="app"><!--[--><a class="skip-link" href="#main">跳到正文</a><aside class="sidebar" id="sidebar" aria-label="知识目录" aria-hidden="false"><div class="sidebar-header"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="sidebar-collapse" type="button" aria-label="收起知识目录" title="收起知识目录" aria-controls="sidebar" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button><!----></div><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><!--[--><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span class="home-icon" aria-hidden="true"><!--[-->⌂<!--]--></span>知识库首页</a><a class="home-link" href="../support.html"><span class="support-icon" aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><!--[--><details class="nav-group" open><summary><span><span class="folder-icon" data-icon="general"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5C9 3 5 3 2 4v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15"/></svg></span></span>文档处理<span class="group-count">1</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="active nav-link" href="../articles/libreoffice-office-preview.html" aria-current="page"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>LibreOffice 实现 DOC、XLS、PPT 在线预览</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="container-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 10 9-5M3 8l9 5v8M7.5 5.5l9 5"/></svg></span></span>容器运维<span class="group-count">4</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kubernetes 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kubernetes 应用部署与配置实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="linux-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg></span></span>Linux 运维<span class="group-count">7</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Nginx 配置、部署与日常运维</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-kernel-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 性能瓶颈排查与优化</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="architecture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="5" rx="1"/><rect x="2" y="17" width="8" height="5" rx="1"/><rect x="14" y="17" width="8" height="5" rx="1"/><path d="M12 7v5M6 17v-5h12v5"/></svg></span></span>架构设计<span class="group-count">1</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/ddd-design-practice.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>DDD 建模与落地实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="mq-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="8" width="5" height="8" rx="1"/><rect x="17" y="8" width="5" height="8" rx="1"/><path d="M7 12h10m-3-3 3 3-3 3M4.5 5v-2h15v2M4.5 19v2h15v-2"/></svg></span></span>消息队列<span class="group-count">3</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kafka 核心机制与源码排查</span></a><a class="nav-link" href="../articles/kafka-reliability.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kafka 消息生产、消费与可靠性实践</span></a><!--]--></details><!--]--></nav><div class="sidebar-footer"><span class="status-dot"></span>16 篇公开笔记<span>持续积累，随时查阅</span></div><!--]--></aside><button class="mobile-backdrop" type="button" tabindex="-1" aria-label="关闭导航" hidden></button><div class="workspace"><header class="topbar"><a class="mobile-brand" href="../index.html"><span class="mobile-brand-mark">知</span>知行笔记</a><div class="breadcrumb"><!----><a href="../index.html">知识库</a><span>/</span><span>文档处理</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>个人知识库</span><button class="mobile-search icon-button" type="button" aria-label="搜索知识库"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg></button><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题"> ◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header><div class="mobile-local-nav"><button class="mobile-directory-toggle" type="button" aria-label="展开知识目录" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>知识目录</span></button><button class="mobile-contents-toggle" type="button" aria-controls="mobile-contents" aria-expanded="false"><span>文章目录</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button></div><div class="content-layout"><main id="main" tabindex="-1"><div style="position:relative;"><div><!--[--><div class="article-head"><div class="eyebrow">文档处理</div><h1>LibreOffice 实现 DOC、XLS、PPT 在线预览</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 28 分钟阅读</span></div><div class="tag-row"><!--[--><span class="tag">libreoffice</span><span class="tag">jodconverter</span><span class="tag">doc</span><span class="tag">xls</span><span class="tag">ppt</span><span class="tag">pdf</span><span class="tag">java</span><span class="tag">preview</span><span class="tag">文档转换</span><span class="tag">在线预览</span><!--]--></div></div><article class="markdown-body"><p>旧版 Word、Excel、PowerPoint 文件无法直接交给浏览器统一展示时，可以在服务端使用 LibreOffice 转成 PDF，再由前端的 PDF 阅读器展示。本文使用通用文件服务举例，覆盖安装、单文件转换、Java 接入、异步任务、缓存和常见故障。</p>
-<h2 id="1-先确定预览方式">1. 先确定预览方式</h2>
+    <div id="app"><!--[--><a class="skip-link" href="#main">跳到正文</a><aside class="sidebar" id="sidebar" aria-label="知识目录" aria-hidden="false"><div class="sidebar-header"><a class="brand" href="../index.html"><span class="brand-mark">知</span><span>知行笔记<small>PERSONAL KNOWLEDGE BASE</small></span></a><button class="sidebar-collapse" type="button" aria-label="收起知识目录" title="收起知识目录" aria-controls="sidebar" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button><!----></div><button class="search-trigger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><span>搜索知识库</span><kbd>Ctrl K</kbd></button><!--[--><nav aria-label="知识库目录"><a class="home-link" href="../index.html"><span class="home-icon" aria-hidden="true"><!--[-->⌂<!--]--></span>知识库首页</a><a class="home-link" href="../support.html"><span class="support-icon" aria-hidden="true">♡</span>支持本站</a><div class="nav-label">知识目录</div><!--[--><details class="nav-group" open><summary><span><span class="folder-icon" data-icon="general"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5C9 3 5 3 2 4v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15"/></svg></span></span>文档处理<span class="group-count">1</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="active nav-link" href="../articles/libreoffice-office-preview.html" aria-current="page"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>LibreOffice 实现 DOC、XLS、PPT 在线预览</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="container-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 10 9-5M3 8l9 5v8M7.5 5.5l9 5"/></svg></span></span>容器运维<span class="group-count">4</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/docker-compose-operations-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Docker 与 Docker Compose 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-operations-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kubernetes 常用运维命令</span></a><a class="nav-link" href="../articles/kubernetes-cluster-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kubernetes 集群搭建、维护与故障排查</span></a><a class="nav-link" href="../articles/kubernetes-application-practice.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kubernetes 应用部署与配置实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="linux-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg></span></span>Linux 运维<span class="group-count">7</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/nginx-operations.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Nginx 配置、部署与日常运维</span></a><a class="nav-link" href="../articles/linux-system-status-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 常用系统状态查看命令</span></a><a class="nav-link" href="../articles/linux-service-check-start-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 服务检查、启动与排障</span></a><a class="nav-link" href="../articles/linux-systemd-autostart.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 服务开机自启与 systemd 管理</span></a><a class="nav-link" href="../articles/linux-server-operations-commands.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 服务器常用运维命令</span></a><a class="nav-link" href="../articles/linux-kernel-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 内核问题排查与处理</span></a><a class="nav-link" href="../articles/linux-performance-troubleshooting.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Linux 性能瓶颈排查与优化</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="architecture"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="5" rx="1"/><rect x="2" y="17" width="8" height="5" rx="1"/><rect x="14" y="17" width="8" height="5" rx="1"/><path d="M12 7v5M6 17v-5h12v5"/></svg></span></span>架构设计<span class="group-count">1</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/ddd-design-practice.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>DDD 建模与落地实践</span></a><!--]--></details><details class="nav-group"><summary><span><span class="folder-icon" data-icon="mq-operations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="8" width="5" height="8" rx="1"/><rect x="17" y="8" width="5" height="8" rx="1"/><path d="M7 12h10m-3-3 3 3-3 3M4.5 5v-2h15v2M4.5 19v2h15v-2"/></svg></span></span>消息队列<span class="group-count">3</span><svg class="nav-chevron" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></summary><!--[--><a class="nav-link" href="../articles/kafka-operations.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kafka 部署、运维与故障排查</span></a><a class="nav-link" href="../articles/kafka-internals.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kafka 核心机制与源码排查</span></a><a class="nav-link" href="../articles/kafka-reliability.html"><span class="doc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6m-6 4h6m-6 4h4"></path></svg></span><span>Kafka 消息生产、消费与可靠性实践</span></a><!--]--></details><!--]--></nav><div class="sidebar-footer"><span class="status-dot"></span>16 篇公开笔记<span>持续积累，随时查阅</span></div><!--]--></aside><button class="mobile-backdrop" type="button" tabindex="-1" aria-label="关闭导航" hidden></button><div class="workspace"><header class="topbar"><a class="mobile-brand" href="../index.html"><span class="mobile-brand-mark">知</span>知行笔记</a><div class="breadcrumb"><!----><a href="../index.html">知识库</a><span>/</span><span>文档处理</span></div><div class="top-actions"><span class="public-label"><span class="status-dot"></span>个人知识库</span><button class="mobile-search icon-button" type="button" aria-label="搜索知识库"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg></button><button class="theme-toggle icon-button" aria-label="切换深浅主题" title="切换深浅主题"> ◐</button><a class="github-link" href="https://github.com/alcq77/alcq77.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></header><div class="mobile-local-nav"><button class="mobile-directory-toggle" type="button" aria-label="展开知识目录" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>知识目录</span></button><button class="mobile-contents-toggle" type="button" aria-controls="mobile-contents" aria-expanded="false"><span>文章目录</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button></div><div class="content-layout"><main id="main" tabindex="-1"><div style="position:relative;"><div><!--[--><div class="article-head"><div class="eyebrow">文档处理</div><h1>LibreOffice 实现 DOC、XLS、PPT 在线预览</h1><div class="article-meta"><span class="author-avatar">知</span><span>知行笔记</span><span class="meta-dot">·</span><span>约 31 分钟阅读</span></div><div class="tag-row"><!--[--><span class="tag">libreoffice</span><span class="tag">jodconverter</span><span class="tag">doc</span><span class="tag">xls</span><span class="tag">ppt</span><span class="tag">pdf</span><span class="tag">java</span><span class="tag">preview</span><span class="tag">文档转换</span><span class="tag">在线预览</span><span class="tag">UNO</span><span class="tag">进程管理</span><!--]--></div></div><article class="markdown-body"><p>系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。</p>
+<h2 id="1-三种格式怎么转">1. 三种格式怎么转</h2>
 <table>
 <thead>
 <tr>
 <th>原格式</th>
 <th>转换组件</th>
 <th>输出</th>
-<th>需要接受的限制</th>
+<th>显示效果</th>
 </tr>
 </thead>
 <tbody>
@@ -52,10 +52,10 @@
 </tr>
 </tbody>
 </table>
-<p>统一链路：浏览器申请预览 → 后端检查文件权限和版本 → 下载到临时目录 → LibreOffice 转 PDF → 保存预览文件 → 浏览器读取 PDF。</p>
-<p>原文件和预览文件分开保存，预览失败不覆盖原件。这里的“在线预览”是文档阅读，不是在线编辑。如果 Excel 更需要冻结表头、筛选或查看大量数据，应另选表格阅读器；不要把 PDF 分页当成表格交互。</p>
+<p>处理顺序：浏览器申请预览 → 后端检查文件权限和版本 → 下载到临时目录 → LibreOffice 转 PDF → 保存预览文件 → 浏览器读取 PDF。</p>
+<p>原文件保留，生成的 PDF 单独存放。XLS 转出的 PDF 按打印布局分页，适合看报表；如果要冻结表头、筛选或查看大量数据，用表格阅读器更合适。</p>
 <p>LibreOffice 安装在实际执行转换的机器上。Java 服务运行在容器中时，宿主机安装 Office 并不代表容器能使用；应放进转换容器镜像，或调用独立的转换服务。纯静态网站则在构建机器上提前转换，发布生成结果，浏览器里不运行 LibreOffice。</p>
-<h2 id="2-安装工具字体并找到安装目录">2. 安装工具、字体并找到安装目录</h2>
+<h2 id="2-安装-libreoffice-和字体">2. 安装 LibreOffice 和字体</h2>
 <p>运行转换的普通用户需要读取输入文件，并能写入工作目录和用户配置目录。安装软件需要相应 sudo 授权，不需要让转换服务长期以 root 运行。</p>
 <details class="install-guide">
 <summary>Ubuntu / Debian：安装 LibreOffice、字体和检查工具</summary>
@@ -63,20 +63,14 @@
 <span class="hljs-built_in">sudo</span> apt-get install -y libreoffice-writer libreoffice-calc libreoffice-impress fonts-noto-cjk fonts-liberation poppler-utils fontconfig <span class="hljs-comment"># 安装三类转换组件、字体及PDF检查工具</span>
 fc-match sans:lang=zh-cn <span class="hljs-comment"># 查看中文默认匹配到的字体</span>
 </code></pre>
-<p>例如返回一款 Noto CJK 字体，说明字体匹配可用；仍应打开生成的 PDF 检查实际显示，不能只凭命令输出判断版式完全一致。</p>
+<p>返回 Noto CJK 等中文字体后，再转一份带中文的文件。打开 PDF 看一下标题、表格和分页是否正常。</p>
 </details>
 <details class="install-guide">
-<summary>使用 dnf 的 RHEL 系与已有 CentOS 7 环境</summary>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> dnf install -y libreoffice-writer libreoffice-calc libreoffice-impress fontconfig poppler-utils <span class="hljs-comment"># 从当前发行版已配置的软件源安装转换组件</span>
-dnf search <span class="hljs-string">&#x27;cjk&#x27;</span> <span class="hljs-comment"># 查询本发行版提供的中日韩字体包，按结果选择安装</span>
+<summary>使用 dnf 的 RHEL 系：安装转换组件</summary>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">sudo</span> dnf install -y libreoffice-writer libreoffice-calc libreoffice-impress fontconfig poppler-utils <span class="hljs-comment"># 从当前发行版的软件源安装转换组件</span>
+<span class="hljs-built_in">sudo</span> dnf search <span class="hljs-string">&#x27;cjk&#x27;</span> <span class="hljs-comment"># 查询本发行版提供的中文字体包，按结果选择安装</span>
 </code></pre>
-<p>CentOS 7 已结束维护。维护已有机器时，先确认仓库可用和包的兼容性，不直接套用新版系统的软件包：</p>
-<pre><code class="hljs language-bash"><span class="hljs-built_in">cat</span> /etc/centos-release <span class="hljs-comment"># 确认确实是CentOS 7</span>
-yum info libreoffice-writer libreoffice-calc libreoffice-impress <span class="hljs-comment"># 查询现有且已获准使用的软件源中是否有兼容包</span>
-<span class="hljs-built_in">sudo</span> yum install -y libreoffice-writer libreoffice-calc libreoffice-impress fontconfig poppler-utils <span class="hljs-comment"># 仅在上一步确认软件源与包可用后安装</span>
-yum search <span class="hljs-string">&#x27;cjk&#x27;</span> <span class="hljs-comment"># 查询当前源中可用的中文字体包</span>
-</code></pre>
-<p>旧系统自带的 Office 版本可能较老，不代表适合处理不可信上传。新建转换服务优先使用仍受维护的运行环境；不要替换系统基础库来强行安装新版 Office。</p>
+<p>安装后执行 <code>fc-match sans:lang=zh-cn</code> 检查字体匹配，并打开转换后的 PDF 查看实际显示。</p>
 </details>
 <p>先查版本和程序位置：</p>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">command</span> -v soffice <span class="hljs-comment"># 检查是否可以通过PATH找到转换程序</span>
@@ -87,8 +81,8 @@ soffice --version <span class="hljs-comment"># 记录实际Office版本；若只
 <pre><code class="hljs language-bash"><span class="hljs-built_in">ls</span> -l /usr/lib/libreoffice/program/soffice /usr/lib64/libreoffice/program/soffice 2&gt;/dev/null <span class="hljs-comment"># 检查常见安装位置，缺失项不显示</span>
 </code></pre>
 <p>例如存在 <code>/usr/lib64/libreoffice/program/soffice</code>，对应的 <code>officeHome</code> 才是 <code>/usr/lib64/libreoffice</code>。找不到时，通过包清单查询，不凭发行版名称硬编码：Debian 系使用 <code>dpkg -L libreoffice-core</code>，RPM 系使用 <code>rpm -ql libreoffice-core</code>。</p>
-<h2 id="3-先独立验证一次转换">3. 先独立验证一次转换</h2>
-<p>先排除 Java、网关、对象存储等因素。准备一份可以正常打开的 <code>sample.doc</code>，下面的路径都替换为本机实际值。命令使用 GNU <code>timeout</code> 限制一次验证的等待时间。</p>
+<h2 id="3-用命令行验证转换">3. 用命令行验证转换</h2>
+<p>先在转换机器上跑一次命令，确认 Office 本身能工作。准备一份能正常打开的 <code>sample.doc</code>，修改下面的程序和文件路径。<code>timeout</code> 用于限制这次转换的等待时间。</p>
 <pre><code class="hljs language-bash">SOFFICE=/usr/lib/libreoffice/program/soffice <span class="hljs-comment"># 改成已确认的Office启动程序</span>
 SOURCE=/srv/preview-input/sample.doc <span class="hljs-comment"># 改成一份真实、非空的测试文件</span>
 PREVIEW_WORK=$(<span class="hljs-built_in">mktemp</span> -d /tmp/office-preview.XXXXXXXX) <span class="hljs-comment"># 创建本次独立工作目录，失败时停止</span>
@@ -112,8 +106,8 @@ pdfinfo <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WOR
 <p>检查完以后只清理本次临时目录：</p>
 <pre><code class="hljs language-bash"><span class="hljs-keyword">case</span> <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WORK</span>&quot;</span> <span class="hljs-keyword">in</span> /tmp/office-preview.????????) <span class="hljs-built_in">rm</span> -rf -- <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WORK</span>&quot;</span> ;; *) <span class="hljs-built_in">printf</span> <span class="hljs-string">&#x27;目录不符合本次临时目录规则，停止清理\n&#x27;</span> ;; <span class="hljs-keyword">esac</span> <span class="hljs-comment"># 校验目录前缀和随机段后删除，绝不删除输入目录</span>
 </code></pre>
-<h2 id="4-java-接入先跑通一个独立示例">4. Java 接入：先跑通一个独立示例</h2>
-<p>下面使用 JODConverter <strong>4.4.10</strong> 的 API，这是固定示例版本，不表示最新版本；不要直接混用 5.x 的依赖和类名。示例使用 JDK 17、Maven，不依赖业务框架。JODConverter 负责控制 Office 进程并提交转换，服务器仍需安装 LibreOffice。</p>
+<h2 id="4-java-转换示例">4. Java 转换示例</h2>
+<p>示例使用 JDK 17、Maven 和 JODConverter <strong>4.4.10</strong>。JODConverter 管理 Office 进程和转换调用，服务器上仍要安装 LibreOffice。换用 5.x 时，需要一并调整对应 API。</p>
 <h3 id="41-maven-配置">4.1 Maven 配置</h3>
 <p>新建独立示例目录，保存以下完整 <code>pom.xml</code>：</p>
 <pre><code class="hljs language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">project</span> <span class="hljs-attr">xmlns</span>=<span class="hljs-string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span>
@@ -146,7 +140,49 @@ pdfinfo <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WOR
 <span class="hljs-tag">&lt;/<span class="hljs-name">project</span>&gt;</span>
 </code></pre>
 <p><code>jodconverter-local-lo</code> 使用 LibreOffice 的 UNO 库；不要为了补依赖，再叠加一套不同版本的 UNO 库。依赖选择见 <a href="https://jodconverter.github.io/jodconverter/4.4.10/getting-started/java-library/">JODConverter 4.4.10 Java 接入说明</a>。</p>
-<h3 id="42-独立转换程序">4.2 独立转换程序</h3>
+<h3 id="42-程序怎样接管-libreoffice">4.2 程序怎样接管 LibreOffice</h3>
+<p>Java 不是直接解析 DOC、XLS、PPT。实际工作分成三层：</p>
+<ul>
+<li><code>LocalOfficeManager</code>：启动本机的 <code>soffice</code>，管理用户配置目录、UNO连接和进程回收。</li>
+<li><code>LocalConverter</code>：通过管理器提交“打开文件 → 导出PDF”的转换调用。</li>
+<li>LibreOffice进程：使用Writer、Calc或Impress读取文件，完成排版和导出。</li>
+</ul>
+<p>调用 <code>manager.start()</code> 时，管理器根据 <code>officeHome</code> 找到启动程序，为自己管理的进程准备用户配置目录，并建立 UNO 连接。示例配置了 <code>startFailFast(true)</code>，启动失败会在这里报错，不能把一个未启动成功的管理器交给后续任务。</p>
+<p>UNO是程序与Office之间的通信接口。<code>127.0.0.1:2002</code> 是示例中的本机连接地址，不是HTTP预览地址。浏览器仍访问文件服务的HTTP接口，不连接2002；也不用在Nginx中转发这个端口。</p>
+<table>
+<thead>
+<tr>
+<th>程序中的位置</th>
+<th>做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>创建转换器</td>
+<td>保存安装路径，创建自己的工作目录，暂不启动Office</td>
+</tr>
+<tr>
+<td>第一次调用<code>convert</code></td>
+<td>创建并启动管理器，成功后保存实例</td>
+</tr>
+<tr>
+<td>后续调用<code>convert</code></td>
+<td>复用同一个管理器和Office进程</td>
+</tr>
+<tr>
+<td>达到进程任务数或触发管理器恢复机制</td>
+<td>由管理器按配置回收或重启进程</td>
+</tr>
+<tr>
+<td>应用关闭</td>
+<td>停止接收新任务，调用<code>close</code>，停止管理器并清理工作目录</td>
+</tr>
+</tbody>
+</table>
+<p>不要先手工启动一个监听2002的Office，再让本例启动第二个。<code>ExistingProcessAction.FAIL</code>会在发现占用进程时拒绝启动，避免误接管或结束其他服务的Office。确实要连接一个由外部程序启动的Office，应另选连接已有进程的管理方式，不能把两种启动方式混用。</p>
+<p>部署时只需在转换机器上安装LibreOffice，不用另外启动一个Office服务。首次转换前看不到<code>soffice</code>进程是正常的；Java程序提交任务后才会启动它。</p>
+<p>下面把管理器放进一个可复用对象中，首次转换时启动。<code>convert</code>和<code>close</code>使用同一把锁，防止关闭过程中又启动Office；同一实例中的转换也会串行执行。接入服务时，整个服务共享这个对象，HTTP请求只提交转换任务。</p>
+<h3 id="43-可复用的转换器">4.3 可复用的转换器</h3>
 <p>保存到 <code>src/main/java/example/preview/OfficeToPdf.java</code>。此程序只负责转换已获准读取的本地文件，不包含上传接口、鉴权和异步队列。</p>
 <pre><code class="hljs language-java"><span class="hljs-keyword">package</span> example.preview;
 
@@ -165,14 +201,22 @@ pdfinfo <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WOR
 <span class="hljs-keyword">import</span> java.util.Set;
 <span class="hljs-keyword">import</span> java.util.stream.Stream;
 
-<span class="hljs-comment">/** 将一份旧版Office文件转换为独立PDF。 */</span>
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OfficeToPdf</span> {
-    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {
-        <span class="hljs-keyword">if</span> (args.length != <span class="hljs-number">3</span>) {
-            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;参数：Office安装根目录 输入文件 输出PDF&quot;</span>);
-        }
-        <span class="hljs-type">Path</span> <span class="hljs-variable">input</span> <span class="hljs-operator">=</span> Path.of(args[<span class="hljs-number">1</span>]).toAbsolutePath().normalize();
-        <span class="hljs-type">Path</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> Path.of(args[<span class="hljs-number">2</span>]).toAbsolutePath().normalize();
+<span class="hljs-comment">/** 管理本机Office进程，将已获准读取的文件转成PDF。 */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OfficeToPdf</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">AutoCloseable</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String officeHome;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Path work;
+    <span class="hljs-keyword">private</span> LocalOfficeManager manager;
+    <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> closed;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">OfficeToPdf</span><span class="hljs-params">(String officeHome)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-built_in">this</span>.officeHome = Path.of(officeHome).toAbsolutePath().normalize().toString();
+        <span class="hljs-built_in">this</span>.work = Files.createTempDirectory(<span class="hljs-string">&quot;office-preview-&quot;</span>);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-type">void</span> <span class="hljs-title function_">convert</span><span class="hljs-params">(Path source, Path destination)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">if</span> (closed) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;转换器已关闭&quot;</span>);
+        <span class="hljs-type">Path</span> <span class="hljs-variable">input</span> <span class="hljs-operator">=</span> source.toAbsolutePath().normalize();
+        <span class="hljs-type">Path</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> destination.toAbsolutePath().normalize();
         <span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> input.getFileName().toString().toLowerCase(Locale.ROOT);
         <span class="hljs-type">int</span> <span class="hljs-variable">dot</span> <span class="hljs-operator">=</span> name.lastIndexOf(<span class="hljs-string">&#x27;.&#x27;</span>);
         <span class="hljs-type">String</span> <span class="hljs-variable">extension</span> <span class="hljs-operator">=</span> dot &lt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;&quot;</span> : name.substring(dot + <span class="hljs-number">1</span>);
@@ -188,50 +232,79 @@ pdfinfo <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WOR
             <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;输出必须是尚不存在的PDF文件&quot;</span>);
         }
         Files.createDirectories(output.getParent());
-        <span class="hljs-type">Path</span> <span class="hljs-variable">work</span> <span class="hljs-operator">=</span> Files.createTempDirectory(<span class="hljs-string">&quot;office-preview-&quot;</span>);
-        <span class="hljs-type">Path</span> <span class="hljs-variable">converted</span> <span class="hljs-operator">=</span> work.resolve(<span class="hljs-string">&quot;preview.pdf&quot;</span>);
-        <span class="hljs-type">LocalOfficeManager</span> <span class="hljs-variable">manager</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;
+        <span class="hljs-type">Path</span> <span class="hljs-variable">job</span> <span class="hljs-operator">=</span> Files.createTempDirectory(work, <span class="hljs-string">&quot;job-&quot;</span>);
         <span class="hljs-keyword">try</span> {
-            manager = LocalOfficeManager.builder()
-                    .officeHome(args[<span class="hljs-number">0</span>])
-                    .workingDir(work.toFile())
-                    .hostName(<span class="hljs-string">&quot;127.0.0.1&quot;</span>) <span class="hljs-comment">// UNO只监听本机，不暴露到公网</span>
-                    .portNumbers(<span class="hljs-number">2002</span>) <span class="hljs-comment">// 示例独占此端口，多进程部署时分别规划</span>
-                    .existingProcessAction(ExistingProcessAction.FAIL)
-                    .startFailFast(<span class="hljs-literal">true</span>)
-                    .processTimeout(<span class="hljs-number">30_000L</span>)
-                    .taskQueueTimeout(<span class="hljs-number">30_000L</span>)
-                    .taskExecutionTimeout(<span class="hljs-number">120_000L</span>)
-                    .maxTasksPerProcess(<span class="hljs-number">50</span>)
-                    .build();
-            manager.start();
+            startIfNeeded();
+            <span class="hljs-type">Path</span> <span class="hljs-variable">pdf</span> <span class="hljs-operator">=</span> job.resolve(<span class="hljs-string">&quot;preview.pdf&quot;</span>);
             LocalConverter.builder().officeManager(manager)
                     .loadProperty(<span class="hljs-string">&quot;MacroExecutionMode&quot;</span>, MacroExecMode.NEVER_EXECUTE)
-                    .build().convert(input.toFile()).to(converted.toFile()).execute();
-            <span class="hljs-keyword">if</span> (!Files.isRegularFile(converted) || Files.size(converted) &lt; <span class="hljs-number">5</span>) {
+                    .build().convert(input.toFile()).to(pdf.toFile()).execute();
+            <span class="hljs-keyword">if</span> (!Files.isRegularFile(pdf) || Files.size(pdf) &lt; <span class="hljs-number">5</span>) {
                 <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;未生成有效的PDF文件&quot;</span>);
             }
-            <span class="hljs-keyword">try</span> (<span class="hljs-type">InputStream</span> <span class="hljs-variable">stream</span> <span class="hljs-operator">=</span> Files.newInputStream(converted)) {
+            <span class="hljs-keyword">try</span> (<span class="hljs-type">InputStream</span> <span class="hljs-variable">stream</span> <span class="hljs-operator">=</span> Files.newInputStream(pdf)) {
                 <span class="hljs-type">String</span> <span class="hljs-variable">header</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(stream.readNBytes(<span class="hljs-number">5</span>), StandardCharsets.US_ASCII);
-                <span class="hljs-keyword">if</span> (!<span class="hljs-string">&quot;%PDF-&quot;</span>.equals(header)) {
-                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;输出不是PDF&quot;</span>);
-                }
+                <span class="hljs-keyword">if</span> (!<span class="hljs-string">&quot;%PDF-&quot;</span>.equals(header)) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;输出不是PDF&quot;</span>);
             }
-            Files.copy(converted, output); <span class="hljs-comment">// 不加覆盖选项，已有目标文件会导致失败</span>
-            System.out.println(output);
+            Files.copy(pdf, output); <span class="hljs-comment">// 不覆盖原文件或已存在的PDF</span>
         } <span class="hljs-keyword">finally</span> {
-            OfficeUtils.stopQuietly(manager); <span class="hljs-comment">// 无论转换成功还是失败，都停止示例启动的Office</span>
-            <span class="hljs-keyword">try</span> (<span class="hljs-type">Stream</span>&lt;Path&gt; <span class="hljs-variable">paths</span> <span class="hljs-operator">=</span> Files.walk(work)) {
-                <span class="hljs-keyword">for</span> (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
-                    Files.deleteIfExists(path); <span class="hljs-comment">// 仅清理本次创建的临时目录</span>
-                }
+            deleteTree(job); <span class="hljs-comment">// 每次任务完成后清理本次PDF和转换暂存文件</span>
+        }
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">startIfNeeded</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">if</span> (manager != <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span>; <span class="hljs-comment">// 已启动，复用现有管理器</span>
+        <span class="hljs-type">LocalOfficeManager</span> <span class="hljs-variable">candidate</span> <span class="hljs-operator">=</span> LocalOfficeManager.builder()
+                .officeHome(officeHome)
+                .workingDir(work.toFile())
+                .hostName(<span class="hljs-string">&quot;127.0.0.1&quot;</span>) <span class="hljs-comment">// UNO只监听本机</span>
+                .portNumbers(<span class="hljs-number">2002</span>) <span class="hljs-comment">// 同一台机器上不同管理器应分配不同端口</span>
+                .existingProcessAction(ExistingProcessAction.FAIL)
+                .startFailFast(<span class="hljs-literal">true</span>)
+                .processTimeout(<span class="hljs-number">30_000L</span>)
+                .taskQueueTimeout(<span class="hljs-number">30_000L</span>)
+                .taskExecutionTimeout(<span class="hljs-number">120_000L</span>)
+                .maxTasksPerProcess(<span class="hljs-number">50</span>)
+                .build();
+        <span class="hljs-keyword">try</span> {
+            candidate.start(); <span class="hljs-comment">// 由管理器启动Office，并等待连接建立</span>
+            manager = candidate; <span class="hljs-comment">// 只有启动成功才保存实例</span>
+        } <span class="hljs-keyword">catch</span> (Exception exception) {
+            OfficeUtils.stopQuietly(candidate); <span class="hljs-comment">// 启动失败时清理本次管理器</span>
+            <span class="hljs-keyword">throw</span> exception;
+        }
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-type">void</span> <span class="hljs-title function_">close</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">if</span> (closed) <span class="hljs-keyword">return</span>;
+        closed = <span class="hljs-literal">true</span>; <span class="hljs-comment">// 之后的convert不允许再启动Office</span>
+        OfficeUtils.stopQuietly(manager);
+        manager = <span class="hljs-literal">null</span>;
+        deleteTree(work);
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">deleteTree</span><span class="hljs-params">(Path directory)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">Stream</span>&lt;Path&gt; <span class="hljs-variable">paths</span> <span class="hljs-operator">=</span> Files.walk(directory)) {
+            <span class="hljs-keyword">for</span> (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path); <span class="hljs-comment">// 只清理本实例创建的临时目录</span>
             }
         }
     }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {
+        <span class="hljs-keyword">if</span> (args.length != <span class="hljs-number">3</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;参数：Office安装根目录 输入文件 输出PDF&quot;</span>);
+        }
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">OfficeToPdf</span> <span class="hljs-variable">converter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">OfficeToPdf</span>(args[<span class="hljs-number">0</span>])) {
+            converter.convert(Path.of(args[<span class="hljs-number">1</span>]), Path.of(args[<span class="hljs-number">2</span>]));
+            System.out.println(Path.of(args[<span class="hljs-number">2</span>]).toAbsolutePath());
+        } <span class="hljs-comment">// 命令行验证运行一次就退出，因此在这里关闭管理器</span>
+    }
 }
 </code></pre>
-<p>这是单次命令行示例，因此运行完会停止 Office。接入长期运行的服务后，应由服务生命周期统一启动、复用和关闭一个进程管理器，不要每个 HTTP 请求都启动一次 Office。<code>NEVER_EXECUTE</code> 明确禁止执行文档宏，但不替代操作系统层面的隔离。<a href="https://api.libreoffice.org/docs/idl/ref/namespacecom_1_1sun_1_1star_1_1document_1_1MacroExecMode.html">宏执行策略</a></p>
-<h3 id="43-编译运行和判断结果">4.3 编译、运行和判断结果</h3>
+<p><code>main</code>用于单文件验证，执行完会调用<code>close</code>。放进长期运行的服务后，在服务启动时创建一个<code>OfficeToPdf</code>实例，让后台队列反复调用它的<code>convert</code>，服务退出时再关闭。不要在每个HTTP请求里使用<code>try (new OfficeToPdf(...))</code>，否则每次请求都会重新启动Office。<code>NEVER_EXECUTE</code> 明确禁止执行文档宏，但不替代操作系统层面的隔离。<a href="https://api.libreoffice.org/docs/idl/ref/namespacecom_1_1sun_1_1star_1_1document_1_1MacroExecMode.html">宏执行策略</a></p>
+<h3 id="44-编译运行和判断结果">4.4 编译、运行和判断结果</h3>
 <p>在含 <code>pom.xml</code> 的示例根目录执行，以下类路径写法适用于 Linux：</p>
 <pre><code class="hljs language-bash">mvn -DskipTests compile <span class="hljs-comment"># 编译示例，先解决依赖、JDK或源码错误</span>
 mvn dependency:copy-dependencies -DoutputDirectory=target/dependency <span class="hljs-comment"># 将运行所需依赖复制到示例target目录</span>
@@ -286,8 +359,8 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 </tbody>
 </table>
 <p>所有超时都不是整个 HTTP 预览请求的统一总时限。参数以 <a href="https://jodconverter.github.io/jodconverter/4.4.10/configuration/local-configuration/">4.4.10 LocalOfficeManager 文档</a>为准。</p>
-<h2 id="5-接入服务转换与状态查询分开">5. 接入服务：转换与状态查询分开</h2>
-<p>转换可能持续数秒甚至更久，不建议让页面一直等待一个长 HTTP 请求。可以使用以下通用接口约定；这是示例契约，需要在自己的文件服务中实现。</p>
+<h2 id="5-异步转换与前端轮询">5. 异步转换与前端轮询</h2>
+<p>文件一大，转换可能要等几秒到几十秒。申请接口先返回任务状态，前端定时查询，完成后再加载 PDF。下面是一组接口设计示例：</p>
 <table>
 <thead>
 <tr>
@@ -323,8 +396,8 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 <p>成功示例：</p>
 <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;previewId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;preview-001&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;READY&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;previewUrl&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/api/document-previews/preview-001/content&quot;</span><span class="hljs-punctuation">}</span>
 </code></pre>
-<p>状态可约定为 <code>NOT_STARTED</code>、<code>PROCESSING</code>、<code>READY</code>、<code>FAILED</code>、<code>UNAVAILABLE</code>。<code>FAILED</code> 应包含可展示的简短原因，完整异常留在服务日志；不要把存储凭据、签名URL或内部路径放进错误响应。</p>
-<p>建议先使用一个转换工作线程和小容量有界队列，按测试结果再扩展。队列满时明确拒绝、提示稍后重试，不能无限累积文件和任务。多实例需要共享的任务认领机制；不要因为每台机器各有一个线程，就认为同一文件不会被重复转换。</p>
+<p>状态使用 <code>NOT_STARTED</code>、<code>PROCESSING</code>、<code>READY</code>、<code>FAILED</code>、<code>UNAVAILABLE</code>。失败时，页面显示“文件有密码”“转换超时”等能说明问题的原因，完整异常写进服务日志。响应中不要带存储凭据和内部路径。</p>
+<p>先用一个工作线程、小容量队列串行转换。队列满了就返回忙碌状态，提示稍后重试。部署多个实例后，还要通过共享任务锁避免同一份文件重复转换。</p>
 <p>任务开始前先在请求线程确定授权范围和文件身份，传给后台的是已解析的存储位置及源版本；后台线程不能假定还保留着请求线程的登录上下文。</p>
 <h3 id="51-前端轮询示例">5.1 前端轮询示例</h3>
 <p>下面使用同源接口和 Cookie 登录态。需要额外认证头的系统，应交给现有 HTTP 客户端；不要把令牌放入URL。PDF如何呈现由已有阅读器处理。</p>
@@ -359,7 +432,7 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 <span class="hljs-comment">// 弹窗关闭、切换文件或组件卸载时调用controller.abort()。</span>
 </code></pre>
 <p>前端取消轮询不等于服务端取消转换；后端可以完成已开始的转换并缓存结果。再次打开时查询已有结果，避免重复计算。失败时在弹窗展示错误与重试入口，不自动 <code>window.open</code> 原文件，否则“预览失败”可能变成意外下载。</p>
-<h2 id="6-缓存pdf状态和访问地址是三回事">6. 缓存：PDF、状态和访问地址是三回事</h2>
+<h2 id="6-缓存和文件更新">6. 缓存和文件更新</h2>
 <table>
 <thead>
 <tr>
@@ -390,16 +463,16 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 <p>对象存储启用版本控制时，优先绑定确切的源版本。使用 ETag 时，不把它一概当成文件MD5；读取时增加版本条件，防止查询元数据后源文件已被替换。Office版本、字体或转换规则改变后，可以提高转换规则版本，避免继续复用旧版式。</p>
 <p>处理顺序建议为：鉴权 → 确定源版本 → 查PDF产物 → 原子认领任务 → 提交队列。只有本次认领任务的持有者可以更新状态和释放锁，避免超时后的旧任务误删新任务锁。租约要覆盖排队、下载、转换、上传，或采用续期；不能只按转换的120秒估算。</p>
 <p>例如状态保留30分钟，访问地址有效15分钟，PDF保留到对象生命周期清理，这三项可以互不相同。状态过期后先查产物；PDF仍在就签发新地址，不重新转换。只有“对象确实不存在”才当作缓存未命中，鉴权失败、网络故障和存储服务异常不能被吞掉后反复重转。</p>
-<h2 id="7-跨域鉴权与下载控制">7. 跨域、鉴权与下载控制</h2>
+<h2 id="7-文件读取跨域和下载">7. 文件读取、跨域和下载</h2>
 <p>文件链接可以在新标签页打开，不代表页面中的 JavaScript 能读取它。页面与文件地址的协议、主机或端口不同，就可能遇到 CORS；HTTPS页面读取HTTP文件还可能触发混合内容限制。</p>
 <p>优先让浏览器通过同源文件接口读取：浏览器 → <code>/api/.../content</code> → 文件服务 → 私有对象存储。文件服务根据文件ID查找已授权对象，不直接请求用户提交的任意URL。必须兼容URL参数时，只解析服务端已配置存储中的对象，并再次检查对象权限，防止变成任意地址代理。</p>
 <p>若直接给浏览器签名URL，需要存储服务允许准确的页面源，并确认浏览器能到达目标地址。CORS解决不了内网地址不可达、签名过期或文件不存在。跨域读取、原文件解析、Office转换和PDF展示是不同阶段，先根据 Network 找到失败阶段。</p>
 <p>原件下载应与预览分别授权，默认不开启原件下载接口。隐藏前端按钮不能代替后端检查。PDF预览本身也会向浏览器传输内容，不能承诺彻底防保存、复制或截图；只展示页面图片同样无法消除这一限制。</p>
-<h2 id="8-空白文档与0字节文件">8. 空白文档与0字节文件</h2>
+<h2 id="8-空文件怎么处理">8. 空文件怎么处理</h2>
 <p>正常保存的空白 DOC、XLS、PPT 仍有完整的文件结构，可以交给Office打开。真正的0字节文件只有一个空对象，即使后缀是<code>.doc</code>，也没有文档结构可转换。</p>
-<p>默认可以明确提示“文件无内容”，跳过转换。如果产品要求仍然打开阅读器，可以生成一页有效的空白PDF作为展示占位，同时标明源文件为空。这是应用层的展示策略，不是LibreOffice转换成功；不能简单创建一个0字节的<code>.pdf</code>冒充有效PDF。</p>
+<p>遇到0字节文件，直接提示“文件无内容”，跳过转换。需要继续打开阅读器时，可以返回一页有效的空白 PDF，并标明源文件为空；原件保持不动。空白 PDF 本身仍要有正确结构，不能只创建一个0字节的<code>.pdf</code>。</p>
 <p>只读文件接口是否允许返回空字节，与转换器是否接受空源文件应分别处理。不要让转换前校验阻断所有格式的原文件读取，也不要用空白预览掩盖权限不足、404或下载失败。</p>
-<h2 id="9-常见故障先定位阶段再处理">9. 常见故障：先定位阶段再处理</h2>
+<h2 id="9-转换失败时查哪里">9. 转换失败时查哪里</h2>
 <table>
 <thead>
 <tr>
@@ -459,7 +532,7 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 fc-match sans:lang=zh-cn <span class="hljs-comment"># 核对服务环境可匹配的中文字体</span>
 </code></pre>
 <p>安装目录错误与权限问题不能靠<code>chmod -R 777</code>、关闭SELinux或让整个服务提权来解决。用户配置目录独立可减少实例冲突，但不是文件系统或网络安全隔离；处理上传文件时，限制转换进程可访问的目录、网络、CPU和内存，并为下载、转换和上传分别设定上限。</p>
-<h2 id="10-发布前验证清单">10. 发布前验证清单</h2>
+<h2 id="10-上线前跑哪些文件">10. 上线前跑哪些文件</h2>
 <ul>
 <li>使用真正的 <code>.doc</code>、<code>.xls</code>、<code>.ppt</code> 各一份，检查中文、图片、表格和页数；另测正常空白文档与0字节文件。</li>
 <li>检查首次转换、命中缓存、源文件更新、签名到期和状态过期，确认不会复用其他文件的预览。</li>
@@ -468,7 +541,7 @@ fc-match sans:lang=zh-cn <span class="hljs-comment"># 核对服务环境可匹�
 <li>使用无权限账号、已删除文件和外部URL验证边界，确认只读预览不会自动开放原件下载。</li>
 <li>验证结束清理测试临时目录；预览产物的保留期按存储生命周期管理，不与状态TTL混为一谈。</li>
 </ul>
-</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div><!--]--></div></div></main><!--[--><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><!--[--><a class="level-2 toc-link" href="#1-先确定预览方式">1. 先确定预览方式</a><a class="level-2 toc-link" href="#2-安装工具字体并找到安装目录">2. 安装工具、字体并找到安装目录</a><a class="level-2 toc-link" href="#3-先独立验证一次转换">3. 先独立验证一次转换</a><a class="level-2 toc-link" href="#4-java-接入先跑通一个独立示例">4. Java 接入：先跑通一个独立示例</a><a class="level-3 toc-link" href="#41-maven-配置">4.1 Maven 配置</a><a class="level-3 toc-link" href="#42-独立转换程序">4.2 独立转换程序</a><a class="level-3 toc-link" href="#43-编译运行和判断结果">4.3 编译、运行和判断结果</a><a class="level-2 toc-link" href="#5-接入服务转换与状态查询分开">5. 接入服务：转换与状态查询分开</a><a class="level-3 toc-link" href="#51-前端轮询示例">5.1 前端轮询示例</a><a class="level-2 toc-link" href="#6-缓存pdf状态和访问地址是三回事">6. 缓存：PDF、状态和访问地址是三回事</a><a class="level-2 toc-link" href="#7-跨域鉴权与下载控制">7. 跨域、鉴权与下载控制</a><a class="level-2 toc-link" href="#8-空白文档与0字节文件">8. 空白文档与0字节文件</a><a class="level-2 toc-link" href="#9-常见故障先定位阶段再处理">9. 常见故障：先定位阶段再处理</a><a class="level-2 toc-link" href="#10-发布前验证清单">10. 发布前验证清单</a><!--]--><a class="back-top" href="#main">↑ 返回顶部</a></aside><dialog class="mobile-contents" id="mobile-contents" aria-labelledby="mobile-contents-title"><div class="mobile-contents-header"><span id="mobile-contents-title">文章目录</span><button type="button" class="icon-button" aria-label="关闭文章目录"> × </button></div><nav aria-label="文章章节目录"><!--[--><a class="level-2 mobile-contents-link" href="#1-先确定预览方式">1. 先确定预览方式</a><a class="level-2 mobile-contents-link" href="#2-安装工具字体并找到安装目录">2. 安装工具、字体并找到安装目录</a><a class="level-2 mobile-contents-link" href="#3-先独立验证一次转换">3. 先独立验证一次转换</a><a class="level-2 mobile-contents-link" href="#4-java-接入先跑通一个独立示例">4. Java 接入：先跑通一个独立示例</a><a class="level-3 mobile-contents-link" href="#41-maven-配置">4.1 Maven 配置</a><a class="level-3 mobile-contents-link" href="#42-独立转换程序">4.2 独立转换程序</a><a class="level-3 mobile-contents-link" href="#43-编译运行和判断结果">4.3 编译、运行和判断结果</a><a class="level-2 mobile-contents-link" href="#5-接入服务转换与状态查询分开">5. 接入服务：转换与状态查询分开</a><a class="level-3 mobile-contents-link" href="#51-前端轮询示例">5.1 前端轮询示例</a><a class="level-2 mobile-contents-link" href="#6-缓存pdf状态和访问地址是三回事">6. 缓存：PDF、状态和访问地址是三回事</a><a class="level-2 mobile-contents-link" href="#7-跨域鉴权与下载控制">7. 跨域、鉴权与下载控制</a><a class="level-2 mobile-contents-link" href="#8-空白文档与0字节文件">8. 空白文档与0字节文件</a><a class="level-2 mobile-contents-link" href="#9-常见故障先定位阶段再处理">9. 常见故障：先定位阶段再处理</a><a class="level-2 mobile-contents-link" href="#10-发布前验证清单">10. 发布前验证清单</a><!--]--></nav></dialog><!--]--></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践<!--[--> · <a href="../support.html">支持本站</a><!--]--></span></footer></div><dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" value="" type="search" maxlength="240" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索"> Esc </button></div><div id="search-results" aria-live="polite"><p class="search-empty"> 输入关键词，查找笔记中的知识。 </p><!----></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div><!--]--></div>
+</article><div class="article-end"><span>— 本文结束 —</span><a href="../index.html">返回知识库首页 ↗</a></div><!--]--></div></div></main><!--[--><aside class="toc" aria-label="本文目录"><div class="toc-label">本文目录</div><!--[--><a class="level-2 toc-link" href="#1-三种格式怎么转">1. 三种格式怎么转</a><a class="level-2 toc-link" href="#2-安装-libreoffice-和字体">2. 安装 LibreOffice 和字体</a><a class="level-2 toc-link" href="#3-用命令行验证转换">3. 用命令行验证转换</a><a class="level-2 toc-link" href="#4-java-转换示例">4. Java 转换示例</a><a class="level-3 toc-link" href="#41-maven-配置">4.1 Maven 配置</a><a class="level-3 toc-link" href="#42-程序怎样接管-libreoffice">4.2 程序怎样接管 LibreOffice</a><a class="level-3 toc-link" href="#43-可复用的转换器">4.3 可复用的转换器</a><a class="level-3 toc-link" href="#44-编译运行和判断结果">4.4 编译、运行和判断结果</a><a class="level-2 toc-link" href="#5-异步转换与前端轮询">5. 异步转换与前端轮询</a><a class="level-3 toc-link" href="#51-前端轮询示例">5.1 前端轮询示例</a><a class="level-2 toc-link" href="#6-缓存和文件更新">6. 缓存和文件更新</a><a class="level-2 toc-link" href="#7-文件读取跨域和下载">7. 文件读取、跨域和下载</a><a class="level-2 toc-link" href="#8-空文件怎么处理">8. 空文件怎么处理</a><a class="level-2 toc-link" href="#9-转换失败时查哪里">9. 转换失败时查哪里</a><a class="level-2 toc-link" href="#10-上线前跑哪些文件">10. 上线前跑哪些文件</a><!--]--><a class="back-top" href="#main">↑ 返回顶部</a></aside><dialog class="mobile-contents" id="mobile-contents" aria-labelledby="mobile-contents-title"><div class="mobile-contents-header"><span id="mobile-contents-title">文章目录</span><button type="button" class="icon-button" aria-label="关闭文章目录"> × </button></div><nav aria-label="文章章节目录"><!--[--><a class="level-2 mobile-contents-link" href="#1-三种格式怎么转">1. 三种格式怎么转</a><a class="level-2 mobile-contents-link" href="#2-安装-libreoffice-和字体">2. 安装 LibreOffice 和字体</a><a class="level-2 mobile-contents-link" href="#3-用命令行验证转换">3. 用命令行验证转换</a><a class="level-2 mobile-contents-link" href="#4-java-转换示例">4. Java 转换示例</a><a class="level-3 mobile-contents-link" href="#41-maven-配置">4.1 Maven 配置</a><a class="level-3 mobile-contents-link" href="#42-程序怎样接管-libreoffice">4.2 程序怎样接管 LibreOffice</a><a class="level-3 mobile-contents-link" href="#43-可复用的转换器">4.3 可复用的转换器</a><a class="level-3 mobile-contents-link" href="#44-编译运行和判断结果">4.4 编译、运行和判断结果</a><a class="level-2 mobile-contents-link" href="#5-异步转换与前端轮询">5. 异步转换与前端轮询</a><a class="level-3 mobile-contents-link" href="#51-前端轮询示例">5.1 前端轮询示例</a><a class="level-2 mobile-contents-link" href="#6-缓存和文件更新">6. 缓存和文件更新</a><a class="level-2 mobile-contents-link" href="#7-文件读取跨域和下载">7. 文件读取、跨域和下载</a><a class="level-2 mobile-contents-link" href="#8-空文件怎么处理">8. 空文件怎么处理</a><a class="level-2 mobile-contents-link" href="#9-转换失败时查哪里">9. 转换失败时查哪里</a><a class="level-2 mobile-contents-link" href="#10-上线前跑哪些文件">10. 上线前跑哪些文件</a><!--]--></nav></dialog><!--]--></div><footer class="page-footer">知行笔记<span>记录 · 理解 · 实践<!--[--> · <a href="../support.html">支持本站</a><!--]--></span></footer></div><dialog id="search-dialog" aria-labelledby="search-title"><div class="search-header"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><label id="search-title" class="sr-only" for="search-input">搜索公开文档</label><input id="search-input" value="" type="search" maxlength="240" placeholder="搜索标题、命令或正文…" autocomplete="off"><button class="close-search" aria-label="关闭搜索"> Esc </button></div><div id="search-results" aria-live="polite"><p class="search-empty"> 输入关键词，查找笔记中的知识。 </p><!----></div><div class="search-footer">只搜索已公开的文档<span>Enter 打开首条结果 · Esc 关闭</span></div></dialog><div class="toast" role="status" aria-live="polite"></div><!--]--></div>
     
     
   </body>
