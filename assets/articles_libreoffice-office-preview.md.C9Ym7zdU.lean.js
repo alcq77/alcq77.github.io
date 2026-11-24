@@ -1,4 +1,4 @@
-import{_ as a}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as u,m as l}from"./chunks/framework.CZZR5ESy.js";const i=JSON.parse('{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","frontmatter":{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"libreoffice-office-preview\\",\\"title\\":\\"LibreOffice 实现 DOC、XLS、PPT 在线预览\\",\\"category\\":\\"文档处理\\",\\"tags\\":[\\"libreoffice\\",\\"jodconverter\\",\\"doc\\",\\"xls\\",\\"ppt\\",\\"pdf\\",\\"java\\",\\"preview\\",\\"文档转换\\",\\"在线预览\\",\\"UNO\\",\\"进程管理\\"],\\"readingMinutes\\":34},\\"toc\\":[{\\"title\\":\\"1. 三种格式怎么转\\",\\"level\\":2,\\"id\\":\\"1-三种格式怎么转\\"},{\\"title\\":\\"2. 安装 LibreOffice 和字体\\",\\"level\\":2,\\"id\\":\\"2-安装-libreoffice-和字体\\"},{\\"title\\":\\"3. 用命令行验证转换\\",\\"level\\":2,\\"id\\":\\"3-用命令行验证转换\\"},{\\"title\\":\\"4. Java 转换示例\\",\\"level\\":2,\\"id\\":\\"4-java-转换示例\\"},{\\"title\\":\\"4.1 Maven 配置\\",\\"level\\":3,\\"id\\":\\"41-maven-配置\\"},{\\"title\\":\\"4.2 程序怎样接管 LibreOffice\\",\\"level\\":3,\\"id\\":\\"42-程序怎样接管-libreoffice\\"},{\\"title\\":\\"4.3 可复用的转换器\\",\\"level\\":3,\\"id\\":\\"43-可复用的转换器\\"},{\\"title\\":\\"4.4 编译、运行和判断结果\\",\\"level\\":3,\\"id\\":\\"44-编译运行和判断结果\\"},{\\"title\\":\\"5. 异步转换与前端轮询\\",\\"level\\":2,\\"id\\":\\"5-异步转换与前端轮询\\"},{\\"title\\":\\"5.1 前端轮询示例\\",\\"level\\":3,\\"id\\":\\"51-前端轮询示例\\"},{\\"title\\":\\"6. 缓存和文件更新\\",\\"level\\":2,\\"id\\":\\"6-缓存和文件更新\\"},{\\"title\\":\\"7. 文件读取、跨域和下载\\",\\"level\\":2,\\"id\\":\\"7-文件读取跨域和下载\\"},{\\"title\\":\\"8. 空文件怎么处理\\",\\"level\\":2,\\"id\\":\\"8-空文件怎么处理\\"},{\\"title\\":\\"9. 转换失败时查哪里\\",\\"level\\":2,\\"id\\":\\"9-转换失败时查哪里\\"},{\\"title\\":\\"10. 上线前跑哪些文件\\",\\"level\\":2,\\"id\\":\\"10-上线前跑哪些文件\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/libreoffice-office-preview.md","filePath":"articles/libreoffice-office-preview.md"}'),e={name:"articles/libreoffice-office-preview.md"},d=Object.assign(e,{setup(p){const s=`<p>系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。</p>
+import{_ as a}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as u,m as e}from"./chunks/framework.CZZR5ESy.js";const i=JSON.parse('{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","frontmatter":{"title":"LibreOffice 实现 DOC、XLS、PPT 在线预览","titleTemplate":":title · 知行笔记","description":"系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。 1. 三种格式怎么转 原格式 转","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"libreoffice-office-preview\\",\\"title\\":\\"LibreOffice 实现 DOC、XLS、PPT 在线预览\\",\\"category\\":\\"文档处理\\",\\"tags\\":[\\"libreoffice\\",\\"jodconverter\\",\\"doc\\",\\"xls\\",\\"ppt\\",\\"pdf\\",\\"java\\",\\"preview\\",\\"文档转换\\",\\"在线预览\\",\\"UNO\\",\\"进程管理\\"],\\"readingMinutes\\":38},\\"toc\\":[{\\"title\\":\\"1. 三种格式怎么转\\",\\"level\\":2,\\"id\\":\\"1-三种格式怎么转\\"},{\\"title\\":\\"2. 安装 LibreOffice 和字体\\",\\"level\\":2,\\"id\\":\\"2-安装-libreoffice-和字体\\"},{\\"title\\":\\"3. 用命令行验证转换\\",\\"level\\":2,\\"id\\":\\"3-用命令行验证转换\\"},{\\"title\\":\\"4. Java 转换示例\\",\\"level\\":2,\\"id\\":\\"4-java-转换示例\\"},{\\"title\\":\\"4.1 Maven 配置\\",\\"level\\":3,\\"id\\":\\"41-maven-配置\\"},{\\"title\\":\\"4.2 程序怎样接管 LibreOffice\\",\\"level\\":3,\\"id\\":\\"42-程序怎样接管-libreoffice\\"},{\\"title\\":\\"4.3 可复用的转换器\\",\\"level\\":3,\\"id\\":\\"43-可复用的转换器\\"},{\\"title\\":\\"4.4 编译、运行和判断结果\\",\\"level\\":3,\\"id\\":\\"44-编译运行和判断结果\\"},{\\"title\\":\\"5. 异步转换与前端轮询\\",\\"level\\":2,\\"id\\":\\"5-异步转换与前端轮询\\"},{\\"title\\":\\"5.1 前端轮询示例\\",\\"level\\":3,\\"id\\":\\"51-前端轮询示例\\"},{\\"title\\":\\"6. 缓存和文件更新\\",\\"level\\":2,\\"id\\":\\"6-缓存和文件更新\\"},{\\"title\\":\\"7. 文件读取、跨域和下载\\",\\"level\\":2,\\"id\\":\\"7-文件读取跨域和下载\\"},{\\"title\\":\\"8. 空文件怎么处理\\",\\"level\\":2,\\"id\\":\\"8-空文件怎么处理\\"},{\\"title\\":\\"9. 转换失败时查哪里\\",\\"level\\":2,\\"id\\":\\"9-转换失败时查哪里\\"},{\\"title\\":\\"10. 上线前跑哪些文件\\",\\"level\\":2,\\"id\\":\\"10-上线前跑哪些文件\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/libreoffice-office-preview.md","filePath":"articles/libreoffice-office-preview.md"}'),l={name:"articles/libreoffice-office-preview.md"},d=Object.assign(l,{setup(t){const c=`<p>系统已经能预览 PDF，旧版 DOC、XLS、PPT 却打不开时，可以在服务端用 LibreOffice 把它们转成 PDF，继续用原来的阅读器展示。点击文件后仍然打开预览弹窗，转换和等待放在弹窗内部处理。</p>
 <h2 id="1-三种格式怎么转">1. 三种格式怎么转</h2>
 <table>
 <thead>
@@ -75,6 +75,7 @@ CONVERT_EXIT=$? <span class="hljs-comment"># 紧接上一条记录退出码，�
 find <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WORK</span>/output&quot;</span> -maxdepth 1 -<span class="hljs-built_in">type</span> f -name <span class="hljs-string">&#x27;*.pdf&#x27;</span> -<span class="hljs-built_in">ls</span> <span class="hljs-comment"># 检查本次是否真正生成了PDF</span>
 </code></pre>
 <p>以 <code>sample.doc</code> 为例，输出应为 <code>output/sample.pdf</code>。替换为 <code>sample.xls</code> 或 <code>sample.ppt</code> 后，可分别验证 Calc 和 Impress。不要把其他格式直接改后缀充当旧格式样本。</p>
+<p>三种文件分别看一遍结果。DOC 看字体、表格和分页，PPT 看每张幻灯片的文字有没有溢出。XLS 打开正常但 PDF 只显示一半时，先在 Calc 的打印预览里看打印区域、纸张方向和缩放。横向列太多时，可先试按一页宽缩放，高度仍允许分页，避免整张表被缩得读不清。修改打印设置时用副本，保留原件。</p>
 <pre><code class="hljs language-bash"><span class="hljs-built_in">test</span> -s <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WORK</span>/output/sample.pdf&quot;</span> <span class="hljs-comment"># 检查文件存在且非空</span>
 <span class="hljs-built_in">head</span> -c 5 <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WORK</span>/output/sample.pdf&quot;</span> <span class="hljs-comment"># 正常PDF通常以%PDF-开头；这不是完整的有效性校验</span>
 pdfinfo <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WORK</span>/output/sample.pdf&quot;</span> <span class="hljs-comment"># 检查PDF能否解析，以及页数、尺寸和是否加密</span>
@@ -157,7 +158,41 @@ pdfinfo <span class="hljs-string">&quot;<span class="hljs-variable">$PREVIEW_WOR
 </tr>
 </tbody>
 </table>
-<p>不要先手工启动一个监听2002的Office，再让本例启动第二个。<code>ExistingProcessAction.FAIL</code>会在发现占用进程时拒绝启动，避免误接管或结束其他服务的Office。确实要连接一个由外部程序启动的Office，应另选连接已有进程的管理方式，不能把两种启动方式混用。</p>
+<h4 id="existingprocessaction-怎么选">ExistingProcessAction 怎么选</h4>
+<p><code>existingProcessAction</code> 决定管理器启动时，发现已有 Office 进程使用同一个 UNO 连接串（例如 <code>127.0.0.1:2002</code>）该怎么处理。</p>
+<table>
+<thead>
+<tr>
+<th>取值</th>
+<th>对已有进程的处理</th>
+<th>什么时候用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FAIL</code></td>
+<td>抛出启动异常，保留已有进程</td>
+<td>本例使用这个值。发现冲突后先查进程归属，再决定是否换端口</td>
+</tr>
+<tr>
+<td><code>KILL</code></td>
+<td>结束已有进程，再启动新进程</td>
+<td>端口由本服务独占，而且允许替换旧进程时使用。4.4.10 默认是这个值</td>
+</tr>
+<tr>
+<td><code>CONNECT</code></td>
+<td>尝试连接已有进程，连接失败则报错</td>
+<td>已确认已有 Office 进程可供本服务复用时使用</td>
+</tr>
+<tr>
+<td><code>CONNECT_OR_KILL</code></td>
+<td>先尝试连接已有进程，连不上就结束它，再启动新进程</td>
+<td>允许复用并且允许替换该进程时使用</td>
+</tr>
+</tbody>
+</table>
+<p>例如，上一个实例还占着 <code>2002</code>，本例用 <code>FAIL</code> 会报错并保留原进程。先用第 9 节的 <code>ss</code> 命令看监听者。如果端口由另一个服务使用，就为当前实例另选空闲端口。若监听者是其他程序，按端口冲突排查。</p>
+<p>连接已有 Office 后，还要看 <code>keepAliveOnShutdown</code>。4.4.10 默认值是 <code>false</code>，管理器关闭时会尝试停止 Office。设为 <code>true</code> 时，管理器关闭只断开连接，Office 进程继续运行。遇到同一连接串的处理方式和关闭时是否保留进程，由这两个参数分别控制。<a href="https://jodconverter.github.io/jodconverter/4.4.10/configuration/local-configuration/#existingprocessaction">JODConverter 4.4.10 本机进程配置</a></p>
 <p>部署时只需在转换机器上安装LibreOffice，不用另外启动一个Office服务。首次转换前看不到<code>soffice</code>进程是正常的；Java程序提交任务后才会启动它。</p>
 <p>下面用两个文件演示接管过程。把 <code>officeHome</code> 换成第 2 节查到的安装根目录，<code>first</code> 和 <code>second</code> 传入可读取的旧版 Office 文件，方法返回两个 PDF 所在的目录。依赖沿用 4.1 节。</p>
 <pre><code class="hljs language-java"><span class="hljs-keyword">import</span> com.sun.star.document.MacroExecMode;
@@ -353,28 +388,37 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 <td>端口占用、重复启动、是否绑定到环回地址</td>
 </tr>
 <tr>
+<td><code>startFailFast</code></td>
+<td><code>true</code> 会等待启动和连接结果，失败就抛异常。<code>false</code> 会把启动交给后台任务</td>
+<td>首次转换失败时查 Office 启动日志</td>
+</tr>
+<tr>
 <td><code>processTimeout</code></td>
-<td>进程管理操作的等待限制</td>
-<td>Office启动失败、缺库或残留进程</td>
+<td>示例给 Office 进程的启动、停止等管理操作设了 <code>30_000</code> 毫秒的等待限制</td>
+<td>启动慢、缺库或残留进程</td>
 </tr>
 <tr>
 <td><code>taskQueueTimeout</code></td>
-<td>等待可用Office进程的限制</td>
-<td>排队过长、并发与进程数不匹配</td>
+<td>任务提交给 JODConverter 后，最多等 <code>30_000</code> 毫秒获取可用的 Office 进程</td>
+<td>是否还有其他文档占用进程，以及应用自己的任务队列是否积压</td>
 </tr>
 <tr>
 <td><code>taskExecutionTimeout</code></td>
-<td>单次转换执行的限制</td>
-<td>文件复杂、密码保护、转换进程卡住</td>
+<td>任务开始执行后，最多运行 <code>120_000</code> 毫秒，超时会中止该任务</td>
+<td>文件复杂、密码保护或转换进程卡住</td>
 </tr>
 <tr>
 <td><code>maxTasksPerProcess</code></td>
-<td>处理一定数量后回收Office进程</td>
-<td>长期运行的内存增长与稳定性</td>
+<td>示例每处理 <code>50</code> 个任务重启一次 Office 进程。设为 <code>0</code> 则取消按任务数重启</td>
+<td>转换量大时，观察进程的内存占用和重启频率</td>
 </tr>
 </tbody>
 </table>
-<p>所有超时都不是整个 HTTP 预览请求的统一总时限。参数以 <a href="https://jodconverter.github.io/jodconverter/4.4.10/configuration/local-configuration/">4.4.10 LocalOfficeManager 文档</a>为准。</p>
+<p>例如，一个任务在应用队列里等了 20 秒，交给 JODConverter 后又等了 10 秒才拿到 Office 进程。<code>taskQueueTimeout</code> 只计算后面这 10 秒，<code>taskExecutionTimeout</code> 等开始转换才计时。前端轮询、文件下载和上传各自设置期限。<a href="https://jodconverter.github.io/jodconverter/4.4.10/configuration/local-configuration/#taskqueuetimeout">JODConverter 4.4.10 超时配置</a></p>
+<h4 id="手工能转放进服务就失败">手工能转，放进服务就失败</h4>
+<p>先用<strong>实际运行服务的账号，在同一台机器或同一个容器内</strong>跑第 3 节的命令。手工测试时的账号、字体和文件权限可能与服务不同。<code>soffice --version</code> 成功只说明命令能启动，实际转出一页 PDF 才能顺带验证读写权限和转换组件。工作目录要能写，还要有空间容纳输入文件、临时文件和输出。</p>
+<p>每个管理器使用自己的 UNO 端口。工作目录可以放在同一个可写父目录下，每次转换再创建独立子目录。同名文件并发处理时，分开的目录可以防止后一个任务读到前一个任务的 PDF。确认 <code>manager.start()</code> 成功后再提交转换。</p>
+<p>上线验收时，用同一个服务实例连续转两份小文件，观察 <code>soffice</code> 进程及任务日志。正常情况下会复用进程，达到回收阈值或故障恢复时进程号可能变化。停止服务后，再检查它管理的 UNO 端口和进程是否释放。</p>
 <h2 id="5-异步转换与前端轮询">5. 异步转换与前端轮询</h2>
 <p>文件一大，转换可能要等几秒到几十秒。申请接口先返回任务状态，前端定时查询，完成后再加载 PDF。下面是一组接口设计示例：</p>
 <table>
@@ -448,6 +492,7 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 <span class="hljs-comment">// 弹窗关闭、切换文件或组件卸载时调用controller.abort()。</span>
 </code></pre>
 <p>前端取消轮询不等于服务端取消转换；后端可以完成已开始的转换并缓存结果。再次打开时查询已有结果，避免重复计算。失败时在弹窗展示错误与重试入口，不自动 <code>window.open</code> 原文件，否则“预览失败”可能变成意外下载。</p>
+<p>两个容易漏掉的场景。第一，用户打开 A 后马上切到 B，A 的响应可能已经到达。更新弹窗前还要确认当前文件 ID 或请求序号，避免旧结果盖掉 B。第二，轮询间隔到了不代表单次 <code>fetch</code> 会结束。浏览器端要给请求设置超时，弹窗关闭时取消正在读的状态请求和 PDF 请求。</p>
 <h2 id="6-缓存和文件更新">6. 缓存和文件更新</h2>
 <table>
 <thead>
@@ -479,10 +524,12 @@ pdfinfo /srv/preview-output/sample.pdf <span class="hljs-comment"># 检查产物
 <p>对象存储启用版本控制时，优先绑定确切的源版本。使用 ETag 时，不把它一概当成文件MD5；读取时增加版本条件，防止查询元数据后源文件已被替换。Office版本、字体或转换规则改变后，可以提高转换规则版本，避免继续复用旧版式。</p>
 <p>处理顺序建议为：鉴权 → 确定源版本 → 查PDF产物 → 原子认领任务 → 提交队列。只有本次认领任务的持有者可以更新状态和释放锁，避免超时后的旧任务误删新任务锁。租约要覆盖排队、下载、转换、上传，或采用续期；不能只按转换的120秒估算。</p>
 <p>例如状态保留30分钟，访问地址有效15分钟，PDF保留到对象生命周期清理，这三项可以互不相同。状态过期后先查产物；PDF仍在就签发新地址，不重新转换。只有“对象确实不存在”才当作缓存未命中，鉴权失败、网络故障和存储服务异常不能被吞掉后反复重转。</p>
+<p>先验证 PDF 可读取，再把产物保存完成，最后写 <code>READY</code>。否则前端看到成功状态就去读文件，可能拿到 404 或不完整的 PDF。任务入队后若发现源对象版本变了，应按新版本重新申请，避免把新内容写进旧版本的缓存。某个任务的租约过期后，旧任务也不能再把当前状态改回 <code>READY</code>。</p>
 <h2 id="7-文件读取跨域和下载">7. 文件读取、跨域和下载</h2>
 <p>文件链接可以在新标签页打开，不代表页面中的 JavaScript 能读取它。页面与文件地址的协议、主机或端口不同，就可能遇到 CORS；HTTPS页面读取HTTP文件还可能触发混合内容限制。</p>
 <p>优先让浏览器通过同源文件接口读取：浏览器 → <code>/api/.../content</code> → 文件服务 → 私有对象存储。文件服务根据文件ID查找已授权对象，不直接请求用户提交的任意URL。必须兼容URL参数时，只解析服务端已配置存储中的对象，并再次检查对象权限，防止变成任意地址代理。</p>
 <p>若直接给浏览器签名URL，需要存储服务允许准确的页面源，并确认浏览器能到达目标地址。CORS解决不了内网地址不可达、签名过期或文件不存在。跨域读取、原文件解析、Office转换和PDF展示是不同阶段，先根据 Network 找到失败阶段。</p>
+<p>状态显示 <code>READY</code> 但阅读器打不开时，先在 Network 看实际 PDF 请求。<code>401/403</code> 先查登录态或签名，<code>404</code> 查产物和路由。即使是 <code>200</code>，也要看响应类型和响应体。若返回的是登录页、网关错误页或 JSON，PDF 阅读器同样会报解析失败。预览接口成功响应应返回 <code>application/pdf</code>。如果阅读器使用 Range 分段读取，还要检查代理是否正确转发 Range，并保留 <code>206</code> 和 <code>Content-Range</code>。</p>
 <p>原件下载应与预览分别授权，默认不开启原件下载接口。隐藏前端按钮不能代替后端检查。PDF预览本身也会向浏览器传输内容，不能承诺彻底防保存、复制或截图；只展示页面图片同样无法消除这一限制。</p>
 <h2 id="8-空文件怎么处理">8. 空文件怎么处理</h2>
 <p>正常保存的空白 DOC、XLS、PPT 仍有完整的文件结构，可以交给Office打开。真正的0字节文件只有一个空对象，即使后缀是<code>.doc</code>，也没有文档结构可转换。</p>
@@ -557,4 +604,4 @@ fc-match sans:lang=zh-cn <span class="hljs-comment"># 核对服务环境可匹�
 <li>使用无权限账号、已删除文件和外部URL验证边界，确认只读预览不会自动开放原件下载。</li>
 <li>验证结束清理测试临时目录；预览产物的保留期按存储生命周期管理，不与状态TTL混为一谈。</li>
 </ul>
-`;return(c,t)=>(n(),u("div",null,[l(a,{doc:JSON.parse(c.$frontmatter.kb).doc,content:s,base:"../"},null,8,["doc"])]))}});export{i as __pageData,d as default};
+`;return(s,p)=>(n(),u("div",null,[e(a,{doc:JSON.parse(s.$frontmatter.kb).doc,content:c,base:"../"},null,8,["doc"])]))}});export{i as __pageData,d as default};
