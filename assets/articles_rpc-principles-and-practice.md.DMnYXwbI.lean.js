@@ -1,4 +1,4 @@
-import{_ as t}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as e,m as s}from"./chunks/framework.CZZR5ESy.js";const i=JSON.parse('{"title":"RPC 调用原理、故障排查与服务治理","titleTemplate":":title · 知行笔记","description":"库存服务返回了超时，下单服务该不该再调一次？先弄清请求可能走到了哪一步。客户端排队时超时，库存服务可能连请求都没收到。库存事务提交后响应丢失，再扣一次就会出问题。RPC 排查最有用的信息，通常是请求卡在哪一段、服务端是否执行过，以及调用方还","frontmatter":{"title":"RPC 调用原理、故障排查与服务治理","titleTemplate":":title · 知行笔记","description":"库存服务返回了超时，下单服务该不该再调一次？先弄清请求可能走到了哪一步。客户端排队时超时，库存服务可能连请求都没收到。库存事务提交后响应丢失，再扣一次就会出问题。RPC 排查最有用的信息，通常是请求卡在哪一段、服务端是否执行过，以及调用方还","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"rpc-principles-and-practice\\",\\"title\\":\\"RPC 调用原理、故障排查与服务治理\\",\\"category\\":\\"架构设计\\",\\"tags\\":[\\"rpc\\",\\"grpc\\",\\"protobuf\\",\\"timeout\\",\\"retry\\",\\"idempotency\\",\\"service-discovery\\",\\"load-balancing\\",\\"circuit-breaker\\"],\\"readingMinutes\\":29},\\"toc\\":[{\\"title\\":\\"1. 一次 RPC 调用经过哪些地方\\",\\"level\\":2,\\"id\\":\\"1-一次-rpc-调用经过哪些地方\\"},{\\"title\\":\\"2. 协议怎么划分消息、兼容新旧版本\\",\\"level\\":2,\\"id\\":\\"2-协议怎么划分消息兼容新旧版本\\"},{\\"title\\":\\"3. 序列化怎么选，字段变更怎么验证\\",\\"level\\":2,\\"id\\":\\"3-序列化怎么选字段变更怎么验证\\"},{\\"title\\":\\"4. I/O 线程、长连接和背压\\",\\"level\\":2,\\"id\\":\\"4-io-线程长连接和背压\\"},{\\"title\\":\\"5. 动态代理、Stub 和拦截器放在哪里\\",\\"level\\":2,\\"id\\":\\"5-动态代理stub-和拦截器放在哪里\\"},{\\"title\\":\\"6. 用 Java gRPC 跟一遍收发\\",\\"level\\":2,\\"id\\":\\"6-用-java-grpc-跟一遍收发\\"},{\\"title\\":\\"6.1 发起带 deadline 的调用\\",\\"level\\":3,\\"id\\":\\"61-发起带-deadline-的调用\\"},{\\"title\\":\\"6.2 注册和实现服务端处理器\\",\\"level\\":3,\\"id\\":\\"62-注册和实现服务端处理器\\"},{\\"title\\":\\"7. 框架扩展点怎么拆\\",\\"level\\":2,\\"id\\":\\"7-框架扩展点怎么拆\\"},{\\"title\\":\\"8. 线上 RPC 故障先查哪一段\\",\\"level\\":2,\\"id\\":\\"8-线上-rpc-故障先查哪一段\\"},{\\"title\\":\\"8.1 从调用方核对域名和连接\\",\\"level\\":3,\\"id\\":\\"81-从调用方核对域名和连接\\"},{\\"title\\":\\"9. Deadline 怎么分配和向下游传递\\",\\"level\\":2,\\"id\\":\\"9-deadline-怎么分配和向下游传递\\"},{\\"title\\":\\"10. 哪些错误可以重试\\",\\"level\\":2,\\"id\\":\\"10-哪些错误可以重试\\"},{\\"title\\":\\"11. 写操作超时后怎样避免重复执行\\",\\"level\\":2,\\"id\\":\\"11-写操作超时后怎样避免重复执行\\"},{\\"title\\":\\"12. 异步 RPC 怎么管理在途请求\\",\\"level\\":2,\\"id\\":\\"12-异步-rpc-怎么管理在途请求\\"},{\\"title\\":\\"13. 时间轮什么时候值得用\\",\\"level\\":2,\\"id\\":\\"13-时间轮什么时候值得用\\"},{\\"title\\":\\"14. 服务发现与注册中心断连\\",\\"level\\":2,\\"id\\":\\"14-服务发现与注册中心断连\\"},{\\"title\\":\\"15. 节点还在线，为什么应停止给它发请求\\",\\"level\\":2,\\"id\\":\\"15-节点还在线为什么应停止给它发请求\\"},{\\"title\\":\\"16. 路由怎样做灰度和就近访问\\",\\"level\\":2,\\"id\\":\\"16-路由怎样做灰度和就近访问\\"},{\\"title\\":\\"17. 负载均衡怎么选，怎么确认是否有效\\",\\"level\\":2,\\"id\\":\\"17-负载均衡怎么选怎么确认是否有效\\"},{\\"title\\":\\"18. 熔断、限流、并发限制各管什么\\",\\"level\\":2,\\"id\\":\\"18-熔断限流并发限制各管什么\\"},{\\"title\\":\\"19. 业务分组怎样隔离和临时扩容\\",\\"level\\":2,\\"id\\":\\"19-业务分组怎样隔离和临时扩容\\"},{\\"title\\":\\"19.1 动态调整共享实例\\",\\"level\\":3,\\"id\\":\\"191-动态调整共享实例\\"},{\\"title\\":\\"20. 新实例怎么就绪、预热和放量\\",\\"level\\":2,\\"id\\":\\"20-新实例怎么就绪预热和放量\\"},{\\"title\\":\\"21. 停机前怎么摘流和排空\\",\\"level\\":2,\\"id\\":\\"21-停机前怎么摘流和排空\\"},{\\"title\\":\\"22. 调用身份、授权和服务注册如何保护\\",\\"level\\":2,\\"id\\":\\"22-调用身份授权和服务注册如何保护\\"},{\\"title\\":\\"23. 怎样录制和回放真实流量\\",\\"level\\":2,\\"id\\":\\"23-怎样录制和回放真实流量\\"},{\\"title\\":\\"24. 没有生成 Stub 时怎么调用\\",\\"level\\":2,\\"id\\":\\"24-没有生成-stub-时怎么调用\\"},{\\"title\\":\\"25. 新旧 RPC 协议怎么平滑迁移\\",\\"level\\":2,\\"id\\":\\"25-新旧-rpc-协议怎么平滑迁移\\"},{\\"title\\":\\"26. 实战复盘：下单链路频繁超时\\",\\"level\\":2,\\"id\\":\\"26-实战复盘下单链路频繁超时\\"},{\\"title\\":\\"27. RPC 变更上线前怎么验收\\",\\"level\\":2,\\"id\\":\\"27-rpc-变更上线前怎么验收\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/rpc-principles-and-practice.md","filePath":"articles/rpc-principles-and-practice.md"}'),a={name:"articles/rpc-principles-and-practice.md"},o=Object.assign(a,{setup(d){const c=`<p>库存服务返回了超时，下单服务该不该再调一次？先弄清请求可能走到了哪一步。客户端排队时超时，库存服务可能连请求都没收到。库存事务提交后响应丢失，再扣一次就会出问题。RPC 排查最有用的信息，通常是请求卡在哪一段、服务端是否执行过，以及调用方还有多少时间。</p>
+import{_ as n}from"./chunks/ArticlePage.BzJfrCud.js";import{o as s,c as t,m as e}from"./chunks/framework.CZZR5ESy.js";const o=JSON.parse('{"title":"RPC 调用原理、故障排查与服务治理","titleTemplate":":title · 知行笔记","description":"库存服务返回了超时，下单服务该不该再调一次？先弄清请求可能走到了哪一步。客户端排队时超时，库存服务可能连请求都没收到。库存事务提交后响应丢失，再扣一次就会出问题。RPC 排查最有用的信息，通常是请求卡在哪一段、服务端是否执行过，以及调用方还","frontmatter":{"title":"RPC 调用原理、故障排查与服务治理","titleTemplate":":title · 知行笔记","description":"库存服务返回了超时，下单服务该不该再调一次？先弄清请求可能走到了哪一步。客户端排队时超时，库存服务可能连请求都没收到。库存事务提交后响应丢失，再扣一次就会出问题。RPC 排查最有用的信息，通常是请求卡在哪一段、服务端是否执行过，以及调用方还","kb":"{\\"kind\\":\\"article\\",\\"doc\\":{\\"id\\":\\"rpc-principles-and-practice\\",\\"title\\":\\"RPC 调用原理、故障排查与服务治理\\",\\"category\\":\\"架构设计\\",\\"tags\\":[\\"rpc\\",\\"grpc\\",\\"protobuf\\",\\"timeout\\",\\"retry\\",\\"idempotency\\",\\"service-discovery\\",\\"load-balancing\\",\\"circuit-breaker\\"],\\"readingMinutes\\":40},\\"toc\\":[{\\"title\\":\\"1. 一次 RPC 调用经过哪些地方\\",\\"level\\":2,\\"id\\":\\"1-一次-rpc-调用经过哪些地方\\"},{\\"title\\":\\"2. 协议怎么划分消息、兼容新旧版本\\",\\"level\\":2,\\"id\\":\\"2-协议怎么划分消息兼容新旧版本\\"},{\\"title\\":\\"3. 序列化怎么选，字段变更怎么验证\\",\\"level\\":2,\\"id\\":\\"3-序列化怎么选字段变更怎么验证\\"},{\\"title\\":\\"4. I/O 线程、长连接和背压\\",\\"level\\":2,\\"id\\":\\"4-io-线程长连接和背压\\"},{\\"title\\":\\"5. 动态代理、Stub 和拦截器放在哪里\\",\\"level\\":2,\\"id\\":\\"5-动态代理stub-和拦截器放在哪里\\"},{\\"title\\":\\"6. 用 Java gRPC 跟一遍收发\\",\\"level\\":2,\\"id\\":\\"6-用-java-grpc-跟一遍收发\\"},{\\"title\\":\\"6.1 发起带 deadline 的调用\\",\\"level\\":3,\\"id\\":\\"61-发起带-deadline-的调用\\"},{\\"title\\":\\"6.2 注册和实现服务端处理器\\",\\"level\\":3,\\"id\\":\\"62-注册和实现服务端处理器\\"},{\\"title\\":\\"7. 框架扩展点怎么拆\\",\\"level\\":2,\\"id\\":\\"7-框架扩展点怎么拆\\"},{\\"title\\":\\"8. 线上 RPC 故障先查哪一段\\",\\"level\\":2,\\"id\\":\\"8-线上-rpc-故障先查哪一段\\"},{\\"title\\":\\"8.1 从调用方核对域名和连接\\",\\"level\\":3,\\"id\\":\\"81-从调用方核对域名和连接\\"},{\\"title\\":\\"9. Deadline 怎么分配和向下游传递\\",\\"level\\":2,\\"id\\":\\"9-deadline-怎么分配和向下游传递\\"},{\\"title\\":\\"10. 哪些错误可以重试\\",\\"level\\":2,\\"id\\":\\"10-哪些错误可以重试\\"},{\\"title\\":\\"11. 写操作超时后怎样避免重复执行\\",\\"level\\":2,\\"id\\":\\"11-写操作超时后怎样避免重复执行\\"},{\\"title\\":\\"11.1 本地复现超时和幂等重试\\",\\"level\\":3,\\"id\\":\\"111-本地复现超时和幂等重试\\"},{\\"title\\":\\"11.2 在一次数据库事务里完成扣减和去重\\",\\"level\\":3,\\"id\\":\\"112-在一次数据库事务里完成扣减和去重\\"},{\\"title\\":\\"11.3 执行后看哪些证据\\",\\"level\\":3,\\"id\\":\\"113-执行后看哪些证据\\"},{\\"title\\":\\"12. 异步 RPC 怎么管理在途请求\\",\\"level\\":2,\\"id\\":\\"12-异步-rpc-怎么管理在途请求\\"},{\\"title\\":\\"13. 时间轮什么时候值得用\\",\\"level\\":2,\\"id\\":\\"13-时间轮什么时候值得用\\"},{\\"title\\":\\"14. 服务发现与注册中心断连\\",\\"level\\":2,\\"id\\":\\"14-服务发现与注册中心断连\\"},{\\"title\\":\\"15. 节点还在线，为什么应停止给它发请求\\",\\"level\\":2,\\"id\\":\\"15-节点还在线为什么应停止给它发请求\\"},{\\"title\\":\\"16. 路由怎样做灰度和就近访问\\",\\"level\\":2,\\"id\\":\\"16-路由怎样做灰度和就近访问\\"},{\\"title\\":\\"17. 负载均衡怎么选，怎么确认是否有效\\",\\"level\\":2,\\"id\\":\\"17-负载均衡怎么选怎么确认是否有效\\"},{\\"title\\":\\"18. 熔断、限流、并发限制各管什么\\",\\"level\\":2,\\"id\\":\\"18-熔断限流并发限制各管什么\\"},{\\"title\\":\\"19. 业务分组怎样隔离和临时扩容\\",\\"level\\":2,\\"id\\":\\"19-业务分组怎样隔离和临时扩容\\"},{\\"title\\":\\"19.1 动态调整共享实例\\",\\"level\\":3,\\"id\\":\\"191-动态调整共享实例\\"},{\\"title\\":\\"20. 新实例怎么就绪、预热和放量\\",\\"level\\":2,\\"id\\":\\"20-新实例怎么就绪预热和放量\\"},{\\"title\\":\\"21. 停机前怎么摘流和排空\\",\\"level\\":2,\\"id\\":\\"21-停机前怎么摘流和排空\\"},{\\"title\\":\\"22. 调用身份、授权和服务注册如何保护\\",\\"level\\":2,\\"id\\":\\"22-调用身份授权和服务注册如何保护\\"},{\\"title\\":\\"23. 怎样录制和回放真实流量\\",\\"level\\":2,\\"id\\":\\"23-怎样录制和回放真实流量\\"},{\\"title\\":\\"24. 没有生成 Stub 时怎么调用\\",\\"level\\":2,\\"id\\":\\"24-没有生成-stub-时怎么调用\\"},{\\"title\\":\\"25. 新旧 RPC 协议怎么平滑迁移\\",\\"level\\":2,\\"id\\":\\"25-新旧-rpc-协议怎么平滑迁移\\"},{\\"title\\":\\"26. 实战复盘：下单链路频繁超时\\",\\"level\\":2,\\"id\\":\\"26-实战复盘下单链路频繁超时\\"},{\\"title\\":\\"26.1 对照同一条 trace 的两端记录\\",\\"level\\":3,\\"id\\":\\"261-对照同一条-trace-的两端记录\\"},{\\"title\\":\\"27. RPC 变更上线前怎么验收\\",\\"level\\":2,\\"id\\":\\"27-rpc-变更上线前怎么验收\\"}],\\"standaloneTitle\\":\\"\\"}"},"headers":[],"relativePath":"articles/rpc-principles-and-practice.md","filePath":"articles/rpc-principles-and-practice.md"}'),a={name:"articles/rpc-principles-and-practice.md"},i=Object.assign(a,{setup(l){const c=`<p>库存服务返回了超时，下单服务该不该再调一次？先弄清请求可能走到了哪一步。客户端排队时超时，库存服务可能连请求都没收到。库存事务提交后响应丢失，再扣一次就会出问题。RPC 排查最有用的信息，通常是请求卡在哪一段、服务端是否执行过，以及调用方还有多少时间。</p>
 <table>
 <thead>
 <tr>
@@ -13,7 +13,7 @@ import{_ as t}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as e,m as s
 </tr>
 <tr>
 <td>出现超时、重试或重复写入</td>
-<td><a href="#8-%E7%BA%BF%E4%B8%8A-rpc-%E6%95%85%E9%9A%9C%E5%85%88%E6%9F%A5%E5%93%AA%E4%B8%80%E6%AE%B5">第 8 节：故障定位</a>，<a href="#11-%E5%86%99%E6%93%8D%E4%BD%9C%E8%B6%85%E6%97%B6%E5%90%8E%E6%80%8E%E6%A0%B7%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%89%A7%E8%A1%8C">第 11 节：写入幂等</a></td>
+<td><a href="#8-%E7%BA%BF%E4%B8%8A-rpc-%E6%95%85%E9%9A%9C%E5%85%88%E6%9F%A5%E5%93%AA%E4%B8%80%E6%AE%B5">第 8 节：故障定位</a>，<a href="#111-%E6%9C%AC%E5%9C%B0%E5%A4%8D%E7%8E%B0%E8%B6%85%E6%97%B6%E5%92%8C%E5%B9%82%E7%AD%89%E9%87%8D%E8%AF%95">第 11.1 节：本地复现</a></td>
 </tr>
 <tr>
 <td>节点时好时坏、灰度流量跑偏</td>
@@ -26,9 +26,7 @@ import{_ as t}from"./chunks/ArticlePage.BzJfrCud.js";import{o as n,c as e,m as s
 </tbody>
 </table>
 <h2 id="1-一次-rpc-调用经过哪些地方">1. 一次 RPC 调用经过哪些地方</h2>
-<pre><code class="hljs language-text">调用方 → Stub / 代理 → 服务发现的本地快照 → 路由和健康筛选
-      → 负载均衡 → 连接与传输 → 服务端解码、派发 → 业务执行 → 响应
-</code></pre>
+<p><img src="../assets/architecture/rpc/call-flow.png" alt="库存查询的调用流程：客户端解析和筛选实例，HTTP/2 传输请求，服务端派发方法并返回结果" loading="lazy"></p>
 <p>以 <code>GetAvailability</code> 查询为例，客户端把服务全名、方法和请求参数交给调用层。调用层读取目标地址，按流量规则筛选实例，再由负载均衡选择一个实例发出这次尝试。服务端根据方法全名定位处理器，解码后交给执行器，最后把业务结果或错误返回。长连接上的多次请求可能交错完成，自定义协议按请求 ID 关联响应，gRPC 在 HTTP/2 上按流区分调用。</p>
 <p>故障时把一次逻辑调用和每次尝试区分开。一次调用重试两次就有三次尝试，可能去了不同节点，也可能走到了不同阶段。收到超时只能说明调用方在期限内没拿到结果。库存服务有没有执行、有没有提交，分别看服务端的执行记录和业务操作记录。</p>
 <h2 id="2-协议怎么划分消息兼容新旧版本">2. 协议怎么划分消息、兼容新旧版本</h2>
@@ -243,6 +241,170 @@ openssl s_client -connect inventory.example.com:443 -servername inventory.exampl
 <li>如果预留成功但响应丢失，调用方用原键查状态或重发。同一个操作 ID 的两次并发调用、提交后丢响应、事务回滚后重试都应有测试。</li>
 </ol>
 <p>幂等记录至少保留到允许重发的窗口结束。否则同一笔操作延迟到达时可能被当成新请求。若操作由后台异步完成，要约定处理中、已成功和已失败分别怎么查，以及失败是否允许重试。测试时先造一次“事务已提交但响应丢失”，再用同一操作 ID 重发，确认库存只减少一次。</p>
+<p><img src="../assets/architecture/rpc/idempotent-retry.png" alt="库存预留的重试时序：第一次已扣库存但返回 UNAVAILABLE，第二次沿用 op-42，服务端读回原结果" loading="lazy"></p>
+<h3 id="111-本地复现超时和幂等重试">11.1 本地复现超时和幂等重试</h3>
+<p>这个例子用 Python 运行真正的 gRPC 客户端和服务端。服务端只监听本机的临时端口，SQLite 库存从 10 开始，每次运行都在临时目录创建独立数据库。示例直接让第一次预留在数据库提交后返回 <code>UNAVAILABLE</code>，方便稳定复现“客户端没拿到成功结果、写入已经完成”。故障注入只用于本地实验。</p>
+<details class="install-guide">
+<summary>准备 Python 环境</summary>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 在空的实验目录里创建虚拟环境，依赖安装在此目录</span>
+python -m venv .venv
+
+<span class="hljs-comment"># Linux 或 macOS 下启用虚拟环境</span>
+<span class="hljs-built_in">source</span> .venv/bin/activate
+
+<span class="hljs-comment"># 安装本例使用的 gRPC 运行库和代码生成工具</span>
+python -m pip install grpcio==1.85.4 grpcio-tools==1.85.4
+</code></pre>
+<p>Windows 下可以用 PowerShell 直接运行虚拟环境中的程序。</p>
+<pre><code class="hljs language-powershell"><span class="hljs-comment"># 在空的实验目录里创建虚拟环境</span>
+python <span class="hljs-literal">-m</span> venv .venv
+
+<span class="hljs-comment"># 把依赖装进虚拟环境，下面的 python 命令也改用这个解释器</span>
+.\\.venv\\Scripts\\python.exe <span class="hljs-literal">-m</span> pip install grpcio==<span class="hljs-number">1.85</span>.<span class="hljs-number">4</span> grpcio<span class="hljs-literal">-tools</span>==<span class="hljs-number">1.85</span>.<span class="hljs-number">4</span>
+</code></pre>
+</details>
+<p>另存下面的接口定义为 <code>reservation_lab.proto</code>。它与第 6 节的 Java 库存查询是独立的实验文件。</p>
+<pre><code class="hljs language-proto">syntax = <span class="hljs-string">&quot;proto3&quot;</span>;
+<span class="hljs-keyword">package</span> rpc.lab;
+
+<span class="hljs-keyword">service </span><span class="hljs-title class_">Inventory</span> {
+  <span class="hljs-function"><span class="hljs-keyword">rpc</span> SlowCheck(Empty) <span class="hljs-keyword">returns</span> (Empty)</span>;
+  <span class="hljs-function"><span class="hljs-keyword">rpc</span> Reserve(ReserveRequest) <span class="hljs-keyword">returns</span> (ReserveReply)</span>;
+}
+
+<span class="hljs-keyword">message </span><span class="hljs-title class_">Empty</span> {}
+
+<span class="hljs-keyword">message </span><span class="hljs-title class_">ReserveRequest</span> {
+  <span class="hljs-type">string</span> operation_id = <span class="hljs-number">1</span>;
+  <span class="hljs-type">int32</span> quantity = <span class="hljs-number">2</span>;
+}
+
+<span class="hljs-keyword">message </span><span class="hljs-title class_">ReserveReply</span> {
+  <span class="hljs-type">int32</span> remaining = <span class="hljs-number">1</span>;
+}
+</code></pre>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 从 reservation_lab.proto 生成消息类和 gRPC Stub，输出到当前实验目录</span>
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. reservation_lab.proto
+</code></pre>
+<h3 id="112-在一次数据库事务里完成扣减和去重">11.2 在一次数据库事务里完成扣减和去重</h3>
+<p>将下面的代码保存为 <code>reservation_lab.py</code>，与生成的文件放在同一个目录。第一次请求登记操作 ID、扣库存和保存结果都在同一次事务里。重放时对照数量，同一操作 ID 的请求参数必须一致。</p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">import</span> sqlite3
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">from</span> concurrent.futures <span class="hljs-keyword">import</span> ThreadPoolExecutor
+<span class="hljs-keyword">from</span> contextlib <span class="hljs-keyword">import</span> closing
+<span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+<span class="hljs-keyword">from</span> tempfile <span class="hljs-keyword">import</span> TemporaryDirectory
+
+<span class="hljs-keyword">import</span> grpc
+<span class="hljs-keyword">import</span> reservation_lab_pb2 <span class="hljs-keyword">as</span> pb
+<span class="hljs-keyword">import</span> reservation_lab_pb2_grpc <span class="hljs-keyword">as</span> service
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Inventory</span>(service.InventoryServicer):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, db_path</span>):
+        <span class="hljs-variable language_">self</span>.db_path = db_path
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">SlowCheck</span>(<span class="hljs-params">self, request, context</span>):
+        time.sleep(<span class="hljs-number">0.6</span>)
+        <span class="hljs-keyword">return</span> pb.Empty()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">Reserve</span>(<span class="hljs-params">self, request, context</span>):
+        key, quantity = request.operation_id, request.quantity
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> key <span class="hljs-keyword">or</span> quantity &lt;= <span class="hljs-number">0</span>:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, <span class="hljs-string">&quot;invalid reservation&quot;</span>)
+
+        <span class="hljs-keyword">with</span> closing(sqlite3.connect(<span class="hljs-variable language_">self</span>.db_path)) <span class="hljs-keyword">as</span> db, db:
+            <span class="hljs-comment"># 从查重到写结果都要串行进入写事务，缩短事务内的工作。</span>
+            db.execute(<span class="hljs-string">&quot;BEGIN IMMEDIATE&quot;</span>)
+            existing = db.execute(
+                <span class="hljs-string">&quot;SELECT quantity, remaining FROM reservation WHERE operation_id = ?&quot;</span>,
+                (key,),
+            ).fetchone()
+            <span class="hljs-keyword">if</span> existing:
+                <span class="hljs-keyword">if</span> existing[<span class="hljs-number">0</span>] != quantity:
+                    context.abort(grpc.StatusCode.ALREADY_EXISTS, <span class="hljs-string">&quot;operation id reused&quot;</span>)
+                <span class="hljs-keyword">return</span> pb.ReserveReply(remaining=existing[<span class="hljs-number">1</span>])
+
+            updated = db.execute(
+                <span class="hljs-string">&quot;UPDATE stock SET remaining = remaining - ? WHERE remaining &gt;= ?&quot;</span>,
+                (quantity, quantity),
+            )
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> updated.rowcount:
+                context.abort(grpc.StatusCode.FAILED_PRECONDITION, <span class="hljs-string">&quot;insufficient stock&quot;</span>)
+            remaining = db.execute(<span class="hljs-string">&quot;SELECT remaining FROM stock&quot;</span>).fetchone()[<span class="hljs-number">0</span>]
+            db.execute(
+                <span class="hljs-string">&quot;INSERT INTO reservation VALUES (?, ?, ?)&quot;</span>, (key, quantity, remaining)
+            )
+
+        <span class="hljs-comment"># 故障注入放在事务提交之后，模拟调用方收不到成功响应。</span>
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;server commit operation_id=<span class="hljs-subst">{key}</span> remaining=<span class="hljs-subst">{remaining}</span>&quot;</span>)
+        <span class="hljs-keyword">if</span> key == <span class="hljs-string">&quot;op-42&quot;</span>:
+            context.abort(grpc.StatusCode.UNAVAILABLE, <span class="hljs-string">&quot;response unavailable after commit&quot;</span>)
+        <span class="hljs-keyword">return</span> pb.ReserveReply(remaining=remaining)
+
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">expect_error</span>(<span class="hljs-params">call, request, timeout, expected</span>):
+    <span class="hljs-keyword">try</span>:
+        call(request, timeout=timeout)
+    <span class="hljs-keyword">except</span> grpc.RpcError <span class="hljs-keyword">as</span> error:
+        <span class="hljs-keyword">assert</span> error.code() == expected, error
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;client status=<span class="hljs-subst">{error.code().name}</span>&quot;</span>)
+    <span class="hljs-keyword">else</span>:
+        <span class="hljs-keyword">raise</span> AssertionError(<span class="hljs-string">f&quot;expected <span class="hljs-subst">{expected.name}</span>&quot;</span>)
+
+
+<span class="hljs-keyword">with</span> TemporaryDirectory() <span class="hljs-keyword">as</span> lab_dir, ThreadPoolExecutor(max_workers=<span class="hljs-number">2</span>) <span class="hljs-keyword">as</span> workers:
+    db_path = Path(lab_dir) / <span class="hljs-string">&quot;inventory.sqlite&quot;</span>
+    <span class="hljs-keyword">with</span> closing(sqlite3.connect(db_path)) <span class="hljs-keyword">as</span> db:
+        db.executescript(<span class="hljs-string">&quot;&quot;&quot;
+            CREATE TABLE stock (remaining INTEGER NOT NULL);
+            INSERT INTO stock VALUES (10);
+            CREATE TABLE reservation (
+                operation_id TEXT PRIMARY KEY,
+                quantity INTEGER NOT NULL,
+                remaining INTEGER NOT NULL
+            );
+        &quot;&quot;&quot;</span>)
+
+    server = grpc.server(workers)
+    service.add_InventoryServicer_to_server(Inventory(db_path), server)
+    port = server.add_insecure_port(<span class="hljs-string">&quot;127.0.0.1:0&quot;</span>)
+    server.start()
+    <span class="hljs-keyword">try</span>:
+        <span class="hljs-keyword">with</span> grpc.insecure_channel(<span class="hljs-string">f&quot;127.0.0.1:<span class="hljs-subst">{port}</span>&quot;</span>) <span class="hljs-keyword">as</span> channel:
+            grpc.channel_ready_future(channel).result(timeout=<span class="hljs-number">5</span>)
+            stub = service.InventoryStub(channel)
+            expect_error(stub.SlowCheck, pb.Empty(), <span class="hljs-number">0.1</span>, grpc.StatusCode.DEADLINE_EXCEEDED)
+
+            request = pb.ReserveRequest(operation_id=<span class="hljs-string">&quot;op-42&quot;</span>, quantity=<span class="hljs-number">3</span>)
+            expect_error(stub.Reserve, request, <span class="hljs-number">2</span>, grpc.StatusCode.UNAVAILABLE)
+            replay = stub.Reserve(request, timeout=<span class="hljs-number">2</span>)
+            <span class="hljs-keyword">assert</span> replay.remaining == <span class="hljs-number">7</span>
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;client replay operation_id=<span class="hljs-subst">{request.operation_id}</span> remaining=<span class="hljs-subst">{replay.remaining}</span>&quot;</span>)
+
+            conflict = pb.ReserveRequest(operation_id=<span class="hljs-string">&quot;op-42&quot;</span>, quantity=<span class="hljs-number">4</span>)
+            expect_error(stub.Reserve, conflict, <span class="hljs-number">2</span>, grpc.StatusCode.ALREADY_EXISTS)
+
+        <span class="hljs-keyword">with</span> closing(sqlite3.connect(db_path)) <span class="hljs-keyword">as</span> db:
+            remaining = db.execute(<span class="hljs-string">&quot;SELECT remaining FROM stock&quot;</span>).fetchone()[<span class="hljs-number">0</span>]
+            count = db.execute(<span class="hljs-string">&quot;SELECT COUNT(*) FROM reservation&quot;</span>).fetchone()[<span class="hljs-number">0</span>]
+            <span class="hljs-keyword">assert</span> (remaining, count) == (<span class="hljs-number">7</span>, <span class="hljs-number">1</span>)
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;database remaining=<span class="hljs-subst">{remaining}</span> reservations=<span class="hljs-subst">{count}</span>&quot;</span>)
+    <span class="hljs-keyword">finally</span>:
+        server.stop(grace=<span class="hljs-number">1</span>).wait()
+</code></pre>
+<h3 id="113-执行后看哪些证据">11.3 执行后看哪些证据</h3>
+<pre><code class="hljs language-bash"><span class="hljs-comment"># 启动本地示例，依次验证请求超时、提交后失败、同键重放和同键异参</span>
+python reservation_lab.py
+</code></pre>
+<pre><code class="hljs language-text">client status=DEADLINE_EXCEEDED
+server commit operation_id=op-42 remaining=7
+client status=UNAVAILABLE
+client replay operation_id=op-42 remaining=7
+client status=ALREADY_EXISTS
+database remaining=7 reservations=1
+</code></pre>
+<p><code>SlowCheck</code> 故意晚于 100 ms 的客户端期限，演示调用方先结束等待。库存写入则是另一种情况。服务端先有提交记录，客户端后看到 <code>UNAVAILABLE</code>。再次使用 <code>op-42</code> 时读回的是已保存的结果。最后一行同时核对了余额和记录数，说明库存只由 10 扣到 7 一次。换成不同的数量重用同一个键时，服务端拒绝这次冲突。生产服务还需要把幂等键限制在租户和操作作用域内。 <a href="https://grpc.io/docs/languages/python/quickstart/">gRPC Python 快速开始</a> · <a href="https://docs.python.org/3/library/sqlite3.html#transaction-control">Python SQLite 事务控制</a></p>
 <h2 id="12-异步-rpc-怎么管理在途请求">12. 异步 RPC 怎么管理在途请求</h2>
 <p>自研多路复用协议通常在发送前按请求 ID 登记待完成的 Future，响应按 ID 找回。写失败、超时、取消、连接关闭都要清掉条目。超时和响应可能同时到达，用原子移除让其中一方取得完成权。迟到响应单独计数。请求 ID 必须在关联范围内保持唯一，断线重建时也要防止旧数据误配给新请求。</p>
 <p>调用方可以用 Future 或异步 Stub 并行查询两个互不依赖的仓库。提交前限制在途数，异步回调里避免等待其他 RPC，耗时处理交给业务执行器。若客户请求已经取消，应取消尚无用途的子调用。对照压测吞吐、P99、在途数和执行器拒绝量，排查“吞吐有提升，但尾延迟和内存突然上涨”的情况。</p>
@@ -444,6 +606,51 @@ grpcurl -version
 <li>复查下单成功率、P99、库存队列和每次调用的平均尝试数。抽查超时的写入，确认同一个操作 ID 只有一条预留记录。</li>
 </ol>
 <p>如果停止盘点流量后队列仍高，再分实例观察。个别节点仍异常时检查发布版本、线程池和连接池，对异常节点摘流。所有节点同时慢时，先看共享数据库和下游。扩 RPC 实例之前校验它会不会同时放大数据库连接数，把瓶颈转移到数据库。</p>
+<h3 id="261-对照同一条-trace-的两端记录">26.1 对照同一条 trace 的两端记录</h3>
+<p>下面是示意日志。<code>trace</code> 贯穿一次下单，<code>attempt</code> 区分库存调用的每次尝试。用每个进程测得的耗时判断所在阶段，避免直接拿两台机器的墙钟相减。</p>
+<pre><code class="hljs language-text">checkout trace=92d1 attempt=1 phase=send target=inventory-02 client_wait_ms=10
+inventory trace=92d1 attempt=1 phase=handler_start server_queue_ms=215
+checkout trace=92d1 attempt=1 phase=end rpc_ms=250 status=DEADLINE_EXCEEDED
+inventory trace=92d1 attempt=1 phase=handler_end handler_ms=35
+</code></pre>
+<p>这组数据里库存处理只花了 35 ms，但服务端排了 215 ms。库存已经进入业务方法，单查 DNS 和端口解释不了这次超时。先看相同实例上的执行器队列和数据库连接等待。如果每条 trace 都是 <code>client_wait_ms</code> 高而库存没有入队记录，就改查客户端连接与并发流。若库存有 <code>operation_id</code> 的提交记录但调用方仍超时，按这个 ID 查业务结果。</p>
+<table>
+<thead>
+<tr>
+<th>指标示例</th>
+<th style="text-align:right">限制盘点流量前</th>
+<th style="text-align:right">限制后</th>
+<th>怎样判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>库存服务排队 P99</td>
+<td style="text-align:right">220 ms</td>
+<td style="text-align:right">24 ms</td>
+<td>队列拥塞明显缓解</td>
+</tr>
+<tr>
+<td>库存业务执行 P99</td>
+<td style="text-align:right">41 ms</td>
+<td style="text-align:right">39 ms</td>
+<td>处理本身几乎没变</td>
+</tr>
+<tr>
+<td>每次库存调用的平均尝试数</td>
+<td style="text-align:right">1.70</td>
+<td style="text-align:right">1.04</td>
+<td>重试放大减少</td>
+</tr>
+<tr>
+<td>下单服务成功率</td>
+<td style="text-align:right">96.4%</td>
+<td style="text-align:right">99.8%</td>
+<td>业务恢复，再观察高峰能否保持</td>
+</tr>
+</tbody>
+</table>
+<p>这些值用于示范验证顺序。实际复查时用同类流量、相近窗口和同一组实例比较。只看到超时数下降，还需要确认原始流量和成功率，避免把请求更早被拒绝误认成恢复。</p>
 <h2 id="27-rpc-变更上线前怎么验收">27. RPC 变更上线前怎么验收</h2>
 <table>
 <thead>
@@ -481,4 +688,4 @@ grpcurl -version
 </tr>
 </tbody>
 </table>
-`;return(u,l)=>(n(),e("div",null,[s(t,{doc:JSON.parse(u.$frontmatter.kb).doc,content:c,base:"../"},null,8,["doc"])]))}});export{i as __pageData,o as default};
+`;return(u,p)=>(s(),t("div",null,[e(n,{doc:JSON.parse(u.$frontmatter.kb).doc,content:c,base:"../"},null,8,["doc"])]))}});export{o as __pageData,i as default};
